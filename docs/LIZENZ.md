@@ -9,11 +9,11 @@ Diese Seite beschreibt, unter welcher Lizenz die Mod steht, worauf sie aufbaut u
 | Lizenz | GNU AGPL-3.0, unveränderter Standardtext |
 | Warum AGPL | Die Mod wird gegen RICS (AGPL-3.0) gebaut und greift per Harmony in RICS ein (ADR 0001). |
 | Gilt nicht für | Den Twitch Companion JS server. Er ist ein eigenes Programm mit eigener Lizenz; die Mod spricht nur über dessen HTTP-Schnittstellen mit ihm. |
-| Quellcode | Repository vorerst privat; vor dem ersten Einsatz im Stream öffentlich (AGPL, auch §13). |
+| Quellcode | Öffentlich in diesem Repository (erfüllt die Quellcode-Pflicht der AGPL, auch §13). |
 
 ## Verhältnis zum Server
 - Kein Code aus dem Server, kein Code von hier im Server.
-- Genutzte Schnittstellen: noch keine vereinbart (Entwürfe in `serveranforderungen/`, Stand in `ARCHITEKTUR.md`).
+- Genutzte Schnittstellen: noch keine vereinbart (Server-Issues #74, #79, #80, #81; Stand in `ARCHITEKTUR.md`).
 
 ## Verwendete Bestandteile
 | Bestandteil | Herkunft | Lizenz / Hinweis |
