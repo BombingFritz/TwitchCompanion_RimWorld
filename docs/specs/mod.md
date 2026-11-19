@@ -94,9 +94,11 @@ Wunsch des Nutzers (19.11.2026): Je mehr gekauft und ausgegeben wird, desto teur
 - Patch auf `VoteHandler.CheckForQueuedVotes`: Die Abstimmung endet nicht nach der TTK-Zeit, sondern mit dem Ergebnis vom Server (höchstens Laufzeit plus 30 s, dann entscheidet das TTK selbst). Der Gewinner wird so eingesetzt, dass `DecideWinner` ihn wählt.
 - Startet keine Twitch-Abstimmung (schon eine offen, Server meldet Grund): Abstimmung wie bisher im Chat mit Zahlen.
 - Twitch-Abstimmungen geben jedem Zuschauer eine Stimme; die Zusatzstimmen des TTK für Subs, VIPs und Mods entfallen.
-- Ersatz mit Kanalpunkten, Wunsch des Nutzers: Jede weitere Stimme kostet doppelt so viel wie die vorige. Twitch kennt je Abstimmung nur einen festen Preis je Zusatzstimme (`channel_points_per_vote`); eine Verdopplung innerhalb einer Abstimmung ist dort nicht möglich (Stand der Twitch-API nach meinem Wissen, vor der Umsetzung zu prüfen). Möglich sind:
-  - **A (Vorschlag):** Inflation von Abstimmung zu Abstimmung: Der Preis je Zusatzstimme steigt, je mehr Kanalpunkte-Stimmen in den letzten Abstimmungen fielen, und sinkt ohne sie wieder (wie die Preisinflation). Alles bleibt in Twitch und SpargelPoll sichtbar.
-  - **B:** Zusatzstimmen mit TTK-Coins im Chat, mit Verdopplung je Stimme. Sie würden erst nach dem Ende zum Twitch-Ergebnis addiert und wären in SpargelPoll nicht zu sehen.
+- Ersatz mit Kanalpunkten (Nutzer, 19.11.2026): Zusatzstimmen sind teuer, damit langjährige Zuschauer mit vielen Punkten nicht alle anderen überstimmen.
+  - Preis fest **3000 Kanalpunkte je Zusatzstimme** (Einstellung).
+  - Nur bei **etwa jeder dritten Abstimmung**: Die Mod schaltet Kanalpunkte-Stimmen je Abstimmung mit Wahrscheinlichkeit 1/3 ein (Einstellung). „Etwa“ als Zufall gedeutet, nicht als feste Folge; gilt für alle Abstimmungen, die die Mod startet, auch für die Raid-Rolle [Deutung von Claude, Bestätigung offen].
+  - Ist sie eingeschaltet, nennt die Mod das in der Ankündigung im Chat.
+  - Eine Verdopplung je Stimme ist damit vom Tisch; Twitch kennt je Abstimmung ohnehin nur einen festen Preis (`channel_points_per_vote`).
 - Twitch-Grenzen: 2 bis 5 Optionen, Titel bis 60 und Optionen bis 25 Zeichen, 15 bis 1800 s. Das TTK stellt 2 bis 5 Optionen (`VoteOptions`, Vorgabe 3), das passt; zu lange Namen kürzt die Mod (Kategorie oder Typ statt langem Namen).
 
 ## Stufe 4 (später): Spielereignisse, Wetten, Balancing

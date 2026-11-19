@@ -9,12 +9,12 @@
 | 4 | Zweiter Raid binnen 20 min | das Gegenteil des vorigen: feindlich ↔ verbündet; nach Händler oder Besuch normale Gewichtung |
 | 5 | Gewichte der Raid-Rollen | 50/15/10/10/15 als Start |
 | 6 | `!privat` im Chat-Kanal des Servers | so einfach und stabil wie möglich → Kennzeichen an jeder Nachricht |
+| 8 | Zusatzstimmen mit Kanalpunkten | fest 3000 Punkte je Zusatzstimme, nur bei etwa jeder dritten Abstimmung (Mod deutet „etwa“ als Zufall 1/3, Bestätigung offen) |
 
 ## Noch zu entscheiden
 | # | Frage | Vorschlag | Betrifft |
 |---|---|---|---|
 | 7 | Startwerte der Preisinflation: Halbwertszeit, Referenzumsatz, Obergrenze | 20 min, 3000 Coins, ×4 | 0.1b |
-| 8 | Kanalpunkte-Stimmen: Twitch kann den Preis nicht innerhalb einer Abstimmung verdoppeln. A: Preis steigt von Abstimmung zu Abstimmung (in SpargelPoll sichtbar). B: Zusatzstimmen mit Coins im Chat, mit Verdopplung (nicht in SpargelPoll sichtbar) | A | Stufe 3, SA-4 |
 | 9 | `!privat` rückwirkend: Zuschauerdaten im TTK löschen, Kolonist bekommt einen zufälligen Namen | ja | 0.1 |
 | 10 | Beitrittsbefehl für Raider | `!dabei` | Stufe 2 |
 | 11 | Befehl für den aktuellen Preisfaktor | `!preise` | 0.1b |
