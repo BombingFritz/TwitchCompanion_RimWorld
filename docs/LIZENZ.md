@@ -19,9 +19,11 @@ Diese Seite beschreibt, unter welcher Lizenz die Mod steht, worauf sie aufbaut u
 | Bestandteil | Herkunft | Lizenz / Hinweis |
 |---|---|---|
 | Code der Mod | im Auftrag des Nutzers mit einem KI-Assistenten (Claude Code) geschrieben | AGPL-3.0 (dieses Repository) |
-| RICS | `ekudram/-cap-RimworldInteractiveChatServices` | AGPL-3.0; nur referenziert, nicht mitgeliefert |
+| RICS | `ekudram/-cap-RimworldInteractiveChatServices` | AGPL-3.0; zur Laufzeit per Reflexion genutzt, nicht mitgeliefert |
 | Harmony | `pardeike/Harmony` | MIT; nur referenziert, zur Laufzeit von der Harmony-Mod |
 | RimWorld-Referenzen | NuGet `Krafs.Rimworld.Ref` | nur zum Bauen, nicht mitgeliefert |
+| .NET-Framework-Referenzen | NuGet `Microsoft.NETFramework.ReferenceAssemblies` | MIT; nur zum Bauen |
+| Testwerkzeuge | NuGet `xunit`, `xunit.runner.visualstudio`, `Microsoft.NET.Test.Sdk` | Apache-2.0 bzw. MIT; nur für Tests, nicht mitgeliefert |
 
 Fremder Code: keiner bisher.
 
@@ -30,7 +32,8 @@ Fremder Code: keiner bisher.
 |---|---|---|
 | Server auf diesem PC (`http://localhost:3000`, einstellbar) | Befehle empfangen, Chatzeilen senden, Liste aktiver Chatter, Raids, Abstimmungen (geplant) | Login, Anzeigename, Twitch-User-ID, Abzeichen, Befehlstext; keine sonstigen Chatnachrichten |
 | RICS-Dateien (von RICS selbst) | Zuschauer, Coins, Karma, Kolonisten | wie bisher in RICS; Zuschauer mit `!privat` werden nicht eingetragen |
-| Mod-Einstellungen | Server-Adresse, Werte für Inflation, Raid, Abstimmungen | keine Personendaten |
+| Mod-Einstellungen | Brücke an/aus, Server-Adresse, Testmodus; später Werte für Inflation, Raid, Abstimmungen | keine Personendaten |
+| Log (`Player.log`) im Testmodus | Kontrolle der Antworten | RICS-Antworten, oft mit Zuschauernamen; nur lokal |
 | Spielstand | Kolonisten tragen Zuschauernamen (RICS) | ohne `!privat`-Zuschauer |
 
 Keine Telemetrie, keine KI- oder Cloud-Dienste, keine Verbindung zu Twitch.
