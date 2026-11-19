@@ -14,7 +14,7 @@
 - Spiellogik bleibt in RICS und der Mod. Vom Server werden nur allgemeine Fähigkeiten angefragt, die auch andere Verbraucher nutzen können.
 - Lizenz AGPL-3.0, wie RICS, gegen das die Mod gebaut wird.
 - Der Server ist davon nicht betroffen: eigenes Programm, Verbindung nur über die dokumentierte Schnittstelle, kein Code zwischen den Repositories. Abweichung von der Vorgabe „Module unter MIT“, begründet durch RICS.
-- Repository vorerst privat (Nutzer, 19.11.2026), spätestens vor dem ersten Einsatz im Stream öffentlich (AGPL, auch §13).
+- Repository vorerst privat (Nutzer, 19.11.2026), spätestens vor dem ersten Einsatz im Stream öffentlich (AGPL, auch §13). Nachtrag 20.11.2026: Das Repository ist öffentlich.
 
 **Verworfene Alternativen:**
 - Twitch Toolkit als Grundlage (früherer Entwurf dieses ADR): schwer zu pflegen, Coins ohne Ersatz der Zuschauerliste kaputt, keine Raids.

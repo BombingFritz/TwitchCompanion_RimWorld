@@ -20,4 +20,4 @@ Führender Ort für den Stand der Anbindung an den Server `BombingFritz/Twitch-C
 **Legacy-Ausnahmen:** keine (die Mod ruft Twitch nie direkt auf).
 
 ## RICS-Stand
-Geprüft am Quellcode, Commit vom 22.10.2026 (nach Release 1.54), nicht im Spiel. Genutzte Einstiegspunkte: Spec, Abschnitt „Einstiegspunkte und Patches“.
+RICS wird auf den Branches `1.6` und `1.7` entwickelt, nicht auf `master`. Geprüft am Quellcode von `1.6` bei Commit `b825e25` (17.11.2026, Version 1.57): Alle Einstiegspunkte aus der Spec sind vorhanden. Installiert auf dem Streaming-PC: 1.56 (laut `Player.log` vom 20.11.2026). Spielstand lädt mit RICS ohne Fehler.

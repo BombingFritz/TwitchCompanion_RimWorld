@@ -1,6 +1,6 @@
 # Spec: Twitch Companion for RimWorld (Mod)
 
-**Status:** Entwurf (19.11.2026), noch nicht vereinbart. Entscheidungen: [ADR 0001](../adr/0001-ergaenzung-zu-rics.md). Offene Fragen: [OFFEN.md](../OFFEN.md). Grundlage ist RICS (Nutzer, 19.11.2026: „lass uns auf RICS umschwenken“); geprüft am Quellcode von RICS, Commit vom 22.10.2026 (Release 1.54), noch nicht im Spiel.
+**Status:** Entwurf (19.11.2026), noch nicht vereinbart. Entscheidungen: [ADR 0001](../adr/0001-ergaenzung-zu-rics.md). Offene Fragen: [OFFEN.md](../OFFEN.md). Grundlage ist RICS (Nutzer, 19.11.2026: „lass uns auf RICS umschwenken“); geprüft am Quellcode von RICS (Branch `1.6`, Version 1.57, Stand in `ARCHITEKTUR.md`); RICS 1.56 startet beim Nutzer ohne Twitch-Token und lädt einen Spielstand ohne Fehler (20.11.2026).
 
 ## Ziel
 Zuschauer spielen RimWorld über die Mod **RICS** ([CAP] Rimworld Interactive Chat Service, `ekudram/-cap-RimworldInteractiveChatServices`, AGPL-3.0) mit, ohne dass RICS selbst mit Twitch spricht. Alles, was Twitch betrifft, läuft über den Twitch Companion JS server; dessen Chatbot DerBdu antwortet für das Spiel.

@@ -22,7 +22,9 @@
 | 13 | Abstand der Ereignis-Abstimmungen und Anzahl der Optionen | 20 min, 3 Optionen | Stufe 3 |
 
 ## Zu prüfen (im Spiel bzw. im RICS-Code)
-- RICS startet ohne Twitch-Token: **bis ins Hauptmenü bestätigt** (`Player.log` vom 19.11.2026: RimWorld 1.6.4871, keine Fehler, kein Verbindungsversuch zu Twitch). Ob ein Spielstand geladen wurde, zeigt das Log nicht. RICS meldet „XML settings do not match the latest JSON backup“ und konnte den Hinweisdialog nicht anzeigen [UNGEKLÄRT, in den RICS-Einstellungen prüfen].
+- RICS ohne Twitch-Token: **bestätigt** (`Player.log` vom 20.11.2026: RimWorld 1.6.4871, RICS 1.56, Spielstand mit Harmony, Ideology, Biotech und RICS geladen, keine Fehler, kein Verbindungsversuch zu Twitch). Der Hinweis „XML settings do not match the latest JSON backup“ war nach dem Umstieg zu erwarten; RICS hat danach eine neue Sicherung geschrieben, beim nächsten Start sollte er fehlen.
+- RICS-Einstellung „Log All Chat Messages“ ist an: Dann stehen Chatnachrichten in der `Player.log`. Für Streams ausschalten, solange nicht zur Fehlersuche gebraucht (Datenschutz, `!privat`). „Enable Debug Logging“ kann zum Testen an bleiben.
+- RICS führt das Spielereignis `RaidFriendly` (verbündete Gruppe, Vorgabe aus) – Kandidat für die Raid-Rolle „Verbündete“.
 - Wie RICS Moderator, VIP und Subscriber aus einer Nachricht liest (`Viewer.UpdateFromMessage`).
 - Nebenwirkungen, wenn `TwitchService.IsConnected` wahr meldet, ohne verbunden zu sein (Patch P2).
 - Aktivität für Coins auffrischen, ohne die Nachrichtenzählung von RICS zu verfälschen; ob RICS ohne Kategorie RimWorld weiter Coins verteilt.
