@@ -1,25 +1,25 @@
-<!-- Entwurf für ein neues Issue im Server-Repository, Vorlage „Serveranforderung“. Noch nicht angelegt. -->
+<!-- Entwurf, NICHT AUF GITHUB ANGELEGT: neues Issue im Server-Repository, Vorlage „Serveranforderung“. -->
 
 **Titel:** Serveranforderung: Eingehende Raids an lokale Verbraucher melden (RimWorld: Raid im Spiel)
 
 ## Bedarf
-Ein Twitch-Raid soll in RimWorld als Gruppe ankommen: Der Anführer heißt wie der raidende Kanal, Zuschauer tragen sich als Mitglieder ein. Ob die Gruppe angreift, hilft, handelt oder nur besucht, entscheidet die Mod per Zufall, auf Wunsch per Abstimmung (Nutzer, 19.11.2026). Dafür muss die Mod erfahren, dass ein Raid eingeht. Die Fähigkeit ist allgemein und könnte auch anderen Spielen oder Widgets dienen.
+Ein Twitch-Raid soll in RimWorld als Gruppe ankommen: Der Anführer heißt wie der raidende Kanal, Zuschauer treten bei. Die RimWorld-Mod RICS kann das schon, löst es aber nur über ihre eigene Twitch-Verbindung aus, die mit dem Server entfällt. Ob die Gruppe angreift, hilft, handelt oder besucht, entscheidet die RimWorld-Mod per Zufall, auf Wunsch per Abstimmung (Nutzer, 19.11.2026). Die Fähigkeit ist allgemein und könnte auch anderen Spielen oder Widgets dienen.
 
 ## Verbraucher und Stand
-- Repository und eigenes Feature-Issue: `BombingFritz/TwitchCompanion_RimWorld`, Spec `docs/specs/mod.md` (Stufe 2)
+- Repository und eigenes Feature-Issue: `BombingFritz/TwitchCompanion_RimWorld`, Spec `docs/specs/mod.md` (Stufe 2); Feature-Issue noch nicht angelegt
 - Getesteter Server-Stand (Commit oder Release): `main` @ `0428608` (nur gelesen)
 - Betroffene Spec: `raid-begruessung.md` (bleibt unverändert, der Raid soll zusätzlich gemeldet werden)
 
 ## Aktuelles Verhalten
-Der Server empfängt `channel.raid`, begrüßt und zählt den Raid. Verbraucher erfahren davon nichts. Früher hat die Mod ToolkitRaids die Raid-Meldung aus dem IRC von ToolkitCore gelesen; diese Verbindung gibt es mit dem Server nicht mehr.
+Der Server empfängt `channel.raid`, begrüßt und zählt den Raid. Verbraucher erfahren davon nichts.
 
 ## Benötigte Fähigkeit
 - Je eingehendem Raid eine Meldung an verbundene Verbraucher, binnen weniger Sekunden: eindeutige ID, Zeitpunkt, raidender Kanal (ID, Login, Anzeigename), Zuschauerzahl.
-- Jeder Raid genau einmal, auch bei doppelt zugestellten Ereignissen (dort ADR 0009). Ausgehende Raids nicht.
-- Kein Nachliefern, wenn die Mod gerade nicht verbunden ist.
+- Jeder Raid genau einmal, auch bei doppelt zugestellten Ereignissen (ADR 0009). Ausgehende Raids nicht.
+- Kein Nachliefern, wenn der Verbraucher gerade nicht verbunden ist.
 - Rolle, Gruppengröße und Beitritt regelt die Mod; der Beitrittsbefehl läuft über den Chat-Kanal aus Issue #74.
 
-Optionaler API-Vorschlag (noch nicht vereinbart): Ereignis `raid` `{id, at, fromId, fromLogin, fromName, viewers}` im Ereignisstrom aus Issue #74, für Verbraucher, die es anfordern (z. B. `events=raid`).
+Optionaler API-Vorschlag (noch nicht vereinbart): Ereignis `raid` `{id, at, fromId, fromLogin, fromName, viewers}` im Ereignisstrom aus Issue #74, für Verbraucher, die es anfordern.
 
 ## Akzeptanzkriterien
 - [ ] Eingehender Raid mit 12 Zuschauern: genau eine Meldung mit Name und Zahl.
@@ -31,4 +31,4 @@ Optionaler API-Vorschlag (noch nicht vereinbart): Ereignis `raid` `{id, at, from
 
 ## Auswirkungen
 - Blockiert Stufe 2 der Mod (Raid im Spiel). Stufe 1 ist unabhängig.
-- Demo möglich: Die Mod kann den Raid im Spiel auch über ein Entwicklermenü auslösen.
+- Demo möglich: RICS hat laut Code eine Debug-Auslösung für den Twitch-Raid (`TwitchRaidDebug`).

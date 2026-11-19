@@ -1,41 +1,37 @@
-<!-- Entwurf für ein neues Issue im Server-Repository, Vorlage „Serveranforderung“. Noch nicht angelegt. -->
+<!-- Entwurf, NICHT AUF GITHUB ANGELEGT: neues Issue im Server-Repository, Vorlage „Serveranforderung“. -->
 
 **Titel:** Serveranforderung: Liste der aktiven Chatter und aktuelle Kategorie für lokale Verbraucher (RimWorld-Coins)
 
 ## Bedarf
-Die Mod Twitch Toolkit vergibt Coins an Zuschauer, die im Chat aktiv sind. Ihre Zuschauerliste holt sie von `tmi.twitch.tv/group/user/<kanal>/chatters`. Twitch hat diesen Endpunkt 2023 abgeschaltet; seitdem vergibt das Toolkit keine Coins mehr. Die RimWorld-Mod soll die Liste stattdessen vom Server bekommen, der den Chat ohnehin empfängt und Chatter für die Statistik schon kennt.
+Die RimWorld-Mod RICS vergibt Coins an Zuschauer, die in den letzten Minuten im Chat aktiv waren, auch wenn sie keine Befehle schreiben. Über den Chat-Kanal aus Issue #74 bekommt die Mod aber nur Befehle. Damit plaudernde Zuschauer weiter Coins bekommen, braucht sie die Liste der aktiven Chatter vom Server, der den Chat ohnehin empfängt und Chatter für die Statistik schon kennt. Dieselbe Liste nutzt RICS beim Twitch-Raid: Wer während des Beitrittsfensters schreibt, wird Raider.
 
-Außerdem soll das Spiel nur dann reagieren (Befehle, Coins), wenn gerade RimWorld gestreamt wird. Die Kategorie kennt der Server (`currentCategory`).
+Außerdem soll das Spiel nur reagieren, wenn gerade RimWorld gestreamt wird (Nutzer, 19.11.2026). Die Kategorie kennt der Server (`currentCategory`).
 
 ## Verbraucher und Stand
-- Repository und eigenes Feature-Issue: `BombingFritz/TwitchCompanion_RimWorld`, Spec `docs/specs/mod.md` (Stufe 1, „Zuschauer und Coins“)
-- Getesteter Server-Stand (Commit oder Release): `main` @ `0428608` (nur gelesen, nicht gegen die Mod getestet)
-- Betroffene Spec: keine vorhandene; berührt `statistik.md` (Chatter), `wetten-abstimmungen.md` nicht
+- Repository und eigenes Feature-Issue: `BombingFritz/TwitchCompanion_RimWorld`, Spec `docs/specs/mod.md` (Stufe 1, „Zuschauer und Coins“; Stufe 2); Feature-Issue noch nicht angelegt
+- Getesteter Server-Stand (Commit oder Release): `main` @ `0428608` (nur gelesen)
+- Betroffene Spec: keine vorhandene; berührt `statistik.md` (Chatter)
 
 ## Aktuelles Verhalten
-- Im Toolkit: `Viewers.RefreshViewers()` fragt den TMI-Endpunkt jede Minute ab; der liefert keine Liste mehr, `Viewers.jsonallviewers` bleibt `null`, und `Ticker` überspringt die Coin-Vergabe (aus dem Code gelesen, nicht im Spiel beobachtet).
-- Im Server: Chatter werden je Stream in `stream_stats.json` gezählt (`noteChatter`), aber keinem Verbraucher angeboten. Die Kategorie steht in `/api/admin/overview`, das nur für die Webkonsole gedacht ist.
+Chatter werden je Stream in `stream_stats.json` gezählt (`noteChatter`), aber keinem Verbraucher angeboten. Die Kategorie steht in `/api/admin/overview`, das nur für die Webkonsole gedacht ist.
 
 ## Benötigte Fähigkeit
-- Eine Liste der Zuschauer, die in den letzten 60 Minuten im eigenen Kanal geschrieben haben, je Zuschauer: Login, Anzeigename, Zeitpunkt der letzten Nachricht, Moderator/VIP/Subscriber laut Abzeichen. Ohne Broadcaster, Bot, die Bots aus `STATS_EXCLUDED_CHATTERS` und ohne Zuschauer mit `!privat` (die spielen nicht mit, Nutzer, 19.11.2026).
+- Eine Liste der Zuschauer, die in den letzten 60 Minuten im eigenen Kanal geschrieben haben, je Zuschauer: Twitch-User-ID, Login, Anzeigename, Zeitpunkt der letzten Nachricht, Moderator/VIP/Subscriber laut Abzeichen. Ohne Broadcaster, Bot, die Bots aus `STATS_EXCLUDED_CHATTERS` und ohne Zuschauer mit `!privat` (die spielen nicht mit, Nutzer, 19.11.2026).
 - Aktualisierung etwa jede Minute reicht.
-- Die aktuelle Twitch-Kategorie mit Zeitpunkt der letzten Änderung (betrifft auch Issue #78). Die Mod reagiert nur in der Kategorie RimWorld (Nutzer, 19.11.2026); ob der Server das prüft oder die Mod, entscheidet der Server.
+- Die aktuelle Twitch-Kategorie mit Zeitpunkt der letzten Änderung (betrifft auch Issue #78). Ob der Server die Kategorie prüft oder die Mod, entscheidet der Server.
 - Keine neue Twitch-Abfrage nötig. Wer nie schreibt (Lurker), fehlt; das ist fürs Balancing gewollt (Nutzer, 19.11.2026).
 
-Optionaler API-Vorschlag (noch nicht vereinbart):
-- Lesen: `GET /api/chat/active` → `{updatedAt, windowMinutes, chatters: [{login, name, lastChatAt, moderator, vip, subscriber}]}` und `GET /api/twitch/channel` → `{category, categoryChangedAt, live, updatedAt}`, beide nach dem Muster „letzter Stand ohne Twitch-Anfrage“ (ADR 0023), nur lokal. Die Mod fragt jede Minute.
-- Alternativ als Ereignis im Strom aus Issue #74, wenn der Server lieber pusht.
+Optionaler API-Vorschlag (noch nicht vereinbart): `GET /api/chat/active` → `{updatedAt, windowMinutes, chatters: [{id, login, name, lastChatAt, moderator, vip, subscriber}]}` und `GET /api/twitch/channel` → `{category, categoryChangedAt, live, updatedAt}`, beide nach dem Muster „letzter Stand ohne Twitch-Anfrage“ (ADR 0023), nur lokal. Alternativ als Ereignis im Strom aus Issue #74.
 
 ## Akzeptanzkriterien
 - [ ] Zwei Zuschauer schreiben; die Liste enthält beide mit Zeitpunkt und Abzeichen der letzten Nachricht.
 - [ ] Nach 61 min ohne Nachricht fehlt ein Zuschauer.
-- [ ] Broadcaster, Bot und `nightbot` fehlen; Nachrichten aus fremdem Shared-Chat zählen nicht.
-- [ ] `!privat`-Zuschauer fehlen.
+- [ ] Broadcaster, Bot, `nightbot` und `!privat`-Zuschauer fehlen; Nachrichten aus fremdem Shared-Chat zählen nicht.
 - [ ] Nach einem Kategoriewechsel liefert der Server binnen einer Minute die neue Kategorie.
 - [ ] Verhalten bei Fehlern oder Ausfall geklärt: nach Serverstart leere Liste, kein Fehler.
 - [ ] Rückwärtskompatibilität: nur neue Endpunkte bzw. Felder.
 
 ## Auswirkungen
-- Blockiert die Coin-Vergabe in Version 0.1 der Mod. Befehle und Antworten (Issue #74) gehen auch ohne.
-- Unabhängige Weiterarbeit: Die Mod kann mit einer Attrappe entwickelt werden.
-- Datenschutz (Issue #58): Die Liste liegt nur im Arbeitsspeicher, keine neue Datei nötig.
+- Blockiert die Coins für plaudernde Zuschauer und die Kategorieprüfung in Version 0.1 sowie den automatischen Raid-Beitritt in Stufe 2. Befehle (Issue #74) gehen auch ohne.
+- Unabhängige Weiterarbeit mit einer Attrappe möglich.
+- Datenschutz (Issue #58): nur im Arbeitsspeicher, keine neue Datei nötig.

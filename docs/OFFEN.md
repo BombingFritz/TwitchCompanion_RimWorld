@@ -3,35 +3,40 @@
 ## Entschieden (Nutzer, 19.11.2026)
 | # | Frage | Entscheidung |
 |---|---|---|
-| 1 | Befehle und Coins nur in der Twitch-Kategorie „RimWorld“? | ja |
-| 2 | Lurker ohne Coins? | ja, ohne Anreiz zum Spammen (Coins je Zeitabschnitt, nicht je Nachricht); dazu **Preisinflation**: mehr Ausgaben → höhere Preise, ohne Ausgaben sinken sie wieder |
-| 3 | `!privat`-Zuschauer im Spiel? | vorerst ganz draußen, weil das TTK über den Stream hinaus speichert |
-| 4 | Zweiter Raid binnen 20 min | das Gegenteil des vorigen: feindlich ↔ verbündet; nach Händler oder Besuch normale Gewichtung |
-| 5 | Gewichte der Raid-Rollen | 50/15/10/10/15 als Start |
-| 6 | `!privat` im Chat-Kanal des Servers | so einfach und stabil wie möglich → Kennzeichen an jeder Nachricht |
-| 8 | Zusatzstimmen mit Kanalpunkten | fest 3000 Punkte je Zusatzstimme, nur bei etwa jeder dritten Abstimmung (Mod deutet „etwa“ als Zufall 1/3, Bestätigung offen) |
+| 1 | Grundlage | RICS statt Twitch Toolkit |
+| 2 | Befehle und Coins nur in der Twitch-Kategorie „RimWorld“? | ja |
+| 3 | Lurker ohne Coins? | ja, ohne Anreiz zum Spammen; dazu Preisinflation: mehr Ausgaben → höhere Preise, ohne Ausgaben sinken sie wieder |
+| 4 | `!privat`-Zuschauer im Spiel? | vorerst ganz draußen, weil RICS über den Stream hinaus speichert |
+| 5 | Zweiter Raid binnen 20 min | das Gegenteil des vorigen: feindlich ↔ verbündet; nach Händler oder Besuch normale Gewichtung |
+| 6 | Gewichte der Raid-Rollen | 50/15/10/10/15 als Start |
+| 7 | `!privat` im Chat-Kanal des Servers | so einfach und stabil wie möglich → Kennzeichen an jeder Nachricht |
+| 8 | Zusatzstimmen mit Kanalpunkten | fest 3000 Punkte je Zusatzstimme, nur bei etwa jeder dritten Abstimmung |
 
 ## Noch zu entscheiden
 | # | Frage | Vorschlag | Betrifft |
 |---|---|---|---|
-| 7 | Startwerte der Preisinflation: Halbwertszeit, Referenzumsatz, Obergrenze | 20 min, 3000 Coins, ×4 | 0.1b |
-| 9 | `!privat` rückwirkend: Zuschauerdaten im TTK löschen, Kolonist bekommt einen zufälligen Namen | ja | 0.1 |
-| 10 | Beitrittsbefehl für Raider | `!dabei` | Stufe 2 |
-| 11 | Befehl für den aktuellen Preisfaktor | `!preise` | 0.1b |
+| 9 | „Etwa jede dritte Abstimmung“: Zufall 1/3 und auch für die Raid-Abstimmung? | ja, beides | Stufe 2/3 |
+| 10 | Startwerte der Preisinflation: Halbwertszeit, Referenzumsatz, Obergrenze | 20 min, 3000 Coins, ×4 | 0.1b |
+| 11 | `!privat` rückwirkend: Zuschauer in RICS entfernen, Kolonist umbenennen | ja | 0.1 |
+| 12 | Befehl für den aktuellen Preisfaktor | `!preise` | 0.1b |
+| 13 | Abstand der Ereignis-Abstimmungen und Anzahl der Optionen | 20 min, 3 Optionen | Stufe 3 |
 
-## Zu prüfen
-- **Grundlage der Mod:** Twitch Toolkit oder RICS ([CAP] Rimworld Interactive Chat Service, `ekudram/-cap-RimworldInteractiveChatServices`, AGPL-3.0, gepflegt, RimWorld 1.6/1.7). RICS hat Raids mit Beitrittsfenster und Coins nach Chat-Aktivität, aber keine Abstimmungen. Test im Spiel durch den Nutzer, danach Spec und ADR anpassen.
-- Ob TTK 1.6.0 mit ToolkitUtils (laut Release-Notes empfohlen: 7.0.6.0-rc1 „Odyssey“) läuft, oder ob wir ohne Utils planen.
-- Welche Befehle im Stream gebraucht werden und ob Kurzformen (`!balance`) eigene Befehle brauchen.
-- Alle Wege, auf denen das TTK Preise speichert (Preisinflation darf nicht in die Dateien gelangen).
-- Ob Twitch wirklich nur einen festen Kanalpunkte-Preis je Abstimmung kennt.
-- Wie die Rollen Verbündete, Händler und Besuch im Spiel am besten entstehen (Stufe 2).
+## Zu prüfen (im Spiel bzw. im RICS-Code)
+- RICS startet ohne Twitch-Token fehlerfrei; keine eigene Twitch-Verbindung.
+- Wie RICS Moderator, VIP und Subscriber aus einer Nachricht liest (`Viewer.UpdateFromMessage`).
+- Nebenwirkungen, wenn `TwitchService.IsConnected` wahr meldet, ohne verbunden zu sein (Patch P2).
+- Aktivität für Coins auffrischen, ohne die Nachrichtenzählung von RICS zu verfälschen; ob RICS ohne Kategorie RimWorld weiter Coins verteilt.
+- Methode, an der RICS den Kaufpreis bestimmt (Inflation).
+- Saubere Entfernung eines Zuschauers in RICS (`!privat` rückwirkend).
+- Raid-Rollen Verbündete, Händler und Besuch; automatischer Beitritt aller, die im Fenster schreiben.
+- Ob Twitch nur einen festen Kanalpunkte-Preis je Abstimmung kennt.
+- Status des Steam-Workshop-Eintrags von RICS (laut einer Suchmaschinen-Kopie entfernt); GitHub-Releases als Quelle.
 
 ## Serveranforderungen
-Entwürfe in `serveranforderungen/`. Anlegen im Server-Repository durch den Nutzer oder eine Session mit Issue-Zugriff; danach hier die Issue-Nummern eintragen.
+Entwürfe in `serveranforderungen/`, **nicht auf GitHub angelegt** (diese Session hat keinen Issue-Zugriff auf den Server). Nach dem Anlegen hier die Nummern eintragen, eigene Feature-Issues anlegen und verlinken, die Entwürfe löschen.
 | Entwurf | Art | Issue |
 |---|---|---|
-| SA-1 Chat-Befehle und Chatzeilen | Ergänzung zu Issue #74 | – |
-| SA-2 Aktive Chatter und Kategorie | neues Issue | – |
-| SA-3 Eingehende Raids an Verbraucher | neues Issue | – |
-| SA-4 Twitch-Abstimmung im Auftrag eines Verbrauchers | neues Issue | – |
+| SA-1 Chat-Befehle und Chatzeilen | Ergänzung zu Server-Issue #74 | – |
+| SA-2 Aktive Chatter und Kategorie | neues Server-Issue | – |
+| SA-3 Eingehende Raids an Verbraucher | neues Server-Issue | – |
+| SA-4 Twitch-Abstimmung im Auftrag eines Verbrauchers | neues Server-Issue | – |

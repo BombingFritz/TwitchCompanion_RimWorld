@@ -4,4 +4,4 @@ Format nach [Keep a Changelog](https://keepachangelog.com/de/1.1.0/), Versionen 
 
 ## [Unveröffentlicht]
 ### Hinzugefügt
-- Planung: Spec-Entwurf der Mod, ADR 0001, offene Punkte, Entwürfe für Serveranforderungen.
+- Planung auf Grundlage von RICS: Spec-Entwurf der Mod, ADR 0001, Regeln für KI-Assistenten nach dem Vorbild des Wett-Widgets, Lizenzseite, PR-Vorlage, offene Punkte, Entwürfe für Serveranforderungen.
