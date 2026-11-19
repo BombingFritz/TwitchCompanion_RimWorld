@@ -20,6 +20,7 @@
 | 11 | Befehl für den aktuellen Preisfaktor | `!preise` | 0.1b |
 
 ## Zu prüfen
+- **Grundlage der Mod:** Twitch Toolkit oder RICS ([CAP] Rimworld Interactive Chat Service, `ekudram/-cap-RimworldInteractiveChatServices`, AGPL-3.0, gepflegt, RimWorld 1.6/1.7). RICS hat Raids mit Beitrittsfenster und Coins nach Chat-Aktivität, aber keine Abstimmungen. Test im Spiel durch den Nutzer, danach Spec und ADR anpassen.
 - Ob TTK 1.6.0 mit ToolkitUtils (laut Release-Notes empfohlen: 7.0.6.0-rc1 „Odyssey“) läuft, oder ob wir ohne Utils planen.
 - Welche Befehle im Stream gebraucht werden und ob Kurzformen (`!balance`) eigene Befehle brauchen.
 - Alle Wege, auf denen das TTK Preise speichert (Preisinflation darf nicht in die Dateien gelangen).
