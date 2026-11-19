@@ -7,7 +7,7 @@ RimWorld-Mod, die die Mod **RICS** ([CAP] Rimworld Interactive Chat Service) an 
 ## Voraussetzungen (geplant)
 - RimWorld 1.6, Harmony
 - [RICS](https://github.com/ekudram/-cap-RimworldInteractiveChatServices/releases) ab 1.54, **ohne** eingetragenen Twitch-Token
-- Twitch Companion JS server auf demselben PC, mit den Fähigkeiten aus `docs/serveranforderungen/` (noch nicht vereinbart)
+- Twitch Companion JS server auf demselben PC, mit den Fähigkeiten aus den Server-Issues #74, #79, #80, #81 (noch nicht vereinbart, siehe `docs/ARCHITEKTUR.md`)
 
 ## Daten und Netzwerk
 Siehe [docs/LIZENZ.md](docs/LIZENZ.md), Abschnitt „Daten und Verbindungen“. Kurz: nur Verbindung zum Server auf diesem PC, kein Twitch-Token; Zuschauerdaten speichert RICS in seinen eigenen Dateien.

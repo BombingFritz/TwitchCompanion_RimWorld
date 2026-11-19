@@ -22,7 +22,7 @@
 | 13 | Abstand der Ereignis-Abstimmungen und Anzahl der Optionen | 20 min, 3 Optionen | Stufe 3 |
 
 ## Zu prüfen (im Spiel bzw. im RICS-Code)
-- RICS startet ohne Twitch-Token fehlerfrei; keine eigene Twitch-Verbindung.
+- RICS startet ohne Twitch-Token: **bis ins Hauptmenü bestätigt** (`Player.log` vom 19.11.2026: RimWorld 1.6.4871, keine Fehler, kein Verbindungsversuch zu Twitch). Ob ein Spielstand geladen wurde, zeigt das Log nicht. RICS meldet „XML settings do not match the latest JSON backup“ und konnte den Hinweisdialog nicht anzeigen [UNGEKLÄRT, in den RICS-Einstellungen prüfen].
 - Wie RICS Moderator, VIP und Subscriber aus einer Nachricht liest (`Viewer.UpdateFromMessage`).
 - Nebenwirkungen, wenn `TwitchService.IsConnected` wahr meldet, ohne verbunden zu sein (Patch P2).
 - Aktivität für Coins auffrischen, ohne die Nachrichtenzählung von RICS zu verfälschen; ob RICS ohne Kategorie RimWorld weiter Coins verteilt.
@@ -32,11 +32,5 @@
 - Ob Twitch nur einen festen Kanalpunkte-Preis je Abstimmung kennt.
 - Status des Steam-Workshop-Eintrags von RICS (laut einer Suchmaschinen-Kopie entfernt); GitHub-Releases als Quelle.
 
-## Serveranforderungen
-Entwürfe in `serveranforderungen/`, **nicht auf GitHub angelegt** (diese Session hat keinen Issue-Zugriff auf den Server). Nach dem Anlegen hier die Nummern eintragen, eigene Feature-Issues anlegen und verlinken, die Entwürfe löschen.
-| Entwurf | Art | Issue |
-|---|---|---|
-| SA-1 Chat-Befehle und Chatzeilen | Ergänzung zu Server-Issue #74 | – |
-| SA-2 Aktive Chatter und Kategorie | neues Server-Issue | – |
-| SA-3 Eingehende Raids an Verbraucher | neues Server-Issue | – |
-| SA-4 Twitch-Abstimmung im Auftrag eines Verbrauchers | neues Server-Issue | – |
+## Serveranforderungen und Feature-Issues
+Angelegt am 19.11.2026; Stand und Abhängigkeiten in `ARCHITEKTUR.md`, Abschnitt „Serverstand und Integration“, und in den Feature-Issues #2 bis #5.

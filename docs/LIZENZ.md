@@ -13,7 +13,7 @@ Diese Seite beschreibt, unter welcher Lizenz die Mod steht, worauf sie aufbaut u
 
 ## Verhältnis zum Server
 - Kein Code aus dem Server, kein Code von hier im Server.
-- Genutzte Schnittstellen: noch keine vereinbart (Entwürfe in `serveranforderungen/`, Stand in `ARCHITEKTUR.md`).
+- Genutzte Schnittstellen: noch keine vereinbart (Server-Issues #74, #79, #80, #81; Stand in `ARCHITEKTUR.md`).
 
 ## Verwendete Bestandteile
 | Bestandteil | Herkunft | Lizenz / Hinweis |

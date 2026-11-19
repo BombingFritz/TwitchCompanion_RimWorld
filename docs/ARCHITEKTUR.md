@@ -10,12 +10,12 @@ Führender Ort für den Stand der Anbindung an den Server `BombingFritz/Twitch-C
 **Genutzte Verträge:** keine. Alles, was die Mod braucht, ist noch nicht vereinbart.
 
 **Benötigte Fähigkeiten des Servers:**
-| Fähigkeit | Entwurf | Server-Issue | Blockiert |
+| Fähigkeit | Kurzname | Server-Issue | Blockiert |
 |---|---|---|---|
-| Chat-Befehle nach Wort und Präfix empfangen, Chatzeilen über die Absender-Logik senden | SA-1 | Ergänzung zu #74, nicht angelegt | Stufe 1 |
-| Liste aktiver Chatter und aktuelle Kategorie | SA-2 | nicht angelegt | Coins und Kategorieprüfung in Stufe 1 |
-| Eingehende Raids melden | SA-3 | nicht angelegt | Stufe 2 |
-| Twitch-Abstimmung starten und Ergebnis melden | SA-4 | nicht angelegt | „Chat entscheidet“ in Stufe 2, Stufe 3 |
+| Chat-Befehle nach Wort und Präfix empfangen, Chatzeilen über die Absender-Logik senden | SA-1 | [#74](https://github.com/BombingFritz/Twitch-Companion-JS-server/issues/74) mit [Ergänzung](https://github.com/BombingFritz/Twitch-Companion-JS-server/issues/74#issuecomment-7024624436) | Stufe 1 (#2) |
+| Liste aktiver Chatter und aktuelle Kategorie | SA-2 | [#79](https://github.com/BombingFritz/Twitch-Companion-JS-server/issues/79) | Coins und Kategorieprüfung in Stufe 1 (#2), Raid-Beitritt (#3) |
+| Eingehende Raids melden | SA-3 | [#80](https://github.com/BombingFritz/Twitch-Companion-JS-server/issues/80) | Stufe 2 (#3) |
+| Twitch-Abstimmung starten und Ergebnis melden | SA-4 | [#81](https://github.com/BombingFritz/Twitch-Companion-JS-server/issues/81) | „Chat entscheidet“ in Stufe 2 (#3), Stufe 3 (#4) |
 
 **Legacy-Ausnahmen:** keine (die Mod ruft Twitch nie direkt auf).
 
