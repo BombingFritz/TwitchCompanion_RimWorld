@@ -1,6 +1,18 @@
 # Architektur (Ist-Zustand)
 
-Noch kein Code. Geplanter Aufbau: [Spec](specs/mod.md), Abschnitt „Aufbau“; Entscheidungen in [adr/](adr/).
+Version 0.1 im Aufbau (Feature-Issue #2), noch ohne Serveranbindung. Geplanter Gesamtaufbau: [Spec](specs/mod.md), Abschnitt „Aufbau“; Entscheidungen in [adr/](adr/).
+
+| Datei | Inhalt |
+|---|---|
+| `About/About.xml`, `LoadFolders.xml` | Mod-Daten; packageId `BombingFritz.TwitchCompanion.RimWorld`, braucht Harmony und RICS (`Captolamia.RICS`), lädt danach |
+| `Source/TwitchCompanion/Core/` | reine Logik ohne RimWorld: `ChatLine` (Chatnachricht), `LineMerger` (Zeilen zusammenfassen, thread-sicher), `PrivacyNotices` (Hinweis an `!privat`-Zuschauer einmal je Sitzung) |
+| `Source/TwitchCompanion/Rics/RicsApi.cs` | findet die RICS-Stellen per Reflexion, gibt Nachrichten an RICS weiter (E1) |
+| `Source/TwitchCompanion/Rics/RicsPatches.cs` | Harmony-Patches P1 bis P3 |
+| `Source/TwitchCompanion/Bridge.cs` | Eingangs-Warteschlange, Ausgang, Testmodus |
+| `Source/TwitchCompanion/TwitchCompanionMod.cs` | Mod-Einstellungen (Brücke an/aus, Server-Adresse, Testmodus mit Testnachricht), Start, `GameComponent` als Hauptthread-Takt |
+| `Source/TwitchCompanion.Tests/` | Unit-Tests für `Core/` |
+
+Ablauf: Eingang → `Bridge.EnqueueIncoming` (beliebiger Thread) → je Bild bis zu 20 Nachrichten im Hauptthread an RICS. RICS-Antworten → Patches → `LineMerger` → nach 1 s Ruhe als zusammengefasste Nachricht hinaus (heute nur ins Log).
 
 ## Serverstand und Integration
 Führender Ort für den Stand der Anbindung an den Server `BombingFritz/Twitch-Companion-JS-server` (Regeln in `AGENTS.md`). Nur gemergte, auf `main` des Servers nachgewiesene Fähigkeiten zählen als verfügbar.

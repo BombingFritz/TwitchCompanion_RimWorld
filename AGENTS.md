@@ -41,7 +41,7 @@ Integriert wird in einem eigenen PR. Nur das eigene Integrations-Issue nach erf�
 
 ## Mod-Regeln
 - Vor Änderungen `docs/specs/mod.md`, `docs/ARCHITEKTUR.md`, `docs/adr/`, `docs/BUGS.md` und `docs/OFFEN.md` lesen. Bei Konflikt mit einem ADR erst nachfragen.
-- RimWorld 1.6 (1.7, sobald RICS es nutzt und geprüft ist), `net472`, Referenzen über `Krafs.Rimworld.Ref` und Harmony. RICS wird nur referenziert, nie mitgeliefert; der Pfad zur RICS-DLL steht nicht im Repository.
+- RimWorld 1.6 (1.7, sobald RICS es nutzt und geprüft ist), `net472`, Referenzen über `Krafs.Rimworld.Ref` und Harmony. RICS wird nicht mitgeliefert und nicht zur Kompilierzeit referenziert; die Mod findet die RICS-Stellen zur Laufzeit per Reflexion.
 - RICS wird über seine öffentlichen Einstiegspunkte und, wo nötig, Harmony-Patches angebunden. Jeder Patch steht mit Ziel und Zweck in `docs/specs/mod.md`, Abschnitt „Patches“; nach jedem RICS-Update prüfen.
 - Spielzustand nur im Haupt-Thread ändern. Netzwerk läuft im Hintergrund und übergibt über eine Warteschlange.
 - Versionen nur über `CHANGELOG.md` und Git-Tags (`vX.Y.Z`); Tags und Releases legt der Nutzer an.

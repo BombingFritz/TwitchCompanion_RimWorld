@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TwitchCompanion", "TwitchCompanion\TwitchCompanion.csproj", "{0D49F194-03BC-436E-A4E9-D40507F227BC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TwitchCompanion.Tests", "TwitchCompanion.Tests\TwitchCompanion.Tests.csproj", "{5D732B53-8EB9-4658-B299-1720F84ED038}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{0D49F194-03BC-436E-A4E9-D40507F227BC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0D49F194-03BC-436E-A4E9-D40507F227BC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0D49F194-03BC-436E-A4E9-D40507F227BC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0D49F194-03BC-436E-A4E9-D40507F227BC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5D732B53-8EB9-4658-B299-1720F84ED038}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5D732B53-8EB9-4658-B299-1720F84ED038}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5D732B53-8EB9-4658-B299-1720F84ED038}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5D732B53-8EB9-4658-B299-1720F84ED038}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal

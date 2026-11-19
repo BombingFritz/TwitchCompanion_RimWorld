@@ -55,9 +55,14 @@ Was die Mod vom Server braucht, ist als Serveranforderung angelegt (Server-Issue
 ### Einstiegspunkte und Patches (Stufe 1)
 | Nr. | Ziel in RICS | Art | Zweck |
 |---|---|---|---|
-| E1 | `ChatCommandProcessor.ProcessMessage(ChatMessageWrapper)`, `Viewers.UpdateViewerActivity` | Aufruf | Eingang |
-| P1 | `TwitchService.SendMessage`, `TwitchService.SendWhisperAsync` | Prefix, überspringt | Ausgang über den Server |
-| P2 | `TwitchService.IsConnected` (Getter) | Postfix | RICS antwortet auf Twitch, obwohl es selbst nicht verbunden ist |
+| E1 | `ChatCommandProcessor.ProcessMessage(ChatMessageWrapper)`, `Viewers.UpdateViewerActivity`, `Viewers.GetViewer` (danach Rollen `IsBroadcaster`, `IsModerator`, `IsVip`, `IsSubscriber` am Zuschauer setzen) | Aufruf | Eingang |
+| P1 | `TwitchService.SendMessage`, `TwitchService.SendWhisperAsync` | Prefix, überspringt | Ausgang über die Mod (Flüstern als öffentliche Antwort) |
+| P2 | `TwitchService.IsConnected` (Getter) | Postfix | RICS hält sich für verbunden (Anzeige, Live-Chat-Fenster, Raid-Meldungen) |
+| P3 | `ChatCommandProcessor.SendToPlatform` (privat) | Prefix, überspringt für `twitch` | Antworten auf Befehle direkt abgreifen; sichert P2 ab, falls der kleine Getter vom JIT eingebettet wird |
+
+Alle Stellen findet die Mod zur Laufzeit per Reflexion (keine Kompilier-Abhängigkeit von RICS). Fehlt eine nach einem RICS-Update, bleibt die Brücke aus und die Einstellungen nennen die fehlende Stelle.
+
+**Testmodus (Version 0.1, solange die Serverschnittstelle nicht vereinbart ist):** In den Mod-Einstellungen lässt sich eine Testnachricht mit Login, Text und Rollen einspeisen; sie läuft wie eine Chatnachricht durch RICS. Antworten von RICS landen statt im Chat im Log (`[Twitch Companion] Chat ← …`). Die Serveranbindung kommt in einem eigenen PR nach Vereinbarung von Server-Issue #74.
 
 ### Abnahme Stufe 1
 - Ohne Server: Spiel startet ohne Fehler, Status „nicht verbunden“, RICS baut keine Twitch-Verbindung auf.
@@ -90,10 +95,11 @@ Wunsch des Nutzers (19.11.2026): Je mehr gekauft wird, desto teurer wird alles; 
 Spielereignisse (Raid beginnt, Kolonist stirbt) an den Server melden; der Server könnte daraus Wetten starten oder Effekte auslösen. Eigene Serveranforderung, wenn es so weit ist. Weiteres Balancing erst nach den ersten Streams.
 
 ## Bauen und Testen
-- Projekt `net472`, `Krafs.Rimworld.Ref` 1.6, `Lib.Harmony` (nur Referenz), RICS-DLL aus dem lokalen Mods-Ordner über eine Eigenschaft in `Directory.Build.props.user` (nicht im Repository).
-- Unit-Tests der reinen Logik (Zeilen verbinden, Inflation, Losen der Rolle, Gegenteil-Regel) ohne RimWorld.
+- Projekt `Source/TwitchCompanion` (`net472`, `Krafs.Rimworld.Ref` 1.6.4871, `Lib.Harmony` nur als Referenz); RICS wird nicht gebraucht (Reflexion). Bauen mit `dotnet build -c Release` im Ordner `Source`; die DLL landet in `1.6/Assemblies/` (nicht im Repository).
+- Unit-Tests in `Source/TwitchCompanion.Tests` (`net8.0`, xUnit) für alles in `Core/`: `dotnet test` im Ordner `Source`.
+- Weitere Unit-Tests folgen mit Inflation, Losen der Rolle und Gegenteil-Regel.
 - Attrappen-Server für die Schnittstellen aus den Server-Issues #74, #79, #80, #81 (nur als Entwurf, bis der Server sie vereinbart hat).
 - RICS hat ein Fenster „Live Chat“ (`Window_LiveChat`), das Nachrichten durch denselben Ablauf schickt; nützlich für Spieltests ohne Server.
 
 ## Status
-Entwurf. Kein Code. Serveranforderungen nicht auf GitHub angelegt.
+Entwurf. Version 0.1 in Arbeit (Feature-Issue #2): Grundgerüst mit Testmodus, ohne Serveranbindung.
