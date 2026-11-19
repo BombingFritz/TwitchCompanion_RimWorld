@@ -46,11 +46,22 @@ Was die Mod vom Server braucht, steht in `docs/serveranforderungen/` (SA-1 bis S
 ### Zuschauer und Coins
 - Das TTK holt die Zuschauerliste für die Coin-Vergabe von `tmi.twitch.tv/group/user/<kanal>/chatters` (`Viewers.RefreshViewers`). Twitch hat den Endpunkt 2023 abgeschaltet; ohne Ersatz vergibt das TTK keine Coins (`Ticker`: Bedingung `jsonallviewers != null`).
 - Patch P3 schaltet die Abfrage ab. Stattdessen schreibt die Mod die Liste der aktiven Chatter vom Server (SA-2) im alten TMI-Format nach `Viewers.jsonallviewers` und setzt je Zuschauer `last_seen` auf den letzten Chat-Zeitpunkt (nie zurück) sowie Mod, VIP und Sub.
-- Meldet der Server, dass gerade keine RimWorld-Kategorie läuft, oder ist die Verbindung weg, setzt die Mod `jsonallviewers` auf `null`: Dann gibt es keine Coins. Frage in OFFEN.md, ob die Kategorie geprüft werden soll.
-- Wer nie schreibt (Lurker), bekommt keine Coins (Vorschlag, OFFEN.md).
+- Befehle und Coins nur, solange die Twitch-Kategorie RimWorld ist (Nutzer, 19.11.2026). Meldet der Server eine andere Kategorie oder ist die Verbindung weg, setzt die Mod `jsonallviewers` auf `null`: Dann gibt es keine Coins, und Befehle kommen ohnehin nicht an.
+- Wer nie schreibt (Lurker), bekommt keine Coins (Nutzer, 19.11.2026). Das soll nicht zum Spammen anregen: Coins gibt es je Zeitabschnitt, nicht je Nachricht. Das TTK zahlt voll, wenn die letzte Nachricht höchstens `TimeBeforeHalfCoins` (Vorgabe 30 min) zurückliegt, halb bis `TimeBeforeNoCoins` (60 min), danach nichts. Eine Nachricht je halbe Stunde reicht also; mehr bringt nichts. Diese Regel bleibt so.
+
+### Preisinflation (Version 0.1b)
+Wunsch des Nutzers (19.11.2026): Je mehr gekauft und ausgegeben wird, desto teurer wird alles; wird längere Zeit nichts ausgegeben, sinken die Preise wieder.
+- Ein gemeinsamer **Preisfaktor** `F ≥ 1` gilt für alle Preise im Shop (Ereignisse, Items, Ticket für die Warteschlange).
+- Jeder Kauf zählt mit seinem Grundpreis in den **Umsatz** `U`. `U` schwindet von selbst mit einer Halbwertszeit `H` (Vorschlag 20 min): Ohne Käufe halbiert er sich alle 20 min.
+- `F = min(Fmax, 1 + U / R)`. `R` ist der Referenzumsatz (Einstellung, Vorschlag: 3000 Coins); `Fmax` die Obergrenze (Vorschlag 4). Beispiel: Werden in kurzer Zeit 3000 Coins ausgegeben, kostet danach alles das Doppelte; 20 min ohne Käufe später noch das 1,5-Fache.
+- Umsetzung: Die Mod merkt sich die Grundpreise (`StoreIncident.cost`, `Item.price`) und schreibt jede Minute und nach jedem Kauf `Grundpreis × F` (gerundet) zurück. So rechnen alle Wege des TTK mit dem aktuellen Preis, auch Kaufbestätigungen und Fehlermeldungen. Vor dem Speichern der Store-Einstellungen setzt sie die Grundpreise zurück, damit die Inflation nicht in die Dateien gelangt [UNGEKLÄRT, im Spiel zu prüfen: alle Speicherwege des TTK].
+- Zuschauer sehen den Faktor mit einem Befehl (Vorschlag `!preise`: „Preise gerade ×1,6, sinken ohne Käufe“). Die öffentliche Preisliste zeigt Grundpreise.
+- Werte `H`, `R`, `Fmax` in den Mod-Einstellungen; Startwerte nach den ersten Streams anpassen.
 
 ### `!privat`
-- Zuschauer mit `!privat` (Server, ADR 0022 dort) dürfen mitspielen. Die Mod setzt ihre Namen aber nicht von sich aus ein. Betroffen ist heute schon das TTK: `IncidentWorker_Raid` benennt Raider nach zufälligen aktiven Zuschauern; Patch P5 lässt `private` Zuschauer dabei aus (Vorschlag, OFFEN.md).
+- Zuschauer mit `!privat` (Server, ADR 0022 dort) bleiben vorerst ganz draußen (Nutzer, 19.11.2026). Grund: Das TTK speichert Coins, Karma und Kolonisten-Namen über den Stream hinaus (Zuschauerdatei, Spielstand); genau das schließt `!privat` aus.
+- Die Mod ignoriert ihre Befehle und antwortet höchstens einmal je Stream: „Mit !privat spielst du in RimWorld nicht mit.“ Sie bekommen keine Coins und keine Kolonisten, und ihre Namen werden nirgends verwendet (Patch P5 für die Raider-Benennung des TTK).
+- Rückwirkend (wie im Server): Meldet der Server, dass jemand `!privat` gewählt hat, löscht die Mod dessen Eintrag in der Zuschauerdatei des TTK, nimmt ihn aus der Warteschlange und gibt einem zugeordneten Kolonisten einen zufälligen Namen (Vorschlag, OFFEN.md).
 
 ### Patches Stufe 1
 | Patch | Ziel | Zweck |
@@ -72,7 +83,8 @@ Was die Mod vom Server braucht, steht in `docs/serveranforderungen/` (SA-1 bis S
 ## Stufe 2 (Version 0.2): Raid
 - Der Server meldet eingehende Raids mit Name des raidenden Kanals und Zuschauerzahl (SA-3). Die Mod reagiert nur bei laufendem Spiel und ab einer Mindestzahl von Zuschauern (Einstellung, Vorschlag 3).
 - **Rolle:** Die Mod lost nach einstellbaren Gewichten: Angriff, Verbündete, Händler, Besuch oder „Chat entscheidet“ (Vorschlag 50/15/10/10/15). Bei „Chat entscheidet“ lässt sie den Server eine Twitch-Abstimmung starten (SA-4), Laufzeit 90 s; ohne Ergebnis oder wenn die Abstimmung nicht startet, lost sie unter den übrigen Rollen.
-- **Abstand:** Liegt der letzte Spiel-Raid weniger als 20 min zurück, wird der neue zum Besuch (Vorschlag, OFFEN.md).
+- Gewichte 50/15/10/10/15 als Startwerte bestätigt (Nutzer, 19.11.2026).
+- **Abstand:** Liegt der letzte Spiel-Raid weniger als 20 min zurück, kommt das Gegenteil (Nutzer, 19.11.2026): War der letzte feindlich (auch nach Abstimmung), ist der neue verbündet, und umgekehrt. War der letzte Händler oder Besuch, gilt die normale Gewichtung. Läuft für den letzten Raid noch die Abstimmung, lost die Mod den neuen ohne die Rolle „Chat entscheidet“, weil Twitch nur eine Abstimmung zur Zeit erlaubt.
 - **Gruppe:** Der Anführer heißt wie der raidende Kanal. 2 min lang tragen sich Zuschauer mit einem Befehl (Vorschlag `!dabei`) ein; jeder wird ein Mitglied mit seinem Namen. Stärke wie bei ToolkitRaids: Punkte je Person mit Obergrenze, bei feindlichen Raids gegen die Punkte des Storytellers abgeglichen. Logik aus ToolkitRaids (MIT) mit Lizenzhinweis.
 - **Umsetzung je Rolle** [UNGEKLÄRT, im Spiel zu prüfen]: Angriff als normaler Raid einer feindlichen Fraktion; Verbündete wie „Militärhilfe“ einer befreundeten Fraktion; Händler als Händlerkarawane; Besuch als Besuchergruppe.
 - Einladung und Ergebnis kommen als Chatzeilen über den Ausgang der Mod.
@@ -81,12 +93,15 @@ Was die Mod vom Server braucht, steht in `docs/serveranforderungen/` (SA-1 bis S
 - Patch auf `Vote_VotingIncident.StartVote`: Die Mod lässt den Server eine Twitch-Abstimmung mit Titel und Optionen starten (SA-4). Startet sie, sendet die Mod keine Optionszeilen in den Chat; das Fenster im Spiel bleibt und zeigt „Abstimmung auf Twitch“.
 - Patch auf `VoteHandler.CheckForQueuedVotes`: Die Abstimmung endet nicht nach der TTK-Zeit, sondern mit dem Ergebnis vom Server (höchstens Laufzeit plus 30 s, dann entscheidet das TTK selbst). Der Gewinner wird so eingesetzt, dass `DecideWinner` ihn wählt.
 - Startet keine Twitch-Abstimmung (schon eine offen, Server meldet Grund): Abstimmung wie bisher im Chat mit Zahlen.
-- Twitch-Abstimmungen geben jedem Zuschauer eine Stimme; die Zusatzstimmen des TTK für Subs, VIPs und Mods entfallen (Frage Kanalpunkte, OFFEN.md).
+- Twitch-Abstimmungen geben jedem Zuschauer eine Stimme; die Zusatzstimmen des TTK für Subs, VIPs und Mods entfallen.
+- Ersatz mit Kanalpunkten, Wunsch des Nutzers: Jede weitere Stimme kostet doppelt so viel wie die vorige. Twitch kennt je Abstimmung nur einen festen Preis je Zusatzstimme (`channel_points_per_vote`); eine Verdopplung innerhalb einer Abstimmung ist dort nicht möglich (Stand der Twitch-API nach meinem Wissen, vor der Umsetzung zu prüfen). Möglich sind:
+  - **A (Vorschlag):** Inflation von Abstimmung zu Abstimmung: Der Preis je Zusatzstimme steigt, je mehr Kanalpunkte-Stimmen in den letzten Abstimmungen fielen, und sinkt ohne sie wieder (wie die Preisinflation). Alles bleibt in Twitch und SpargelPoll sichtbar.
+  - **B:** Zusatzstimmen mit TTK-Coins im Chat, mit Verdopplung je Stimme. Sie würden erst nach dem Ende zum Twitch-Ergebnis addiert und wären in SpargelPoll nicht zu sehen.
 - Twitch-Grenzen: 2 bis 5 Optionen, Titel bis 60 und Optionen bis 25 Zeichen, 15 bis 1800 s. Das TTK stellt 2 bis 5 Optionen (`VoteOptions`, Vorgabe 3), das passt; zu lange Namen kürzt die Mod (Kategorie oder Typ statt langem Namen).
 
 ## Stufe 4 (später): Spielereignisse, Wetten, Balancing
 - Spielereignisse (Raid beginnt, Kolonist stirbt) an den Server melden; der Server könnte daraus Wetten starten oder Effekte auslösen. Eigene Serveranforderung, wenn es so weit ist.
-- Balancing: Die alte Itemliste (`BombingFritz/itemlist`) führte trotz Preisen zu Itemfluten, weil das Einkommen mit der Zahl der Chatter wächst. Ideen: Budget der Kolonie je Zeitraum, Abklingzeiten je Kategorie, steigende Preise bei Nachfrage. Eigene Spec, sobald Stufe 1 im Stream läuft.
+- Weiteres Balancing: Die alte Itemliste (`BombingFritz/itemlist`) führte trotz Preisen zu Itemfluten, weil das Einkommen mit der Zahl der Chatter wächst. Die Preisinflation (0.1b) ist der erste Schritt; weitere Ideen (Abklingzeiten je Kategorie, Budget der Kolonie) erst nach den ersten Streams.
 
 ## Bauen und Testen
 - Projekt `net472`, `Krafs.Rimworld.Ref` 1.6, `Lib.Harmony` (nur Referenz). TTK- und ToolkitCore-DLLs aus dem lokalen Mods-Ordner über eine Eigenschaft in `Directory.Build.props` (Pfad nicht im Repository).

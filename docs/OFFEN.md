@@ -1,21 +1,30 @@
 # Offene Punkte
 
-## Entscheidungen des Nutzers
+## Entschieden (Nutzer, 19.11.2026)
+| # | Frage | Entscheidung |
+|---|---|---|
+| 1 | Befehle und Coins nur in der Twitch-Kategorie „RimWorld“? | ja |
+| 2 | Lurker ohne Coins? | ja, ohne Anreiz zum Spammen (Coins je Zeitabschnitt, nicht je Nachricht); dazu **Preisinflation**: mehr Ausgaben → höhere Preise, ohne Ausgaben sinken sie wieder |
+| 3 | `!privat`-Zuschauer im Spiel? | vorerst ganz draußen, weil das TTK über den Stream hinaus speichert |
+| 4 | Zweiter Raid binnen 20 min | das Gegenteil des vorigen: feindlich ↔ verbündet; nach Händler oder Besuch normale Gewichtung |
+| 5 | Gewichte der Raid-Rollen | 50/15/10/10/15 als Start |
+| 6 | `!privat` im Chat-Kanal des Servers | so einfach und stabil wie möglich → Kennzeichen an jeder Nachricht |
+
+## Noch zu entscheiden
 | # | Frage | Vorschlag | Betrifft |
 |---|---|---|---|
-| 1 | Befehle und Coins nur, solange die Twitch-Kategorie „RimWorld“ ist? | ja (wie das UBOAT-Soldbuch im Server) | Stufe 1, SA-2 |
-| 2 | Lurker (schreiben nie) bekommen keine Coins – oder soll der Server die Liste aller Anwesenden abfragen (neuer Scope `moderator:read:chatters`)? | keine Coins für Lurker, bremst die Itemflut | Stufe 1, SA-2 |
-| 3 | `!privat`-Zuschauer spielen mit, ihre Namen setzt die Mod aber nicht von sich aus ein (z. B. zufällig benannte Raider). | ja | Stufe 1 |
-| 4 | Zweiter Raid binnen 20 min: als Besuch oder gar nicht ins Spiel? | Besuch | Stufe 2 |
-| 5 | Gewichte der Raid-Rollen Angriff/Verbündete/Händler/Besuch/Abstimmung | 50/15/10/10/15 | Stufe 2 |
-| 6 | Beitrittsbefehl für Raider | `!dabei` | Stufe 2 |
-| 7 | Kanalpunkte-Stimmen als Ersatz für die Zusatzstimmen von Subs, VIPs, Mods? Wie viele Punkte je Stimme? | [UNGEKLÄRT] | Stufe 3, SA-4 |
+| 7 | Startwerte der Preisinflation: Halbwertszeit, Referenzumsatz, Obergrenze | 20 min, 3000 Coins, ×4 | 0.1b |
+| 8 | Kanalpunkte-Stimmen: Twitch kann den Preis nicht innerhalb einer Abstimmung verdoppeln. A: Preis steigt von Abstimmung zu Abstimmung (in SpargelPoll sichtbar). B: Zusatzstimmen mit Coins im Chat, mit Verdopplung (nicht in SpargelPoll sichtbar) | A | Stufe 3, SA-4 |
+| 9 | `!privat` rückwirkend: Zuschauerdaten im TTK löschen, Kolonist bekommt einen zufälligen Namen | ja | 0.1 |
+| 10 | Beitrittsbefehl für Raider | `!dabei` | Stufe 2 |
+| 11 | Befehl für den aktuellen Preisfaktor | `!preise` | 0.1b |
 
 ## Zu prüfen
-- Ob TTK 1.6.0 mit eingeschaltetem ToolkitUtils 2 läuft (nur Quellcode, archiviert) oder ob wir ohne Utils planen.
+- Ob TTK 1.6.0 mit ToolkitUtils (laut Release-Notes empfohlen: 7.0.6.0-rc1 „Odyssey“) läuft, oder ob wir ohne Utils planen.
 - Welche Befehle im Stream gebraucht werden und ob Kurzformen (`!balance`) eigene Befehle brauchen.
+- Alle Wege, auf denen das TTK Preise speichert (Preisinflation darf nicht in die Dateien gelangen).
+- Ob Twitch wirklich nur einen festen Kanalpunkte-Preis je Abstimmung kennt.
 - Wie die Rollen Verbündete, Händler und Besuch im Spiel am besten entstehen (Stufe 2).
-- Ob die TTK-eigene Raid-Benennung nach aktiven Zuschauern (`IncidentWorker_Raid`) überhaupt gewollt ist.
 
 ## Serveranforderungen
 Entwürfe in `serveranforderungen/`. Anlegen im Server-Repository durch den Nutzer oder eine Session mit Issue-Zugriff; danach hier die Issue-Nummern eintragen.

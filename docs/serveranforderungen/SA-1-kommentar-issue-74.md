@@ -21,4 +21,4 @@ Die Mod `BombingFritz/TwitchCompanion_RimWorld` (privat, später öffentlich; Sp
 
 **Auswirkungen:** blockiert Version 0.1 der Mod (Chat über den Bot). Bis dahin kann die Mod nur gegen eine Attrappe entwickelt werden.
 
-Offene Frage aus #74, aus Sicht der Mod: Ein Feld je Nachricht, ob der Zuschauer `!privat` gewählt hat, wäre für die Mod am einfachsten.
+**`!privat` (offene Frage aus #74):** Der Nutzer wünscht die einfachste und stabilste Lösung (19.11.2026). Aus Sicht der Mod ist das ein Kennzeichen an jeder weitergeleiteten Nachricht, ohne zweite Abfrage. Die Mod lässt solche Zuschauer ganz aus dem Spiel, weil das Toolkit Coins und Namen über den Stream hinaus speichert. Damit sie bereits gespeicherte Daten auch rückwirkend löschen kann, bräuchte sie zusätzlich ein Ereignis, sobald jemand `!privat` einschaltet (Login und ID), denn der Befehl selbst geht nicht an Verbraucher.
