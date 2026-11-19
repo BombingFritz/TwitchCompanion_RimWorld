@@ -33,36 +33,51 @@ Was die Mod vom Server braucht, ist als Serveranforderung angelegt (Server-Issue
 
 ## Stufe 1 (Version 0.1): Chat und Coins über den Server
 
+**Serverstand:** angebunden an den Entwurf der Server-Spec `docs/specs/chat-bruecke.md` (Teil A = Server-Issue #74, Teil B = #79), mit dem Nutzer vereinbart, aber auf dem Server **noch nicht gemergt**. Anbindung auf ausdrücklichen Auftrag des Nutzers (20.11.2026); gilt als nicht kompatibler Entwurf, bis der Server-PR gemergt ist (AGENTS.md).
+
 ### Eingang
-- Die Mod meldet beim Server ihre Befehle an (Server-Issue #74): alle RICS-Befehle mit dem Präfix `!` (RICS-Einstellung `Prefix`) und alle Nachrichten mit dem Kauf-Präfix `$` (RICS-Einstellung `BuyPrefix`, z. B. `$beer`). Kaufnamen sind zu viele für eine Wortliste, deshalb braucht es Weiterleitung nach Präfix.
-- Jede weitergeleitete Nachricht wird im Hauptthread als `ChatMessageWrapper` mit Plattform `twitch`, Login, Anzeigename und Twitch-User-ID gebaut und an `ChatCommandProcessor.ProcessMessage` übergeben, wie es RICS selbst nach dem Empfang tut. Vorher `Viewers.UpdateViewerActivity`. RICS kennt Zuschauer an der Plattform-ID; das passt zu den IDs des Servers.
-- Rollen (Moderator, VIP, Subscriber) kommen aus den Abzeichen der Nachricht. [UNGEKLÄRT] wie RICS sie aus der Nachricht liest (`Viewer.UpdateFromMessage`); notfalls setzt die Mod sie am Zuschauer direkt.
+- Die Mod verbindet sich mit `GET /api/chat/stream?client=rimworld&prefixes=…` (Server-Sent Events). Angemeldet werden die RICS-Präfixe `Prefix` (Vorgabe `!`) und `BuyPrefix` (Vorgabe `$`), dazu immer `$`, weil RICS `$…` stets als Kauf wertet. Ändern sich die Präfixe in RICS, meldet sich die Mod binnen 5 s neu an.
+- Nach Abbruch verbindet sie sich nach 5 s neu; ein neues `hello` heißt: Befehle neu angemeldet. Verpasstes liefert der Server nicht nach. Doppelte `chat`-Ereignisse (gleiche `messageId`) verwirft die Mod.
+- Jede Nachricht wird im Hauptthread so an RICS gegeben, wie RICS es nach seinem eigenen Twitch-Empfang tut (`TwitchService.ProcessMessageOnMainThread`, RICS 1.56): `ChatMessageWrapper(Login bzw. Anzeigename, Text, "Twitch", Twitch-User-ID)` → `Viewers.UpdateViewerActivity` → Rollen setzen → `ChatMessageLogger.AddMessage` (Anzeige im RICS-Fenster „Live Chat“) → `ChatCommandProcessor.ProcessMessage`. RICS kennt Zuschauer an der Plattform-ID; das passt zu den IDs des Servers.
+- Rollen: RICS liest sie nur aus einer TwitchLib-Nachricht (`Viewer.UpdateTwitchRoles`), die es hier nicht gibt. Die Mod setzt `IsBroadcaster`, `IsModerator`, `IsVip`, `IsSubscriber` aus den Abzeichen direkt am Zuschauer, bei jeder Nachricht (RICS speichert Rollen nicht).
+- Broadcaster: Seine Nachrichten kommen vom Server. RICS erkennt den Kanalinhaber für Sperren (`IsChannelOwner`) nur am Kanalnamen in den RICS-Twitch-Einstellungen; ohne Kanalnamen gilt für ihn nur die Rolle Broadcaster.
+- Eingänge, die länger als 60 s warten (z. B. Nachricht kam im Hauptmenü an), verwirft die Mod. Höchstens 500 Ereignisse warten.
 - Flüstern wird nicht unterstützt.
 
 ### Ausgang
-- RICS antwortet über `ChatCommandProcessor.SendMessageToUser` → `SendToPlatform` → `TwitchService.SendMessage`, und zwar nur, wenn `TwitchService.IsConnected` wahr ist. Patch P1 lenkt `TwitchService.SendMessage` (und `SendWhisperAsync` als öffentliche Antwort) zur Mod um; Patch P2 meldet `IsConnected` als wahr, solange die Mod mit dem Server verbunden ist. [UNGEKLÄRT] Nebenwirkungen von P2 an den übrigen Stellen, die `IsConnected` abfragen (4 Stellen laut Code).
-- Zeilen, die binnen 1 s kommen, verbindet die Mod mit „ · “ zu einer Nachricht bis 500 Zeichen und sendet sie über den Server (Server-Issue #74, Funktion `rimworld`, Absender laut Webkonsole, Vorgabe Bot). Höchstens 50 wartende Zeilen; lehnt der Server wegen voller Warteschlange ab, nach 2 s erneut.
+- RICS antwortet über `ChatCommandProcessor.SendMessageToUser` → `SendToPlatform` → `TwitchService.SendMessage` (nur, wenn `TwitchService.IsConnected`). P3 greift Antworten in `SendToPlatform` ab, P1 alle übrigen Sendungen von `TwitchService` (Raid-Ansagen, `!joinraid`, Willkommensgruß); P2 meldet `IsConnected` wahr, solange die Brücke aktiv ist.
+- Nebenwirkungen von P2 (geprüft am Code von RICS 1.56): Anzeige „Connected“ im RICS-Menü, kein Hinweis „Twitch getrennt“, RICS versucht keine eigene Verbindung (`Connect` bricht ab). Text, den der Streamer ins RICS-Fenster „Live Chat“ tippt, geht über P1 und den Server als Bot-Nachricht in den Chat. Befehle aus diesem Fenster laufen dagegen über das Einstellungsfeld `TwitchSettings.IsConnected` und fallen ohne echte RICS-Verbindung auf eine leere YouTube-Kennung zurück; das Fenster taugt deshalb nicht für Befehlstests.
+- Zeilen, die binnen 1 s kommen, verbindet die Mod mit „ · “ zu einer Nachricht bis 500 Zeichen und sendet sie mit `POST /api/chat/send {feature: 'rimworld', message}` (Absender laut Webkonsole „Chat-Absender“, Vorgabe Bot). Mindestens 1 s Abstand; bei 429 nach `retryAfterMs` erneut; bei Netzfehlern liegen lassen und nach Wiederverbindung senden; bei 400/403/415/503 verwerfen (Grund in den Einstellungen). Höchstens 50 wartende Nachrichten, älter als 90 s werden verworfen.
 
 ### Zuschauer und Coins
-- RICS vergibt Coins an aktive Zuschauer (`MinutesForActive`), aktiv heißt: hat geschrieben. Der Server leitet aber nur Befehle weiter. Damit auch Zuschauer zählen, die nur plaudern, holt die Mod jede Minute die Liste der aktiven Chatter vom Server (Server-Issue #79) und frischt deren Aktivität in RICS auf. [UNGEKLÄRT] ob dafür ein eigener Aufruf nötig ist, damit die Nachrichtenzählung von RICS nicht verfälscht wird.
-- Nur in der Twitch-Kategorie RimWorld (Nutzer, 19.11.2026): Meldet der Server eine andere Kategorie oder ist die Verbindung weg, frischt die Mod keine Aktivität auf und leitet nichts weiter. [UNGEKLÄRT] ob RICS dann trotzdem Coins an kürzlich Aktive verteilt; ggf. die Coin-Vergabe von RICS so lange anhalten.
-- Lurker bekommen keine Coins (Nutzer, 19.11.2026). Kein Anreiz zum Spammen: Coins gibt es je Zeitabschnitt für Aktive, nicht je Nachricht.
+- RICS zahlt alle 2 echte Minuten (`CAPChatInteractive_GameComponent.TryAwardWallClockCoinReward`, nicht im Pausenmodus) an Zuschauer, deren `LastSeen` innerhalb `MinutesForActive` (Vorgabe 30) liegt; RICS prüft dabei weder Verbindung noch Kategorie.
+- Plaudernde Zuschauer: Jede Minute holt die Mod `GET /api/chat/active` (Server-Issue #79) und setzt bei diesen Zuschauern nur `LastSeen` auf den Zeitpunkt ihrer letzten Nachricht und die Rollen; die Nachrichtenzählung von RICS bleibt unberührt. Unbekannte Zuschauer legt RICS dabei an (`Viewers.GetViewer`). Es zählen nur Nachrichten seit `categoryChangedAt`, damit Plaudern in „Just Chatting“ nach dem Wechsel keine Coins bringt.
+- Nur in der Twitch-Kategorie RimWorld (Nutzer, 19.11.2026): Jede Minute `GET /api/twitch/channel`. Kategorie nicht RimWorld, unbekannt, Server ohne diese Fähigkeit oder Verbindung weg: keine Weiterleitung, keine Auffrischung, und P4 hält die Coin-Vergabe von RICS an. Kommt RimWorld zurück, zahlt RICS einmal nach. Die Prüfung lässt sich in den Einstellungen ausschalten (nur für einen Server ohne Teil B gedacht).
+- Lurker bekommen keine Coins (Nutzer, 19.11.2026). RICS setzt beim Laden aller Zuschauer `LastSeen` auf „jetzt“, sodass sonst in den ersten 30 min nach dem Spielstart alle bekannten Zuschauer Coins bekämen. E2 setzt deshalb einmal je Spielstart `LastSeen` aller Zuschauer ohne Nachricht in dieser Sitzung knapp hinter das Fenster zurück.
 
 ### `!privat`
-- Zuschauer mit `!privat` (Server-ADR 0022) nehmen nicht teil (Nutzer, 19.11.2026): RICS speichert Zuschauer, Coins und Kolonisten über den Stream hinaus. Die Mod gibt ihre Nachrichten nicht an RICS weiter und antwortet höchstens einmal je Stream: „Mit !privat spielst du in RimWorld nicht mit.“
-- Rückwirkend (Vorschlag, OFFEN.md): Erfährt die Mod vom Server, dass jemand `!privat` gewählt hat, entfernt sie dessen Eintrag in RICS und benennt einen zugeordneten Kolonisten um. [UNGEKLÄRT] welche RICS-Funktion einen Zuschauer sauber entfernt.
+- Zuschauer mit `!privat` (Server-ADR 0022) nehmen nicht teil (Nutzer, 19.11.2026): RICS speichert Zuschauer, Coins und Kolonisten über den Stream hinaus. Nachrichten mit `private: true` gibt die Mod nicht an RICS weiter und antwortet höchstens einmal je Stream: „Mit !privat spielst du in RimWorld nicht mit.“ „Je Stream“: Die Liste wird geleert, wenn `/api/twitch/channel` von `live: false` auf `true` wechselt, und bei jedem Spielstart (nur im Arbeitsspeicher). Das Ereignis `privacy` protokolliert die Mod ohne Namen.
+- Die Liste aktiver Chatter des Servers enthält keine `!privat`-Zuschauer.
+- Rückwirkend (Vorschlag, OFFEN.md #11): Erfährt die Mod vom Server, dass jemand `!privat` gewählt hat, entfernt sie dessen Eintrag in RICS und benennt einen zugeordneten Kolonisten um. Nicht in 0.1. [UNGEKLÄRT] welche RICS-Funktion einen Zuschauer sauber entfernt.
 
 ### Einstiegspunkte und Patches (Stufe 1)
 | Nr. | Ziel in RICS | Art | Zweck |
 |---|---|---|---|
-| E1 | `ChatCommandProcessor.ProcessMessage(ChatMessageWrapper)`, `Viewers.UpdateViewerActivity`, `Viewers.GetViewer` (danach Rollen `IsBroadcaster`, `IsModerator`, `IsVip`, `IsSubscriber` am Zuschauer setzen) | Aufruf | Eingang |
+| E1 | `ChatCommandProcessor.ProcessMessage(ChatMessageWrapper)`, `Viewers.UpdateViewerActivity`, `Viewers.GetViewer`, `ChatMessageLogger.AddMessage` (danach Rollen am Zuschauer setzen) | Aufruf | Eingang |
+| E2 | `Viewers.All`, `Viewer.LastSeen`, `Viewer.MessageCount`, `Viewers.GetViewerByPlatformId` | Aufruf | aktive Chatter auffrischen; nach dem Spielstart Lurker zurücksetzen |
 | P1 | `TwitchService.SendMessage`, `TwitchService.SendWhisperAsync` | Prefix, überspringt | Ausgang über die Mod (Flüstern als öffentliche Antwort) |
-| P2 | `TwitchService.IsConnected` (Getter) | Postfix | RICS hält sich für verbunden (Anzeige, Live-Chat-Fenster, Raid-Meldungen) |
+| P2 | `TwitchService.IsConnected` (Getter) | Postfix | RICS hält sich für verbunden (Anzeige, Raid-Meldungen) |
 | P3 | `ChatCommandProcessor.SendToPlatform` (privat) | Prefix, überspringt für `twitch` | Antworten auf Befehle direkt abgreifen; sichert P2 ab, falls der kleine Getter vom JIT eingebettet wird |
+| P4 | `CAPChatInteractive_GameComponent.TryAwardWallClockCoinReward` (privat) | Prefix, überspringt | Coins nur in der Kategorie RimWorld und nur mit Serververbindung |
 
-Alle Stellen findet die Mod zur Laufzeit per Reflexion (keine Kompilier-Abhängigkeit von RICS). Fehlt eine nach einem RICS-Update, bleibt die Brücke aus und die Einstellungen nennen die fehlende Stelle.
+Alle Stellen findet die Mod zur Laufzeit per Reflexion (keine Kompilier-Abhängigkeit von RICS). Fehlt eine Pflichtstelle nach einem RICS-Update, bleibt die Brücke aus und die Einstellungen nennen sie; fehlen nur `ChatMessageLogger.AddMessage` oder P4, gibt es eine Warnung im Log. Geprüft an RICS 1.56 (installiert) und 1.57 (Branch `1.6`).
 
-**Testmodus (Version 0.1, solange die Serverschnittstelle nicht vereinbart ist):** In den Mod-Einstellungen lässt sich eine Testnachricht mit Login, Text und Rollen einspeisen; sie läuft wie eine Chatnachricht durch RICS. Antworten von RICS landen statt im Chat im Log (`[Twitch Companion] Chat ← …`). Die Serveranbindung kommt in einem eigenen PR nach Vereinbarung von Server-Issue #74.
+### Einstellungen
+Brücke an/aus, Server-Adresse (Vorgabe `http://localhost:3000`; die Befehlszeile `-twitchcompanion-server=…` hat Vorrang, für Tests mit der Attrappe), „Nur in der Twitch-Kategorie RimWorld“ (Vorgabe an), Status (Verbindung, Kategorie, weitergeleitet, gesendet, Coins zuletzt aufgefrischt, letzter Fehler), Testmodus.
+
+**Testmodus:** keine Serververbindung. In den Mod-Einstellungen lässt sich eine Testnachricht mit Login, Text und Rollen einspeisen; sie läuft wie eine Chatnachricht durch RICS. Antworten landen im Log (`[Twitch Companion] Chat ← …`). Die Kategorieprüfung und P4 gelten im Testmodus nicht.
+
+**Im Hintergrund:** RimWorld arbeitet ohne die Option „Im Hintergrund weiterlaufen“ (`runInBackground`, Vorgabe aus) nichts ab, solange das Fenster nicht im Vordergrund ist; Befehle warten dann, ab 60 s Wartezeit verfallen sie. Für den Stream die Option einschalten oder RimWorld im Vordergrund lassen.
 
 ### Abnahme Stufe 1
 - Ohne Server: Spiel startet ohne Fehler, Status „nicht verbunden“, RICS baut keine Twitch-Verbindung auf.
@@ -96,10 +111,11 @@ Spielereignisse (Raid beginnt, Kolonist stirbt) an den Server melden; der Server
 
 ## Bauen und Testen
 - Projekt `Source/TwitchCompanion` (`net472`, `Krafs.Rimworld.Ref` 1.6.4871, `Lib.Harmony` nur als Referenz); RICS wird nicht gebraucht (Reflexion). Bauen mit `dotnet build -c Release` im Ordner `Source`; die DLL landet in `1.6/Assemblies/` (nicht im Repository).
-- Unit-Tests in `Source/TwitchCompanion.Tests` (`net8.0`, xUnit) für alles in `Core/`: `dotnet test` im Ordner `Source`.
+- Unit-Tests in `Source/TwitchCompanion.Tests` (`net8.0`, xUnit) für alles in `Core/`, dazu `ServerLink` gegen eine Attrappe (`FakeServer`, `HttpListener` auf localhost): `dotnet test` im Ordner `Source`.
 - Weitere Unit-Tests folgen mit Inflation, Losen der Rolle und Gegenteil-Regel.
-- Attrappen-Server für die Schnittstellen aus den Server-Issues #74, #79, #80, #81 (nur als Entwurf, bis der Server sie vereinbart hat).
-- RICS hat ein Fenster „Live Chat“ (`Window_LiveChat`), das Nachrichten durch denselben Ablauf schickt; nützlich für Spieltests ohne Server.
+- Attrappe für Spieltests: `tools/attrappe-server.mjs` (Node, Vorgabe Port 3999, nur lokal, verweigert Port 3000) nach dem Entwurf „Chat-Brücke“ (#74, #79); später auch #80, #81.
+- Spieltest ohne Eingriff in die eigenen Daten: `RimWorldWin64.exe -savedatafolder=<Testordner> -quicktest -twitchcompanion-server=http://localhost:3999`.
+- Das RICS-Fenster „Live Chat“ taugt ohne echte RICS-Twitch-Verbindung nicht für Befehlstests (siehe „Ausgang“).
 
 ## Status
-Entwurf. Version 0.1 in Arbeit (Feature-Issue #2): Grundgerüst mit Testmodus, ohne Serveranbindung.
+Entwurf. Version 0.1 (Feature-Issue #2): Serveranbindung gegen den nicht gemergten Server-Vertrag umgesetzt, gegen die Attrappe getestet; Test gegen den echten Server und im Stream offen.

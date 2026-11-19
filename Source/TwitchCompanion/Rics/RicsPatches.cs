@@ -18,7 +18,10 @@ namespace TwitchCompanion.RimWorld.Rics
             harmony.Patch(RicsApi.IsConnectedGetter, postfix: new HarmonyMethod(typeof(RicsPatches), nameof(IsConnectedPostfix)));
             // P3: Antworten auf Befehle direkt abgreifen, falls der kleine Getter aus P2 vom JIT eingebettet wurde.
             harmony.Patch(RicsApi.SendToPlatform, prefix: new HarmonyMethod(typeof(RicsPatches), nameof(SendToPlatformPrefix)));
-            Log.Message("[Twitch Companion] Patches an RICS gesetzt (P1, P2, P3).");
+            // P4: Coins nur in der Kategorie RimWorld (RICS selbst prüft weder Verbindung noch Kategorie).
+            if (RicsApi.CoinReward != null)
+                harmony.Patch(RicsApi.CoinReward, prefix: new HarmonyMethod(typeof(RicsPatches), nameof(CoinRewardPrefix)));
+            Log.Message("[Twitch Companion] Patches an RICS gesetzt (P1, P2, P3" + (RicsApi.CoinReward != null ? ", P4)." : "; P4 fehlt)."));
         }
 
         // Kann aus Hintergrund-Threads kommen; nur in die thread-sichere Ausgabe legen.
@@ -49,5 +52,8 @@ namespace TwitchCompanion.RimWorld.Rics
         {
             if (Bridge.IsActive) __result = true;
         }
+
+        // Läuft im Spieltakt. Überspringt die Auszahlung, solange die Brücke Coins sperrt; RICS zahlt danach einmal nach.
+        private static bool CoinRewardPrefix() => !Bridge.BlocksCoins;
     }
 }

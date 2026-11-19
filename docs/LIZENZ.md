@@ -13,7 +13,7 @@ Diese Seite beschreibt, unter welcher Lizenz die Mod steht, worauf sie aufbaut u
 
 ## Verhältnis zum Server
 - Kein Code aus dem Server, kein Code von hier im Server.
-- Genutzte Schnittstellen: noch keine vereinbart (Server-Issues #74, #79, #80, #81; Stand in `ARCHITEKTUR.md`).
+- Genutzte Schnittstellen: Entwurf „Chat-Brücke“ (Server-Issues #74, #79; noch nicht gemergt), nur HTTP auf localhost; Stand in `ARCHITEKTUR.md`.
 
 ## Verwendete Bestandteile
 | Bestandteil | Herkunft | Lizenz / Hinweis |
@@ -30,9 +30,11 @@ Fremder Code: keiner bisher.
 ## Daten und Verbindungen
 | Verbindung / Speicherung | Zweck | Daten |
 |---|---|---|
-| Server auf diesem PC (`http://localhost:3000`, einstellbar) | Befehle empfangen, Chatzeilen senden, Liste aktiver Chatter, Raids, Abstimmungen (geplant) | Login, Anzeigename, Twitch-User-ID, Abzeichen, Befehlstext; keine sonstigen Chatnachrichten |
+| Server auf diesem PC (`http://localhost:3000`, einstellbar) | Befehle empfangen, Chatzeilen senden, Liste aktiver Chatter und Kategorie; später Raids, Abstimmungen | Empfang: Login, Anzeigename, Twitch-User-ID, Abzeichen, Befehlstext (nur `!…`/`$…`), Kennzeichen `!privat`; aktive Chatter mit ID, Login, Name, Zeitpunkt der letzten Nachricht, Abzeichen (ohne Text); Kategorie und Live-Status. Senden: Antworten von RICS. Nur im Arbeitsspeicher, nichts in Dateien |
+| Log (`Player.log`) im Normalbetrieb | Verbindungsstatus, Fehler | keine Namen und kein Chattext von der Mod; `!privat`-Umschalten nur als Anzahl |
 | RICS-Dateien (von RICS selbst) | Zuschauer, Coins, Karma, Kolonisten | wie bisher in RICS; Zuschauer mit `!privat` werden nicht eingetragen |
-| Mod-Einstellungen | Brücke an/aus, Server-Adresse, Testmodus; später Werte für Inflation, Raid, Abstimmungen | keine Personendaten |
+| Mod-Einstellungen | Brücke an/aus, Server-Adresse, Kategorieprüfung, Testmodus; später Werte für Inflation, Raid, Abstimmungen | keine Personendaten |
+| RICS-Zuschauerliste (`viewers.json`, von RICS) | Plaudernde Zuschauer ohne Befehl legt RICS über die Mod an, damit sie Coins bekommen | Login, Twitch-User-ID, Coins, Karma (wie RICS es auch mit eigener Twitch-Verbindung täte) |
 | Log (`Player.log`) im Testmodus | Kontrolle der Antworten | RICS-Antworten, oft mit Zuschauernamen; nur lokal |
 | Spielstand | Kolonisten tragen Zuschauernamen (RICS) | ohne `!privat`-Zuschauer |
 

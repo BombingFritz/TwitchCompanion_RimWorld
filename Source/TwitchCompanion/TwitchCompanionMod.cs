@@ -13,15 +13,19 @@ namespace TwitchCompanion.RimWorld
 {
     public class CompanionSettings : ModSettings
     {
+        public const string DefaultServerUrl = "http://localhost:3000";
+
         public bool enabled = true;
         public bool testMode;
-        public string serverUrl = "http://localhost:3000";
+        public bool requireCategory = true;
+        public string serverUrl = DefaultServerUrl;
 
         public override void ExposeData()
         {
             Scribe_Values.Look(ref enabled, "enabled", true);
             Scribe_Values.Look(ref testMode, "testMode", false);
-            Scribe_Values.Look(ref serverUrl, "serverUrl", "http://localhost:3000");
+            Scribe_Values.Look(ref requireCategory, "requireCategory", true);
+            Scribe_Values.Look(ref serverUrl, "serverUrl", DefaultServerUrl);
         }
     }
 
@@ -43,24 +47,50 @@ namespace TwitchCompanion.RimWorld
 
         public override void DoSettingsWindowContents(Rect inRect)
         {
+            string before = Settings.enabled + "|" + Settings.testMode + "|" + Settings.serverUrl;
+            DrawSettings(inRect);
+            // Geänderte Verbindungseinstellungen sofort wirksam machen, nicht erst mit der nächsten Zeile des Servers.
+            if (before != Settings.enabled + "|" + Settings.testMode + "|" + Settings.serverUrl) Bridge.Link?.Reconnect();
+        }
+
+        private void DrawSettings(Rect inRect)
+        {
             var list = new Listing_Standard();
             list.Begin(inRect);
 
             list.CheckboxLabeled("Brücke aktiv", ref Settings.enabled,
                 "RICS bekommt Befehle über den Server und antwortet über ihn. In RICS keinen Twitch-Token eintragen.");
-            list.Label("Server-Adresse (Anbindung folgt, sobald die Schnittstelle vereinbart ist):");
+            list.Label("Server-Adresse:");
             Settings.serverUrl = list.TextEntry(Settings.serverUrl);
+            if (Bridge.ServerUrlOverridden) list.Label("  (gerade überschrieben durch die Befehlszeile: " + Bridge.ServerUrl + ")");
+            list.CheckboxLabeled("Nur in der Twitch-Kategorie RimWorld", ref Settings.requireCategory,
+                "Befehle, Käufe und Coins nur, solange der Server die Kategorie RimWorld meldet. Ausschalten nur, wenn der Server die Kategorie noch nicht liefern kann.");
             list.Gap();
 
+            ServerLink link = Bridge.Link;
             list.Label("Status");
             list.Label("  RICS: " + (RicsApi.Available ? "gefunden" : "nicht nutzbar – " + RicsApi.Problem));
-            list.Label("  Verbindung: " + (Settings.testMode ? "Testmodus (ohne Server)" : "Server-Anbindung noch nicht enthalten"));
+            if (Settings.testMode) list.Label("  Verbindung: Testmodus (ohne Server)");
+            else if (link == null) list.Label("  Verbindung: nicht gestartet");
+            else if (link.Connected) list.Label("  Verbindung: verbunden seit " + link.ConnectedSinceUtc?.ToLocalTime().ToString("HH:mm:ss"));
+            else list.Label("  Verbindung: nicht verbunden" + (link.LastError != null ? " – " + link.LastError : string.Empty));
+            if (link != null && !Settings.testMode)
+            {
+                ChannelInfo ch = link.Channel;
+                string cat = ch != null ? "„" + (ch.Category ?? "unbekannt") + "“" + (ch.Live ? ", live" : ", nicht live") : (link.ChannelProblem ?? "unbekannt");
+                list.Label("  Kategorie: " + cat + (link.GateOpen ? " → Befehle und Coins an" : " → Befehle und Coins aus"));
+                list.Label("  Weitergeleitet: " + Bridge.Forwarded + ", wegen Kategorie verworfen: " + Bridge.BlockedByCategory
+                    + ", !privat: " + Bridge.PrivateIgnored);
+                list.Label("  Gesendet: " + link.SentCount + ", wartend: " + link.PendingSends + ", verworfen: " + link.DroppedSendCount);
+                if (link.LastSendError != null) list.Label("  Letzter Sendefehler: " + link.LastSendError);
+                if (Bridge.LastActivitySummary != null) list.Label("  Coins: " + Bridge.LastActivitySummary);
+            }
             list.Label("  Brücke: " + (Bridge.IsActive ? "aktiv" : "aus"));
             if (!string.IsNullOrEmpty(Bridge.LastError)) list.Label("  Letzter Fehler: " + Bridge.LastError);
             list.GapLine();
 
             list.CheckboxLabeled("Testmodus (ohne Server)", ref Settings.testMode,
-                "Antworten von RICS gehen ins Log statt in den Chat. Testnachrichten können unten eingespeist werden.");
+                "Keine Serververbindung. Antworten von RICS gehen ins Log statt in den Chat. Testnachrichten können unten eingespeist werden.");
             if (Settings.testMode)
             {
                 list.Label("Testnachricht einspeisen (läuft wie eine Chatnachricht durch RICS):");
@@ -105,10 +135,11 @@ namespace TwitchCompanion.RimWorld
             try
             {
                 RicsPatches.Apply(new Harmony("BombingFritz.TwitchCompanion.RimWorld"));
+                Bridge.Start();
             }
             catch (Exception ex)
             {
-                Log.Error("[Twitch Companion] Patches an RICS fehlgeschlagen: " + ex);
+                Log.Error("[Twitch Companion] Start fehlgeschlagen: " + ex);
             }
         }
     }

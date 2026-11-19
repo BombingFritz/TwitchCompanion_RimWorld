@@ -5,7 +5,7 @@ namespace TwitchCompanion.RimWorld.Core
 {
     /// <summary>
     /// Eingehende Chatnachricht. Felder entsprechen dem, was die Mod vom Server braucht
-    /// (Server-Issue #74, Ergänzung). Solange der Vertrag nicht vereinbart ist, entsteht sie nur im Testmodus.
+    /// (Server-Issue #74, Ereignis <c>chat</c>) oder aus dem Testmodus.
     /// </summary>
     public sealed class ChatLine
     {
@@ -14,6 +14,8 @@ namespace TwitchCompanion.RimWorld.Core
         public string Login;
         public string DisplayName;
         public string Text;
+        /// <summary>Empfang beim Server (UTC), falls gemeldet.</summary>
+        public System.DateTime? ReceivedAt;
         public bool IsBroadcaster;
         public bool IsModerator;
         public bool IsVip;

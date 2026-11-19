@@ -24,11 +24,12 @@
 ## Zu prüfen (im Spiel bzw. im RICS-Code)
 - RICS ohne Twitch-Token: **bestätigt** (`Player.log` vom 20.11.2026: RimWorld 1.6.4871, RICS 1.56, Spielstand mit Harmony, Ideology, Biotech und RICS geladen, keine Fehler, kein Verbindungsversuch zu Twitch). Der Hinweis „XML settings do not match the latest JSON backup“ war nach dem Umstieg zu erwarten; RICS hat danach eine neue Sicherung geschrieben, beim nächsten Start sollte er fehlen.
 - RICS-Einstellungen „Log All Chat Messages“ und „Enable Debug Logging“: für die ersten Testläufe an, um Fehler zu finden (Nutzer, 20.11.2026). Danach „Log All Chat Messages“ ausschalten, weil Chatnachrichten sonst in der `Player.log` stehen (`!privat`); Logs mit Chatnachrichten nicht in Issues kopieren.
-- Ob die Patches P2 und P3 im Spiel greifen (P2 ist ein kleiner Getter, den der JIT einbetten könnte; P3 sichert die Antworten ab).
+- Patches P1 bis P4 greifen im Spiel: **bestätigt** gegen die Attrappe (20.11.2026, RICS 1.56): Antworten auf `!bal` und `$beer` kamen über P3 bei der Attrappe an.
 - RICS führt das Spielereignis `RaidFriendly` (verbündete Gruppe, Vorgabe aus) – Kandidat für die Raid-Rolle „Verbündete“.
-- Wie RICS Moderator, VIP und Subscriber aus einer Nachricht liest (`Viewer.UpdateFromMessage`).
-- Nebenwirkungen, wenn `TwitchService.IsConnected` wahr meldet, ohne verbunden zu sein (Patch P2).
-- Aktivität für Coins auffrischen, ohne die Nachrichtenzählung von RICS zu verfälschen; ob RICS ohne Kategorie RimWorld weiter Coins verteilt.
+- Rollen, Nebenwirkungen von P2, Auffrischen der Aktivität, Coin-Vergabe außerhalb der Kategorie: **geklärt** am Code von RICS 1.56, Ergebnis in der Spec, Abschnitt „Stufe 1“ (Rollen direkt setzen, P4 hält die Coin-Vergabe an, E2 setzt Lurker nach dem Laden zurück).
+- RimWorld-Option „Im Hintergrund weiterlaufen“ (`runInBackground`) ist auf dem Streaming-PC aus: Ohne Fokus arbeitet RimWorld keine Befehle ab, nach 60 s verfallen sie. Für den Stream einschalten oder RimWorld im Vordergrund lassen (Nutzer entscheidet).
+- RICS-Fenster „Live Chat“ eignet sich ohne echte RICS-Twitch-Verbindung nicht für Befehlstests (Befehle laufen als leere YouTube-Kennung); getippter Text geht über den Bot in den Chat.
+- Kanalname in den RICS-Twitch-Einstellungen (ohne Token) eintragen, damit RICS den Streamer als Kanalinhaber erkennt? Vorher prüfen, dass RICS dann keinen Verbindungsversuch startet.
 - Methode, an der RICS den Kaufpreis bestimmt (Inflation).
 - Saubere Entfernung eines Zuschauers in RICS (`!privat` rückwirkend).
 - Raid-Rollen Verbündete, Händler und Besuch; automatischer Beitritt aller, die im Fenster schreiben.
