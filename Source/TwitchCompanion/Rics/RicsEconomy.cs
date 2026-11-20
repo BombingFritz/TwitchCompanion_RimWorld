@@ -77,6 +77,8 @@ namespace TwitchCompanion.RimWorld.Rics
         /// beliebig oft wiederholbar), Tiere mindestens <see cref="PricePlan.AnimalMinHours"/>, Spargel fest,
         /// neue Kolonisten <see cref="PricePlan.NewPawnHours"/> (Xenotypen im alten Verhältnis zur Rasse).
         /// </summary>
+        public const string EmptyStore = "RICS-Laden ist leer oder noch nicht geladen – erst einen Spielstand laden, dann noch einmal. Nichts gespeichert.";
+
         public static PricePlanResult ApplyPricePlan(PricePlan plan)
         {
             var result = new PricePlanResult { CoinsPerHour = CoinsPerHour };
@@ -86,6 +88,8 @@ namespace TwitchCompanion.RimWorld.Rics
             MethodInfo calc = AccessTools.Method(storeItem, "CalculateBasePrice", new[] { typeof(ThingDef) });
             IDictionary items = AccessTools.Property(inventory, "AllStoreItems")?.GetValue(null) as IDictionary;
             if (items == null || calc == null) { result.Problem = "RICS-Shop nicht gefunden (StoreInventory/StoreItem)"; return result; }
+            // Leerer Laden (z. B. im Hauptmenü, bevor RICS ihn geladen hat): nichts speichern, sonst wird StoreItems.json geleert.
+            if (Current.Game == null || items.Count == 0) { result.Problem = EmptyStore; return result; }
 
             int animalMin = Economy.HoursToCoins(plan.AnimalMinHours, result.CoinsPerHour);
             int asparagus = Economy.HoursToCoins(plan.AsparagusMinutes / 60f, result.CoinsPerHour);
@@ -201,6 +205,7 @@ namespace TwitchCompanion.RimWorld.Rics
             Type inventory = AccessTools.TypeByName(Ns + "Store.StoreInventory");
             IDictionary items = AccessTools.Property(inventory, "AllStoreItems")?.GetValue(null) as IDictionary;
             if (items == null) return "RICS-Laden nicht gefunden";
+            if (Current.Game == null || items.Count == 0) return EmptyStore; // nicht speichern, sonst wird StoreItems.json geleert
             Dictionary<string, ShopEntry> wanted = entries.ToDictionary(e => e.DefName, StringComparer.OrdinalIgnoreCase);
             int on = 0, off = 0;
             var missing = new HashSet<string>(wanted.Keys, StringComparer.OrdinalIgnoreCase);
