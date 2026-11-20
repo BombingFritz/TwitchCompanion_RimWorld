@@ -32,6 +32,7 @@ namespace TwitchCompanion.RimWorld.Core
             new CatalogEntry("AmbrosiaSprout", EventKarma.Good, "Ambrosia wächst"),
             new CatalogEntry("PsychicSoothe", EventKarma.Good, "Psychische Beruhigung, bessere Stimmung"),
             new CatalogEntry("Aurora", EventKarma.Good, "Polarlicht, bessere Stimmung"),
+            new CatalogEntry("RefugeePodCrash_Baby", EventKarma.Good, "Transportkapsel mit einem Baby stürzt ab (Biotech)"),
             // Neutral
             new CatalogEntry("TraderCaravanArrival", EventKarma.Neutral, "Handelskarawane kommt"),
             new CatalogEntry("OrbitalTraderArrival", EventKarma.Neutral, "Handelsschiff im Orbit"),
@@ -58,10 +59,6 @@ namespace TwitchCompanion.RimWorld.Core
             new CatalogEntry("Disease_Malaria", EventKarma.Bad, "Malaria"),
             new CatalogEntry("Disease_Plague", EventKarma.Bad, "Pest"),
             new CatalogEntry("Disease_GutWorms", EventKarma.Bad, "Darmwürmer"),
-            new CatalogEntry("Disease_MuscleParasites", EventKarma.Bad, "Muskelparasiten"),
-            new CatalogEntry("Disease_SleepingSickness", EventKarma.Bad, "Schlafkrankheit"),
-            new CatalogEntry("Disease_FibrousMechanites", EventKarma.Bad, "Faserige Mechaniten"),
-            new CatalogEntry("Disease_SensoryMechanites", EventKarma.Bad, "Sensorische Mechaniten"),
             new CatalogEntry("Disease_AnimalFlu", EventKarma.Bad, "Tiergrippe"),
             new CatalogEntry("Disease_AnimalPlague", EventKarma.Bad, "Tierpest"),
             new CatalogEntry("NoxiousHaze", EventKarma.Bad, "Saurer Smog (Biotech)"),
