@@ -226,7 +226,9 @@ namespace TwitchCompanion.RimWorld.Tests
             finally { link.Stop(); }
         }
 
-        private const string ResolvedPrediction = "{\"predictionId\":\"p1\",\"status\":\"RESOLVED\",\"winningOutcomeId\":\"o1\",\"outcomes\":["
+        private static string ResolvedPrediction => ResolvedPredictionAt(DateTime.UtcNow.AddMinutes(-1));
+
+        private static string ResolvedPredictionAt(DateTime endedUtc) => "{\"predictionId\":\"p1\",\"status\":\"RESOLVED\",\"winningOutcomeId\":\"o1\",\"endedAt\":\"" + endedUtc.ToString("yyyy-MM-ddTHH:mm:ssZ") + "\",\"outcomes\":["
             + "{\"id\":\"o1\",\"topPredictors\":[{\"userId\":\"42\",\"userLogin\":\"anna\",\"userName\":\"Anna\",\"channelPointsUsed\":500,\"channelPointsWon\":2000},"
             + "{\"userId\":\"7\",\"userLogin\":\"privo\",\"userName\":\"Privo\",\"channelPointsUsed\":100,\"channelPointsWon\":400}]},"
             + "{\"id\":\"o2\",\"topPredictors\":[{\"userId\":\"9\",\"userLogin\":\"bert\",\"userName\":\"Bert\",\"channelPointsUsed\":800,\"channelPointsWon\":0}]}]}";
@@ -303,6 +305,21 @@ namespace TwitchCompanion.RimWorld.Tests
             {
                 WaitFor(() => server.ActiveRequests >= 2, "Abfragen");
                 Assert.Equal(0, server.PredictionRequests);
+            }
+            finally { link.Stop(); }
+        }
+
+        [Fact]
+        public void OldPredictionFromServerMemoryBringsNoBonus()
+        {
+            // Befund 21.11.2026: Beim ersten Abruf lieferte der Server eine längst beendete Wette.
+            using var server = new FakeServer();
+            server.PredictionJson = ResolvedPredictionAt(DateTime.UtcNow.AddHours(-20));
+            var link = NewLink(server, betBonus: true);
+            try
+            {
+                WaitFor(() => server.PredictionRequests >= 3, "Abfragen");
+                Assert.Empty(Drain<PredictionEvent>(link));
             }
             finally { link.Stop(); }
         }

@@ -3,6 +3,10 @@
 Format nach [Keep a Changelog](https://keepachangelog.com/de/1.1.0/), Versionen nach [Semantic Versioning](https://semver.org/lang/de/). Versionen stehen nur hier und in Git-Tags (`vX.Y.Z`); Tags und Releases legt Fritz in der GitHub-Oberfläche an.
 
 ## [Unveröffentlicht]
+### Behoben
+- Wettbonus gab es beim ersten Start auch für eine längst beendete Wette; jetzt nur für Wetten, die vor höchstens 10 min endeten.
+- Keine Lootbox-Begrüßung mehr, wenn die erste Nachricht des Tages selbst `!openlootbox` ist (Patch P7).
+
 ### Hinzugefügt
 - Chat kurz und auf Deutsch: deutsche Sprachdatei mit 223 RICS-Chattexten, Umschreibung fest eingebauter englischer Texte, kurze `!bal`-Antwort (Patch P6), Schalter in den Einstellungen.
 - Wirtschaft (#10, #11): Knopf „Preise nach Zuschauzeit setzen“ (Items ×10 auf den RICS-Standard, Tiere mindestens 1 h, neuer Kolonist 2 h, Spargel 10 min), Knopf für die Währung „Pfennig“, Lootbox-Chancen (über 150 nur 1 zu 20, Patch P5), Wettbonus (1000 ausgezahlte Kanalpunkte = 1 Zuschaustunde, über den gemergten Endpunkt der Wette und die Privat-Liste). Serverstand auf den gemergten Vertrag der Chat-Brücke (`3b4e320`) nachgetragen.

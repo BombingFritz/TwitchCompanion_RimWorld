@@ -113,5 +113,28 @@ namespace TwitchCompanion.RimWorld.Tests
             Assert.Equal(new[] { "1", "2" }, ServerEvents.ParseOptouts("{\"userIds\":[\"1\",\"2\",\"\"]}").OrderBy(x => x));
             Assert.Null(ServerEvents.ParseOptouts("{\"x\":1}"));
         }
+
+    public class FreshnessAndWelcomeTests
+    {
+        [Fact]
+        public void NurFrischBeendeteWetten()
+        {
+            var now = new DateTime(2026, 11, 21, 9, 21, 0, DateTimeKind.Utc);
+            Assert.True(BetBonus.IsFresh(new PredictionResult { EndedAt = now.AddMinutes(-9) }, now));
+            Assert.False(BetBonus.IsFresh(new PredictionResult { EndedAt = now.AddMinutes(-11) }, now));
+            Assert.False(BetBonus.IsFresh(new PredictionResult { EndedAt = null }, now));
+            var parsed = BetBonus.Parse("{\"predictionId\":\"p\",\"status\":\"RESOLVED\",\"winningOutcomeId\":\"o\",\"endedAt\":\"2026-11-21T09:15:00Z\",\"outcomes\":[]}");
+            Assert.True(BetBonus.IsFresh(parsed, now));
+        }
+
+        [Theory]
+        [InlineData("!openlootbox", "fritz", "fritz", true)]
+        [InlineData("!OpenLootbox all", "fritz", "Fritz", true)]
+        [InlineData("!bal", "fritz", "fritz", false)]
+        [InlineData("!openlootbox", "anna", "fritz", false)]
+        [InlineData("!openlootboxes", "fritz", "fritz", false)]
+        public void LootboxBegruessung(string text, string login, string welcomed, bool suppress)
+            => Assert.Equal(suppress, LootboxWelcome.IsOpeningCommand(text, login, welcomed));
+    }
     }
 }

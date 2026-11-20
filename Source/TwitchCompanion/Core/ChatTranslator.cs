@@ -11,6 +11,15 @@ namespace TwitchCompanion.RimWorld.Core
     /// Einige Texte stehen fest im Code von RICS 1.56; die schreibt die Mod beim Senden um (Nutzer, 20.11.2026: kurz und
     /// auf Deutsch, Ausführliches auf der Webseite).
     /// </summary>
+    /// <summary>Lootbox-Begrüßung unterdrücken, wenn der Zuschauer gerade selbst !openlootbox schreibt (P7).</summary>
+    public static class LootboxWelcome
+    {
+        public static bool IsOpeningCommand(string text, string login, string welcomedUser) =>
+            !string.IsNullOrEmpty(text) && !string.IsNullOrEmpty(login)
+            && string.Equals(login, welcomedUser, System.StringComparison.OrdinalIgnoreCase)
+            && Regex.IsMatch(text.TrimStart(), @"^!openlootbox(\s|$)", RegexOptions.IgnoreCase);
+    }
+
     public static class ChatTranslator
     {
         private static readonly List<KeyValuePair<Regex, string>> Rules = new List<KeyValuePair<Regex, string>>
