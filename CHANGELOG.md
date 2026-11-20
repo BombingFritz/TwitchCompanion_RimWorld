@@ -10,6 +10,7 @@ Format nach [Keep a Changelog](https://keepachangelog.com/de/1.1.0/), Versionen 
 - `!leave`: Der Kolonist bleibt in der Kolonie und heißt „Dulli“ (durchnummeriert, Patches P10, P11). Einstellbar: verlässt stattdessen die Kolonie unter seinem Namen. Zuweisen im Fenster „Pawn Queue“ nur an jemanden ohne Kolonist (P12); wer per `!pawn` kauft, fliegt aus der Warteschlange.
 
 ### Behoben
+- „Preise nach Zuschauzeit setzen“ und „Laden auf diese Auswahl beschränken …“ speicherten ohne geladenen Spielstand (z. B. im Hauptmenü) einen leeren RICS-Laden und leerten damit `StoreItems.json`. Jetzt brechen beide ab und speichern nichts.
 - Wettbonus gab es beim ersten Start auch für eine längst beendete Wette; jetzt nur für Wetten, die vor höchstens 10 min endeten.
 - Keine Lootbox-Begrüßung mehr, wenn die erste Nachricht des Tages selbst `!openlootbox` ist (Patch P7).
 

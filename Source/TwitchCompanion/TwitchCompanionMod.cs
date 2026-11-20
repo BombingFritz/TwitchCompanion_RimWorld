@@ -346,7 +346,7 @@ namespace TwitchCompanion.RimWorld
                     {
                         string r = RicsEconomy.ApplyShopSelection(ShopSelection.Default);
                         Log.Message("[Twitch Companion] Laden: " + r);
-                        Messages.Message("Laden: " + r, MessageTypeDefOf.PositiveEvent, false);
+                        Messages.Message("Laden: " + r, r == RicsEconomy.EmptyStore ? MessageTypeDefOf.RejectInput : MessageTypeDefOf.PositiveEvent, false);
                     }, destructive: true));
             }
             list.CheckboxLabeled("Chat kurz und auf Deutsch", ref Settings.germanChat,
