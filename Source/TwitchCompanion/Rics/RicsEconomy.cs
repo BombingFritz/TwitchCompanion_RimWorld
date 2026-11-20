@@ -144,20 +144,88 @@ namespace TwitchCompanion.RimWorld.Rics
         {
             Type viewers = AccessTools.TypeByName(Ns + "Viewers");
             MethodInfo getViewer = AccessTools.Method(viewers, "GetViewer", new[] { messageWrapper.GetType() });
-            object viewer = getViewer?.Invoke(null, new[] { messageWrapper });
+            return BalanceOf(getViewer?.Invoke(null, new[] { messageWrapper }), withLootboxes: true);
+        }
+
+        /// <summary>Kurzes Guthaben eines Zuschauers („Guthaben: 175 Pfennig · Karma 🙂“), ohne Lootbox-Zahl.</summary>
+        public static string BalanceFor(ChatLine line) => BalanceOf(RicsApi.GetOrCreateViewer(line.UserId, line.Login), withLootboxes: false);
+
+        public static int? CoinsOf(ChatLine line)
+        {
+            object viewer = RicsApi.GetOrCreateViewer(line.UserId, line.Login);
+            return viewer == null ? (int?)null : Get(viewer, "Coins", 0);
+        }
+
+        private static string BalanceOf(object viewer, bool withLootboxes)
+        {
             if (viewer == null) return null;
             int coins = Get(viewer, "Coins", 0);
             float karma = Get(viewer, "Karma", 100f);
             string username = Get<string>(viewer, "Username", null);
             MethodInfo emoji = AccessTools.Method(AccessTools.TypeByName(Ns + "Commands.ViewerCommands.Bal"), "GetKarmaEmoji");
             string karmaEmoji = emoji?.Invoke(null, new object[] { karma }) as string;
-
-            int lootboxes = 0;
-            GameComponent box = Current.Game?.components?.FirstOrDefault(c => c.GetType().FullName == Ns + "LootBoxComponent");
-            MethodInfo count = box == null ? null : AccessTools.Method(box.GetType(), "HowManyLootboxesDoesViewerHave", new[] { typeof(string) });
-            if (count != null && username != null) lootboxes = (int)count.Invoke(box, new object[] { username });
-
+            int lootboxes = withLootboxes && username != null ? LootboxCount(username) : 0;
             return ChatTranslator.Balance(coins, CurrencyName, karmaEmoji, lootboxes);
+        }
+
+        private static GameComponent LootboxComponent =>
+            Current.Game?.components?.FirstOrDefault(c => c.GetType().FullName == Ns + "LootBoxComponent");
+
+        private static int LootboxCount(string username)
+        {
+            GameComponent box = LootboxComponent;
+            MethodInfo count = box == null ? null : AccessTools.Method(box.GetType(), "HowManyLootboxesDoesViewerHave", new[] { typeof(string) });
+            return count == null ? 0 : (int)count.Invoke(box, new object[] { username.ToLowerInvariant() });
+        }
+
+        /// <summary>
+        /// Vergibt die tägliche Lootbox (wie RICS bei der ersten Nachricht des Tages) und öffnet alle offenen sofort
+        /// (Nutzer, 20.11.2026: kein eigener Lootbox-Befehl). Gibt die Antwort von RICS zurück oder <c>null</c>.
+        /// </summary>
+        public static string AwardAndOpenLootboxes(ChatLine line)
+        {
+            GameComponent box = LootboxComponent;
+            if (box == null) return null;
+            object wrapper = RicsApi.NewWrapperFor(line);
+            AccessTools.Method(box.GetType(), "ProcessViewerMessage", new[] { wrapper.GetType() })?.Invoke(box, new[] { wrapper });
+            object viewer = RicsApi.GetOrCreateViewer(line.UserId, line.Login);
+            string username = Get<string>(viewer, "Username", null);
+            if (username == null || LootboxCount(username) <= 0) return null;
+            MethodInfo openAll = AccessTools.Method(AccessTools.TypeByName(Ns + "Commands.ViewerCommands.LootBoxCommandHandler"), "OpenAllLootboxes");
+            return openAll?.Invoke(null, new[] { wrapper, box, GlobalSettings }) as string;
+        }
+
+        /// <summary>Laden auf die Auswahl beschränken: nur diese Items an, mit eigenem Namen und Grenze je Kauf; RICS speichert.</summary>
+        public static string ApplyShopSelection(IEnumerable<ShopEntry> entries)
+        {
+            Type inventory = AccessTools.TypeByName(Ns + "Store.StoreInventory");
+            IDictionary items = AccessTools.Property(inventory, "AllStoreItems")?.GetValue(null) as IDictionary;
+            if (items == null) return "RICS-Laden nicht gefunden";
+            Dictionary<string, ShopEntry> wanted = entries.ToDictionary(e => e.DefName, StringComparer.OrdinalIgnoreCase);
+            int on = 0, off = 0;
+            var missing = new HashSet<string>(wanted.Keys, StringComparer.OrdinalIgnoreCase);
+            foreach (object item in items.Values)
+            {
+                string defName = Get<string>(item, "DefName", null);
+                if (defName != null && wanted.TryGetValue(defName, out ShopEntry e))
+                {
+                    Set(item, "Enabled", true);
+                    Set(item, "CustomName", e.CustomName);
+                    Set(item, "HasQuantityLimit", true);
+                    Set(item, "QuantityLimit", e.MaxPerPurchase);
+                    PropertyInfo mode = AccessTools.Property(item.GetType(), "LimitMode");
+                    if (mode != null && mode.PropertyType.IsEnum) mode.SetValue(item, Enum.Parse(mode.PropertyType, "Each"));
+                    missing.Remove(defName);
+                    on++;
+                }
+                else if (Get(item, "Enabled", false))
+                {
+                    Set(item, "Enabled", false);
+                    off++;
+                }
+            }
+            AccessTools.Method(inventory, "SaveStoreToJsonImmediate")?.Invoke(null, null);
+            return on + " Items im Laden, " + off + " abgeschaltet" + (missing.Count > 0 ? "; nicht gefunden: " + string.Join(", ", missing) : string.Empty);
         }
 
         public static void SaveViewers() => AccessTools.Method(AccessTools.TypeByName(Ns + "Viewers"), "SaveViewers")?.Invoke(null, null);

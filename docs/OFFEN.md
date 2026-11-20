@@ -23,13 +23,24 @@
 | Wettbonus | ganze Auszahlung zählt (hohe Wetten belohnen) |
 | Chatnachrichten | kurz und auf Deutsch, Ausführliches auf der Webseite (#9) |
 
+## Entschieden (Nutzer, 20.11.2026, Ausmisten)
+| Frage | Entscheidung |
+|---|---|
+| Antworten | nur im Spiel, nicht im Chat |
+| Befehle | stark ausdünnen; `!bal`, `!openlootbox`, Ereignisse, Wetter, Anpassen des eigenen Kolonisten entfallen |
+| Lootbox | automatisch beim ersten Befehl öffnen, danach Guthaben zeigen |
+| Laden | nur Dosenbrot, Rausch, Ei, Kartoffeln, Flausch, Holz vor der Hütte |
+| Neue Kolonisten | zufällig, nach dem Zuschauer benannt, höchstens einer je 30 min; Lebenslauf später per Abstimmung |
+| Ereignisse | nicht kaufbar; später vom Erzähler vorgeschlagen, der Chat wählt |
+| Flüstern | späteres Ziel |
+| Anleitung/Preisliste | wird angepinnt bzw. von Hand gepostet, kein Befehl dafür |
+
 ## Noch zu entscheiden
 | # | Frage | Vorschlag | Betrifft |
 |---|---|---|---|
 | 9 | „Etwa jede dritte Abstimmung“: Zufall 1/3 und auch für die Raid-Abstimmung? | ja, beides | Stufe 2/3 |
 | 10 | Startwerte der Preisinflation: Halbwertszeit, Referenzumsatz, Obergrenze | 20 min, 3000 Coins, ×4 | 0.1b |
 | 11 | `!privat` rückwirkend: Zuschauer in RICS entfernen, Kolonist umbenennen | ja | 0.1 |
-| 12 | Befehl für den aktuellen Preisfaktor | `!preise` | 0.1b |
 | 13 | Abstand der Ereignis-Abstimmungen und Anzahl der Optionen | 20 min, 3 Optionen | Stufe 3 |
 
 ## Zu prüfen (im Spiel bzw. im RICS-Code)

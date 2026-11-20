@@ -117,6 +117,8 @@ namespace TwitchCompanion.RimWorld.Rics
         // ── P7 ──
         private static bool WelcomePrefix(string username)
         {
+            // Mit automatischem Öffnen gibt es keine Begrüßung mehr; sonst nur, wenn die Nachricht nicht selbst !openlootbox ist.
+            if (TwitchCompanionMod.Settings != null && TwitchCompanionMod.Settings.autoLootbox && Bridge.IsActive) return false;
             Core.ChatLine line = Bridge.CurrentIncoming;
             return line == null || !Core.LootboxWelcome.IsOpeningCommand(line.Text, line.Login, username);
         }

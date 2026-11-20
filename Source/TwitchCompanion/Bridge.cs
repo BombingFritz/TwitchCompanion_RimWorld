@@ -3,6 +3,9 @@
 
 using System;
 using System.Collections.Concurrent;
+using RimWorld;
+using System.Threading;
+using System.Collections.Generic;
 using System.Linq;
 using TwitchCompanion.RimWorld.Core;
 using TwitchCompanion.RimWorld.Rics;
@@ -93,12 +96,39 @@ namespace TwitchCompanion.RimWorld
         }
 
         /// <summary>Ausgang; fest eingebaute englische RICS-Texte werden vorher deutsch und kurz (abschaltbar).</summary>
-        public static void EnqueueOutgoing(string text) =>
-            Outgoing.Add(Settings != null && Settings.germanChat ? ChatTranslator.Translate(text) : text, DateTime.UtcNow);
+        public static void EnqueueOutgoing(string text)
+        {
+            string t = Settings != null && Settings.germanChat ? ChatTranslator.Translate(text) : text;
+            // Während RICS im Hauptthread eine Nachricht bearbeitet, werden die Antworten gesammelt und als eine Einblendung gezeigt.
+            if (_capturing && Thread.CurrentThread.ManagedThreadId == _mainThreadId) { Captured.Add(t); return; }
+            Outgoing.Add(t, DateTime.UtcNow);
+        }
+
+        private static readonly List<string> Captured = new List<string>();
+        private static bool _capturing;
+        private static int _mainThreadId = -1;
+        public static int NotAllowed { get; private set; }
+        public static int PawnBlocked { get; private set; }
+
+        /// <summary>Antwort im Spiel einblenden (sichtbar im Stream) statt im Chat; nur Hauptthread.</summary>
+        private static void ShowInGame(string text)
+        {
+            if (string.IsNullOrWhiteSpace(text)) return;
+            Messages.Message(text, MessageTypeDefOf.SilentInput, true);
+            if (Settings.testMode) Log.Message(LogPrefix + "Im Spiel: " + text);
+        }
+
+        /// <summary>Einzelne Antwort an einen Zuschauer: im Spiel oder (ohne die Einstellung) im Chat.</summary>
+        private static void Reply(ChatLine line, string text)
+        {
+            if (Settings.repliesInGame) ShowInGame("@" + line.Login + ": " + text);
+            else EnqueueOutgoing("@" + line.Login + " " + text);
+        }
 
         /// <summary>Im Hauptthread aufrufen (GameComponent). Liefert Eingänge an RICS und gibt Ausgänge weiter.</summary>
         public static void MainThreadTick()
         {
+            _mainThreadId = Thread.CurrentThread.ManagedThreadId;
             while (BackgroundLog.TryDequeue(out string msg)) Log.Message(LogPrefix + msg);
 
             if (!_activityResetDone && RicsApi.Available && Find.TickManager != null)
@@ -210,16 +240,38 @@ namespace TwitchCompanion.RimWorld
             if (line.IsPrivate)
             {
                 PrivateIgnored++;
-                if (Privacy.ShouldNotify(line.UserId))
+                // Im Spiel keinen Namen eines !privat-Zuschauers einblenden.
+                if (!Settings.repliesInGame && Privacy.ShouldNotify(line.UserId))
                     EnqueueOutgoing("@" + line.Login + " " + PrivacyNotices.Text);
                 return;
             }
 
+            // Ausmisten (Nutzer, 20.11.2026): Zuschauer nur erlaubte Befehle, still verworfen; Moderatoren und Streamer alles.
+            bool privileged = line.IsBroadcaster || line.IsModerator;
+            if (!CommandFilter.IsAllowed(line.Text, CommandFilter.ParseList(Settings.allowedCommands), privileged)) { NotAllowed++; return; }
+
+            string word = CommandFilter.CommandWord(line.Text);
+            int? coinsBefore = null;
+            if (word == "pawn")
+            {
+                line.Text = CommandFilter.StripPawnArguments(line.Text);
+                TimeSpan left = PawnGate.Remaining(Settings.LastPawnPurchaseUtc, DateTime.UtcNow, TimeSpan.FromMinutes(Settings.pawnCooldownMinutes));
+                if (left > TimeSpan.Zero && !privileged) { PawnBlocked++; Reply(line, PawnGate.Message(left)); return; }
+                coinsBefore = RicsEconomy.CoinsOf(line);
+            }
+
+            bool lootboxOpened = false;
+            Captured.Clear();
+            _capturing = Settings.repliesInGame;
             try
             {
                 CurrentIncoming = line;
-                try { RicsApi.Deliver(line); }
-                finally { CurrentIncoming = null; }
+                if (Settings.autoLootbox)
+                {
+                    string opened = RicsEconomy.AwardAndOpenLootboxes(line);
+                    if (opened != null) { EnqueueOutgoing("@" + line.Login + " " + opened); lootboxOpened = true; }
+                }
+                RicsApi.Deliver(line);
                 Forwarded++;
             }
             catch (Exception ex)
@@ -227,10 +279,26 @@ namespace TwitchCompanion.RimWorld
                 LastError = (ex.InnerException ?? ex).Message;
                 Log.Error(LogPrefix + "Nachricht konnte nicht an RICS gehen: " + (ex.InnerException ?? ex));
             }
+            finally
+            {
+                CurrentIncoming = null;
+                _capturing = false;
+            }
+
+            if (word == "pawn" && coinsBefore != null && RicsEconomy.CoinsOf(line) < coinsBefore)
+                Settings.MarkPawnPurchase(DateTime.UtcNow);
+
+            if (Settings.repliesInGame)
+            {
+                string balance = word == "buy" || word == "pawn" || lootboxOpened ? RicsEconomy.BalanceFor(line) : null;
+                ShowInGame(ReplyComposer.Compose(line.Login, Captured, balance));
+                Captured.Clear();
+            }
         }
 
         private static void Send(string message)
         {
+            if (Settings.repliesInGame) { ShowInGame(message); return; }
             if (Settings.testMode || Link == null)
             {
                 Log.Message(LogPrefix + "Chat ← " + message);

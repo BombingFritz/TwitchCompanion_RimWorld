@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using HarmonyLib;
 using RimWorld;
 using TwitchCompanion.RimWorld.Core;
@@ -23,6 +24,19 @@ namespace TwitchCompanion.RimWorld
         public bool lootboxOdds = true;
         public bool betBonus = true;
         public bool germanChat = true;
+        public bool repliesInGame = true;
+        public bool autoLootbox = true;
+        public string allowedCommands = CommandFilter.DefaultAllowed;
+        public int pawnCooldownMinutes = 30;
+        public long lastPawnPurchaseTicks;
+
+        public DateTime? LastPawnPurchaseUtc => lastPawnPurchaseTicks > 0 ? new DateTime(lastPawnPurchaseTicks, DateTimeKind.Utc) : (DateTime?)null;
+
+        public void MarkPawnPurchase(DateTime utc)
+        {
+            lastPawnPurchaseTicks = utc.Ticks;
+            Write();
+        }
         public float priceFactor = 10f;
         /// <summary>IDs bereits belohnter Wetten (keine Personendaten), höchstens 50.</summary>
         public List<string> awardedPredictions = new List<string>();
@@ -48,6 +62,11 @@ namespace TwitchCompanion.RimWorld
             Scribe_Values.Look(ref lootboxOdds, "lootboxOdds", true);
             Scribe_Values.Look(ref betBonus, "betBonus", true);
             Scribe_Values.Look(ref germanChat, "germanChat", true);
+            Scribe_Values.Look(ref repliesInGame, "repliesInGame", true);
+            Scribe_Values.Look(ref autoLootbox, "autoLootbox", true);
+            Scribe_Values.Look(ref allowedCommands, "allowedCommands", CommandFilter.DefaultAllowed);
+            Scribe_Values.Look(ref pawnCooldownMinutes, "pawnCooldownMinutes", 30);
+            Scribe_Values.Look(ref lastPawnPurchaseTicks, "lastPawnPurchaseTicks", 0L);
             Scribe_Values.Look(ref priceFactor, "priceFactor", 10f);
             Scribe_Collections.Look(ref awardedPredictions, "awardedPredictions", LookMode.Value);
             if (Scribe.mode == LoadSaveMode.PostLoadInit && awardedPredictions == null) awardedPredictions = new List<string>();
@@ -156,6 +175,7 @@ namespace TwitchCompanion.RimWorld
     public partial class TwitchCompanionMod
     {
         private string _factorBuffer;
+        private string _cooldownBuffer;
 
         /// <summary>Wirtschaft: Zuschaustunde, Preis-Werkzeug, Lootbox-Chancen, Wettbonus (Feature-Issues #10, #11).</summary>
         private void DrawEconomy(Listing_Standard list)
@@ -191,6 +211,28 @@ namespace TwitchCompanion.RimWorld
             list.CheckboxLabeled("Lootbox: über " + LootboxOdds.Threshold + " nur 1 zu 20", ref Settings.lootboxOdds,
                 "Sonst " + LootboxOdds.LowMin + "–" + LootboxOdds.Threshold + "; mit 5 % bis " + RicsEconomy.LootboxMax
                 + " (Höchstwert aus RICS). Im Mittel etwa " + LootboxOdds.Expected(RicsEconomy.LootboxMax).ToString("0") + " je Lootbox.");
+            list.GapLine();
+            list.Label("Ausmisten");
+            list.CheckboxLabeled("Antworten nur im Spiel (nicht im Chat)", ref Settings.repliesInGame,
+                "RICS-Antworten erscheinen als Einblendung in RimWorld und sind im Stream zu sehen; der Chat bleibt frei.");
+            list.CheckboxLabeled("Lootbox beim ersten Befehl automatisch öffnen", ref Settings.autoLootbox,
+                "Vor dem Befehl werden offene Lootboxen geöffnet; danach steht das Guthaben in der Antwort.");
+            list.Label("  Erlaubte Befehle für Zuschauer (Moderatoren und Streamer: alle; „buy“ gilt auch für $-Käufe):");
+            Settings.allowedCommands = list.TextEntry(Settings.allowedCommands);
+            if (list.ButtonText("  Vorgabe wiederherstellen")) Settings.allowedCommands = CommandFilter.DefaultAllowed;
+            list.TextFieldNumericLabeled("  Neuer Kolonist höchstens alle … min (alle zusammen)", ref Settings.pawnCooldownMinutes, ref _cooldownBuffer, 0, 600);
+            list.Label("  Laden: " + string.Join(", ", ShopSelection.Default.Select(e => e.CustomName + " (max. " + e.MaxPerPurchase + ")")));
+            if (list.ButtonText("Laden auf diese Auswahl beschränken …"))
+            {
+                Find.WindowStack.Add(Dialog_MessageBox.CreateConfirmation(
+                    "Alle anderen Items in RICS werden abgeschaltet; die sechs bekommen ihren Namen und eine Grenze je Kauf. Fortfahren?",
+                    () =>
+                    {
+                        string r = RicsEconomy.ApplyShopSelection(ShopSelection.Default);
+                        Log.Message("[Twitch Companion] Laden: " + r);
+                        Messages.Message("Laden: " + r, MessageTypeDefOf.PositiveEvent, false);
+                    }, destructive: true));
+            }
             list.CheckboxLabeled("Chat kurz und auf Deutsch", ref Settings.germanChat,
                 "Kurze !bal-Antwort und deutsche Fassung der fest eingebauten RICS-Texte. Die übrigen RICS-Texte kommen aus der deutschen Sprachdatei dieser Mod, wenn RimWorld auf Deutsch läuft.");
             list.CheckboxLabeled("Wettbonus: 1000 gewonnene Kanalpunkte = 1 Zuschaustunde", ref Settings.betBonus,
