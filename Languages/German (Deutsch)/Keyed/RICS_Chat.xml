@@ -151,8 +151,8 @@
 
   <!-- Warteschlange -->
   <RICS.PQCH.AlreadyHasPawn>Du hast schon einen Kolonisten. Erst !leave.</RICS.PQCH.AlreadyHasPawn>
-  <RICS.PQCH.AlreadyInQueue>Du stehst schon auf Platz {0}.</RICS.PQCH.AlreadyInQueue>
-  <RICS.PQCH.JoinSuccess>✅ In der Warteschlange: Platz {0} von {1}</RICS.PQCH.JoinSuccess>
+  <RICS.PQCH.AlreadyInQueue>Du stehst schon in der Warteschlange.</RICS.PQCH.AlreadyInQueue>
+  <RICS.PQCH.JoinSuccess>✅ Angestellt, du stehst vorne ({1} warten). Der nächste freie Kolonist geht an die Person, die sich zuletzt angestellt hat.</RICS.PQCH.JoinSuccess>
   <RICS.PQCH.JoinFailed>Hat nicht geklappt, bitte nochmal.</RICS.PQCH.JoinFailed>
   <RICS.PQCH.NotInQueue>Du stehst nicht in der Warteschlange.</RICS.PQCH.NotInQueue>
   <RICS.PQCH.LeaveSuccess>✅ Aus der Warteschlange raus.</RICS.PQCH.LeaveSuccess>
@@ -162,6 +162,7 @@
   <RICS.PQCH.QueueStatusNot>Du stehst nicht drin. Wartende: {0}</RICS.PQCH.QueueStatusNot>
   <RICS.PQCH.NoPendingOffer>Kein Angebot für dich. Anstellen: !joinqueue</RICS.PQCH.NoPendingOffer>
   <RICS.PQCH.AcceptAlreadyHasPawn>Du hast schon einen Kolonisten. Erst !leave.</RICS.PQCH.AcceptAlreadyHasPawn>
+  <RICS.Message.PawnAssigned>🎉 {0} gehört jetzt dir. Willkommen in der Kolonie!</RICS.Message.PawnAssigned>
   <RICS.PQCH.AcceptSuccess>🎉 @{0}, {1} gehört jetzt dir. Willkommen in der Kolonie!</RICS.PQCH.AcceptSuccess>
   <RICS.PQCH.AcceptFailed>❌ Angebot abgelaufen. Neu anstellen: !joinqueue</RICS.PQCH.AcceptFailed>
   <RICS.PQCH.AcceptError>Hat nicht geklappt, bitte nochmal.</RICS.PQCH.AcceptError>

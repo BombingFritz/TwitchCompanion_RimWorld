@@ -6,6 +6,7 @@ Format nach [Keep a Changelog](https://keepachangelog.com/de/1.1.0/), Versionen 
 ### Geändert
 - Ausmisten gegen Befehlsflut: Antworten nur im Spiel (eine Einblendung je Befehl mit Guthaben), erlaubte Befehle für Zuschauer (Kauf, neuer Kolonist, Warteschlange, Raid-Beitritt), Lootbox beim ersten Befehl automatisch geöffnet, neue Kolonisten nur zufällig und höchstens einer je 30 min, Knopf „Laden auf Auswahl beschränken“ (8 Items mit eigenen Namen und Grenze je Kauf).
 - Holz heißt im Laden jetzt „Holz“ statt „Holz vor der Hütte“, damit `$Holz 20` in jeder Spielsprache greift. Neu im Laden: Schoki (Schokolade, max. 5) und Hausmittel (Kräutermedizin, max. 3). Wer den Laden schon beschränkt hat, drückt den Knopf noch einmal.
+- Warteschlange vereinfacht: nur noch `!joinqueue` (ohne `!acceptpawn`, `!queuestatus`, `!leavequeue`). Wer sich zuletzt anstellt, steht vorne (Patch P8); anstellen einmal je Stream; 30 min nach Streamende wird die Liste geleert. Im RICS-Fenster „Pawn Queue“ ist der Vorderste vorausgewählt (Patch P9), „Assign“ vergibt sofort.
 
 ### Behoben
 - Wettbonus gab es beim ersten Start auch für eine längst beendete Wette; jetzt nur für Wetten, die vor höchstens 10 min endeten.

@@ -33,6 +33,9 @@ namespace TwitchCompanion.RimWorld.Rics
             // P6: kurze deutsche Antwort auf !bal (Nutzer, 20.11.2026).
             MethodInfo bal = AccessTools.Method(AccessTools.TypeByName("CAP_ChatInteractive.Commands.ViewerCommands.Bal"), "Execute");
             if (bal != null) harmony.Patch(bal, postfix: new HarmonyMethod(typeof(RicsPatches), nameof(BalPostfix)));
+            // P8, P9: Warteschlange – Neue vorne, Vorderster im Fenster vorausgewählt (Nutzer, 20.11.2026).
+            string queue = RicsQueue.Apply(harmony);
+            Log.Message("[Twitch Companion] Warteschlange: " + queue + ".");
             Log.Message("[Twitch Companion] Patches an RICS gesetzt (P1, P2, P3" + (RicsApi.CoinReward != null ? ", P4" : "; P4 fehlt")
                 + (lootbox > 0 ? ", P5 an " + lootbox + " Stellen" : "; P5 fehlt") + (bal != null ? ", P6" : "; P6 fehlt") + (welcome != null ? ", P7)." : "; P7 fehlt)."));
         }
