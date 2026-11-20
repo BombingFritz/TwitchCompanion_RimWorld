@@ -225,7 +225,7 @@ namespace TwitchCompanion.RimWorld.Core
 
         public static string Message(int strikes) => strikes >= MaxStrikes
             ? "Dritte Verwarnung: Der Bot ignoriert dich bis zum Ende des Streams."
-            : "Bitte nicht spammen – Verwarnung " + strikes + " von " + MaxStrikes + ". Bei " + MaxStrikes + " ignoriert dich der Bot bis Streamende.";
+            : "Bitte nicht spammen – Verwarnung " + strikes + " von " + MaxStrikes + ". Bei " + MaxStrikes + " ignoriert dich der Bot bis Streamende. Bitte höchstens 5 Befehle pro Minute und 10 in 10 Minuten.";
     }
 }
 

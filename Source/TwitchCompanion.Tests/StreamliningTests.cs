@@ -179,6 +179,7 @@ namespace TwitchCompanion.RimWorld.Tests
             Assert.True(g.IsIgnored("1"));
             Assert.Equal(SpamVerdict.Ignored, g.Record("1", t.AddHours(1)));
             Assert.Contains("ignoriert dich bis zum Ende", SpamGuard.Message(3));
+            Assert.EndsWith("Bitte höchstens 5 Befehle pro Minute und 10 in 10 Minuten.", SpamGuard.Message(1));
             var copy = new SpamGuard();
             copy.Load(g.Save());
             Assert.True(copy.IsIgnored("1"));
