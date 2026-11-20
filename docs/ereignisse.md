@@ -13,7 +13,7 @@ Zusätzlich hat jede Runde eine ruhige Option: „Nichts passiert“ oder „Wet
 ### Gut
 | Ereignis (Spielname) | Beschreibung |
 |---|---|
-| `WandererJoin` | Ein Wanderer schließt sich der Kolonie an (stark, aber im Spiel häufig) |
+| `WandererJoin` | Ein Wanderer schließt sich der Kolonie an (gut, nicht extrem gut; Nutzer, 20.11.2026) |
 | `RefugeePodCrash` | Transportkapsel stürzt ab, Insasse kann aufgenommen werden |
 | `ResourcePodCrash` | Frachtkapseln mit Gütern landen |
 | `FarmAnimalsWanderIn` | Nutztiere laufen zu |
