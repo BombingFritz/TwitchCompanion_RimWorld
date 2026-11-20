@@ -162,6 +162,9 @@ namespace TwitchCompanion.RimWorld
             for (int i = 0; i < MaxDeliveriesPerFrame && Incoming.TryDequeue(out ChatLine line); i++)
                 Deliver(line);
 
+            try { EventVotes.Tick(); }
+            catch (Exception ex) { LastError = (ex.InnerException ?? ex).Message; Log.ErrorOnce(LogPrefix + "Ereignis-Abstimmung: " + ex, 0x7C0AA); }
+
             foreach (string message in Outgoing.Flush(DateTime.UtcNow))
                 Send(message);
 

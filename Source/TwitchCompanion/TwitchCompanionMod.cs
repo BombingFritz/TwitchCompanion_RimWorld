@@ -44,6 +44,14 @@ namespace TwitchCompanion.RimWorld
         public List<string> spamStrikes = new List<string>();
         /// <summary>Was mit einem Kolonisten nach <c>!leave</c> passiert; später per Abstimmung (blockiert durch Server-Issue #81).</summary>
         public LeaveMode leaveMode = LeaveMode.StaysAsDulli;
+
+        // Ereignis-Abstimmung (Stufe 3, Feature-Issue #4); Startwerte Vorschlag von Claude, OFFEN.md #13.
+        public bool eventVotes;
+        public int eventIntervalMinutes = 20;
+        public int eventVoteSeconds = 120;
+        public int eventOptions = 3;
+        public bool eventIncludeDoom;
+        public bool eventOverlay = true;
         /// <summary>Zuletzt gesehen, dass der Stream live ist (UTC-Ticks), 0 = unbekannt.</summary>
         public long lastLiveTicks;
 
@@ -98,6 +106,12 @@ namespace TwitchCompanion.RimWorld
             Scribe_Values.Look(ref lastLiveTicks, "lastLiveTicks", 0L);
             Scribe_Collections.Look(ref spamStrikes, "spamStrikes", LookMode.Value);
             Scribe_Values.Look(ref leaveMode, "leaveMode", LeaveMode.StaysAsDulli);
+            Scribe_Values.Look(ref eventVotes, "eventVotes", false);
+            Scribe_Values.Look(ref eventIntervalMinutes, "eventIntervalMinutes", 20);
+            Scribe_Values.Look(ref eventVoteSeconds, "eventVoteSeconds", 120);
+            Scribe_Values.Look(ref eventOptions, "eventOptions", 3);
+            Scribe_Values.Look(ref eventIncludeDoom, "eventIncludeDoom", false);
+            Scribe_Values.Look(ref eventOverlay, "eventOverlay", true);
             if (Scribe.mode == LoadSaveMode.PostLoadInit)
             {
                 queueJoinedThisStream ??= new List<string>();
@@ -132,10 +146,15 @@ namespace TwitchCompanion.RimWorld
             if (before != Settings.enabled + "|" + Settings.testMode + "|" + Settings.serverUrl) Bridge.Link?.Reconnect();
         }
 
+        private Vector2 _scroll;
+        private float _viewHeight = 1600f;
+
         private void DrawSettings(Rect inRect)
         {
+            var view = new Rect(0f, 0f, inRect.width - 20f, _viewHeight);
+            Widgets.BeginScrollView(inRect, ref _scroll, view);
             var list = new Listing_Standard();
-            list.Begin(inRect);
+            list.Begin(view);
 
             list.CheckboxLabeled("Brücke aktiv", ref Settings.enabled,
                 "RICS bekommt Befehle über den Server und antwortet über ihn. In RICS keinen Twitch-Token eintragen.");
@@ -170,6 +189,8 @@ namespace TwitchCompanion.RimWorld
 
             DrawEconomy(list);
             list.GapLine();
+            DrawEvents(list);
+            list.GapLine();
 
             list.CheckboxLabeled("Testmodus (ohne Server)", ref Settings.testMode,
                 "Keine Serververbindung. Antworten von RICS gehen ins Log statt in den Chat. Testnachrichten können unten eingespeist werden.");
@@ -203,7 +224,32 @@ namespace TwitchCompanion.RimWorld
                 }
             }
 
+            _viewHeight = Math.Max(inRect.height, list.CurHeight + 40f);
             list.End();
+            Widgets.EndScrollView();
+        }
+
+        private string _intervalBuffer, _voteSecondsBuffer, _optionsBuffer;
+
+        /// <summary>Ereignis-Abstimmung: Der Erzähler schlägt vor, der Chat wählt (Stufe 3, Feature-Issue #4).</summary>
+        private void DrawEvents(Listing_Standard list)
+        {
+            list.Label("Ereignisse");
+            list.CheckboxLabeled("Ereignis-Abstimmungen", ref Settings.eventVotes,
+                "Der Erzähler schlägt Ereignisse aus der RICS-Ereignisliste vor (möglichst gut, neutral, schlecht), der Chat wählt, der Gewinner wird ausgelöst. "
+                + "Bis der Server Twitch-Abstimmungen starten kann (Server-Issue #81), ist es eine Test-Abstimmung im Spiel: Stimmen per Klick, sonst Zufall.");
+            list.TextFieldNumericLabeled("  Abstand (min)", ref Settings.eventIntervalMinutes, ref _intervalBuffer, 1, 240);
+            list.TextFieldNumericLabeled("  Dauer der Abstimmung (s)", ref Settings.eventVoteSeconds, ref _voteSecondsBuffer, VoteRound.MinSeconds, VoteRound.MaxSeconds);
+            list.TextFieldNumericLabeled("  Optionen", ref Settings.eventOptions, ref _optionsBuffer, EventPlanner.MinOptions, EventPlanner.MaxOptions);
+            list.CheckboxLabeled("  Auch verheerende Ereignisse (laut RICS „Doom“)", ref Settings.eventIncludeDoom);
+            list.CheckboxLabeled("  Einblendung im Spiel", ref Settings.eventOverlay, "Fenster oben mit Optionen und Restzeit; im Test mit Knöpfen für Stimmen.");
+            if (EventVotes.Current != null) list.Label("  Läuft: " + string.Join(" · ", EventVotes.Current.OptionTitles));
+            if (EventVotes.LastResult != null) list.Label("  Zuletzt: " + EventVotes.LastResult);
+            bool inGame = Current.Game != null;
+            if (list.ButtonText(inGame ? "Test-Abstimmung jetzt starten" : "Test-Abstimmung: erst einen Spielstand laden") && inGame && EventVotes.Current == null)
+            {
+                if (!EventVotes.Start(DateTime.UtcNow)) Messages.Message(EventVotes.LastResult ?? "Keine Abstimmung möglich.", MessageTypeDefOf.RejectInput, false);
+            }
         }
     }
 
