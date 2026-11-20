@@ -74,6 +74,8 @@ namespace TwitchCompanion.RimWorld.Core
             new ShopEntry("RawPotatoes", "Kartoffeln", 30),
             new ShopEntry("WoolAlpaca", "Flausch", 25),
             new ShopEntry("WoodLog", "Holz", 50),
+            new ShopEntry("Chocolate", "Schoki", 5),
+            new ShopEntry("MedicineHerbal", "Hausmittel", 3),
         };
     }
 
