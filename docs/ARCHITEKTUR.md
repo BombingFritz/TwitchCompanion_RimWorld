@@ -18,7 +18,7 @@ Version 0.1 (Feature-Issue #2): Anbindung an den Server-Vertrag „Chat-Brücke�
 Ablauf:
 - Eingang: `ServerLink` (Thread „SSE“) liest `GET /api/chat/stream`, verwirft doppelte `messageId`, legt Ereignisse in `ServerLink.Events` → `Bridge.MainThreadTick` (je Bild bis zu 50 Ereignisse) → Kategorie prüfen → RICS (E1).
 - Coins: Thread „Poll“ fragt jede Minute `/api/twitch/channel` und, wenn die Kategorie passt, `/api/chat/active` → Hauptthread → E2.
-- Ereignis-Abstimmung: `Bridge.MainThreadTick` → `EventVotes.Tick` (Zeitplan, `EventPlanner`, `VoteRound`) → RICS-Ereignisliste per Reflexion → `IncidentWorker.TryExecute`. Kein Serveraufruf; das Starten der Twitch-Abstimmung ist blockiert durch Server-Issue #81.
+- Ereignis-Abstimmung: `Bridge.MainThreadTick` → `EventVotes.Tick` (Zeitplan `VoteSchedule`, `EventPlanner`, `VoteRound`) → eigene Liste `EventCatalog` → `IncidentWorker.TryExecute` bzw. `WeatherDecider.StartNextWeather`; P13 merkt fremde Ereignisse. Streambeginn aus `live` (`QueueRules.StreamChanged`). Kein Serveraufruf; das Starten der Twitch-Abstimmung ist blockiert durch Server-Issue #81.
 - Streamende: `live` aus `/api/twitch/channel` → Hauptthread → `QueueRules.StreamChanged` (30 min Pause) → RICS-Warteschlange und Liste der Angestellten leeren. Kein neues Serverfeld.
 - Wettbonus: derselbe Thread fragt jede Minute `/api/twitch/prediction/current`; bei einer neu aufgelösten Wette in der Kategorie RimWorld zusätzlich `/api/privacy/optouts` → `PredictionEvent` → Hauptthread: Pfennig über E3, eine Chatzeile.
 - Ausgang: RICS → P1/P3 → `LineMerger` (1 s Ruhe, bis 500 Zeichen) → `ServerLink.EnqueueSend` → Thread „Send“ → `POST /api/chat/send` (≥ 1 s Abstand, 429 → `retryAfterMs`). Im Testmodus ins Log.

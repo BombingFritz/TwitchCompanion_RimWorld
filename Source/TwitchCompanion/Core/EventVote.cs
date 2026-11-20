@@ -10,8 +10,17 @@ namespace TwitchCompanion.RimWorld.Core
     /// <summary>Einordnung eines Ereignisses laut RICS (<c>BuyableIncident.KarmaType</c>).</summary>
     public enum EventKarma { Good, Neutral, Bad, Doom }
 
+    /// <summary>Ruhige Optionen ohne Spielereignis (Nutzer, 20.11.2026).</summary>
+    public enum CalmKind { None, Nothing, Weather }
+
     public sealed class EventCandidate
     {
+        public const string NothingDefName = "tc_nothing", WeatherDefName = "tc_weather";
+        public static EventCandidate Nothing => new EventCandidate { DefName = NothingDefName, Label = "Nichts passiert", Karma = EventKarma.Neutral, Calm = CalmKind.Nothing, Weight = 1f };
+        public static EventCandidate Weather => new EventCandidate { DefName = WeatherDefName, Label = "Wetterwechsel", Karma = EventKarma.Neutral, Calm = CalmKind.Weather, Weight = 1f };
+
+        public CalmKind Calm;
+        public bool IsCalm => Calm != CalmKind.None;
         public string DefName;
         public string Label;
         public EventKarma Karma;
@@ -32,43 +41,49 @@ namespace TwitchCompanion.RimWorld.Core
 
     /// <summary>
     /// Der „Erzähler“ (Vorschlag von Claude, Nutzer 20.11.2026: Erzähler schlägt vor, Chat wählt): je Runde möglichst ein
-    /// gutes, ein neutrales und ein schlechtes Ereignis, gewichtet nach der Häufigkeit im Spiel; verheerende nur auf Wunsch.
-    /// Fehlt eine Sorte, füllt er mit den übrigen auf. Das zuletzt gewählte Ereignis kommt nicht gleich wieder.
+    /// gutes und ein schlechtes Ereignis und eine ruhige Option („Nichts passiert“ oder „Wetterwechsel“), dann neutrale;
+    /// gewichtet nach der Häufigkeit im Spiel. Verheerendes kommt nicht vor (später Gesamt-Karma). Was in diesem Stream schon
+    /// gewonnen hat, kommt nur, wenn sonst nichts dieser Sorte übrig ist.
     /// </summary>
     public static class EventPlanner
     {
         public const int MinOptions = 2;
         public const int MaxOptions = 5;
-        private static readonly EventKarma[] Order = { EventKarma.Good, EventKarma.Bad, EventKarma.Neutral, EventKarma.Doom };
 
         public static List<EventCandidate> Propose(IEnumerable<EventCandidate> candidates, int count, Random rng,
-            bool includeDoom, string lastWinnerDefName = null)
+            ICollection<string> usedThisStream = null, bool weatherPossible = true)
         {
             count = Math.Max(MinOptions, Math.Min(MaxOptions, count));
             var pool = (candidates ?? Enumerable.Empty<EventCandidate>())
-                .Where(c => c != null && !string.IsNullOrEmpty(c.DefName) && (includeDoom || c.Karma != EventKarma.Doom))
+                .Where(c => c != null && !string.IsNullOrEmpty(c.DefName) && !c.IsCalm && c.Karma != EventKarma.Doom)
                 .GroupBy(c => c.DefName).Select(g => g.First())
-                .Where(c => c.DefName != lastWinnerDefName)
                 .ToList();
-            var chosen = new List<EventCandidate>();
-            foreach (EventKarma karma in Order)
+            bool Used(EventCandidate c) => usedThisStream != null && usedThisStream.Contains(c.DefName);
+            EventCandidate Take(Func<EventCandidate, bool> filter)
             {
-                if (chosen.Count >= count) break;
-                EventCandidate pick = PickWeighted(pool.Where(c => c.Karma == karma).ToList(), rng);
-                if (pick == null) continue;
-                chosen.Add(pick);
-                pool.Remove(pick);
+                var sort = pool.Where(filter).ToList();
+                EventCandidate pick = PickWeighted(sort.Where(c => !Used(c)).ToList(), rng) ?? PickWeighted(sort, rng);
+                if (pick != null) pool.Remove(pick);
+                return pick;
             }
+
+            var chosen = new List<EventCandidate>();
+            void Add(EventCandidate c) { if (c != null && chosen.Count < count) chosen.Add(c); }
+            Add(Take(c => c.Karma == EventKarma.Good));
+            Add(Take(c => c.Karma == EventKarma.Bad));
+            Add(weatherPossible && rng.Next(2) == 0 ? EventCandidate.Weather : EventCandidate.Nothing);
             while (chosen.Count < count)
             {
-                EventCandidate pick = PickWeighted(pool, rng);
-                if (pick == null) break;
-                chosen.Add(pick);
-                pool.Remove(pick);
+                EventCandidate next = Take(c => c.Karma == EventKarma.Neutral) ?? Take(_ => true);
+                if (next == null) break;
+                Add(next);
             }
             // Reihenfolge mischen, damit „gut“ nicht immer oben steht.
             return chosen.OrderBy(_ => rng.Next()).ToList();
         }
+
+        /// <summary>Mindestens zwei echte Ereignisse, sonst lohnt keine Abstimmung.</summary>
+        public static bool Enough(IList<EventCandidate> options) => options != null && options.Count(o => !o.IsCalm) >= 2;
 
         private static EventCandidate PickWeighted(IList<EventCandidate> list, Random rng)
         {
@@ -145,22 +160,36 @@ namespace TwitchCompanion.RimWorld.Core
 
         public IEnumerable<string> OptionTitles => Options.Select(o => Shorten(o.Label, OptionMax));
 
-        public static string KarmaWord(EventKarma k) =>
-            k == EventKarma.Good ? "gut" : k == EventKarma.Bad ? "schlecht" : k == EventKarma.Doom ? "verheerend" : "neutral";
+        public static string KarmaWord(EventCandidate c) =>
+            c.IsCalm ? "ruhig" : c.Karma == EventKarma.Good ? "gut" : c.Karma == EventKarma.Bad ? "schlecht" : c.Karma == EventKarma.Doom ? "verheerend" : "neutral";
+    }
+
+    /// <summary>Zeitregeln (Nutzer, 20.11.2026): Gnadenfrist zu Streambeginn, Abstand, Ruhe nach Ereignissen des Spiel-Erzählers.</summary>
+    public sealed class VoteTiming
+    {
+        public TimeSpan Grace = TimeSpan.FromMinutes(60);
+        public TimeSpan Interval = TimeSpan.FromMinutes(30);
+        public TimeSpan Quiet = TimeSpan.FromMinutes(10);
     }
 
     /// <summary>Wann die nächste Runde fällig ist und ob Zusatzstimmen gelten.</summary>
     public static class VoteSchedule
     {
-        /// <summary>Erste Runde nach dem Start erst nach dieser Zeit, damit nicht sofort abgestimmt wird.</summary>
-        public static readonly TimeSpan FirstDelay = TimeSpan.FromMinutes(5);
         public const int ExtraVoteChannelPoints = 3000;
 
-        public static bool IsDue(DateTime? lastEndUtc, DateTime? armedUtc, DateTime nowUtc, TimeSpan interval)
+        /// <param name="graceFromUtc">Streambeginn (oder Einschalten, wenn er unbekannt ist).</param>
+        /// <param name="lastEndUtc">Ende der letzten eigenen Runde (Auslösen des Gewinners).</param>
+        /// <param name="lastExternalUtc">Letztes Ereignis, das nicht aus der Abstimmung kam (Spiel-Erzähler, RICS).</param>
+        public static bool IsDue(DateTime? graceFromUtc, DateTime? lastEndUtc, DateTime? lastExternalUtc, DateTime nowUtc, VoteTiming t)
         {
-            if (lastEndUtc.HasValue) return nowUtc - lastEndUtc.Value >= interval;
-            return armedUtc.HasValue && nowUtc - armedUtc.Value >= FirstDelay;
+            if (graceFromUtc == null || nowUtc - graceFromUtc.Value < t.Grace) return false;
+            if (lastEndUtc.HasValue && nowUtc - lastEndUtc.Value < t.Interval) return false;
+            return MayFire(lastExternalUtc, nowUtc, t);
         }
+
+        /// <summary>Gewinner erst auslösen, wenn seit dem letzten fremden Ereignis genug Ruhe war; sonst warten.</summary>
+        public static bool MayFire(DateTime? lastExternalUtc, DateTime nowUtc, VoteTiming t) =>
+            !lastExternalUtc.HasValue || nowUtc - lastExternalUtc.Value >= t.Quiet;
 
         /// <summary>Zusatzstimmen mit Kanalpunkten bei etwa jeder dritten Abstimmung (Nutzer, 19.11.2026).</summary>
         public static int ChannelPoints(Random rng) => rng.Next(3) == 0 ? ExtraVoteChannelPoints : 0;

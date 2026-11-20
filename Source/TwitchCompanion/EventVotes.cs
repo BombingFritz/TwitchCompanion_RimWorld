@@ -3,7 +3,6 @@
 // Abstimmen lässt bis zum Server-Vertrag (Server-Issue #81) eine Test-Abstimmung im Spiel: Stimmen per Klick, sonst Zufall.
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using HarmonyLib;
@@ -20,21 +19,53 @@ namespace TwitchCompanion.RimWorld
         private static readonly System.Random Rng = new System.Random();
 
         public static VoteRound Current { get; private set; }
+        /// <summary>Gewinner, der wartet, weil der Spiel-Erzähler gerade etwas ausgelöst hat.</summary>
+        public static EventCandidate Pending { get; private set; }
         public static string LastResult { get; private set; }
+        public static DateTime? LastExternalUtc { get; private set; }
         private static DateTime? _lastEndUtc;
         private static DateTime? _armedUtc;
-        private static string _lastWinner;
+        private static bool _firing;
 
         private static CompanionSettings Settings => TwitchCompanionMod.Settings;
+
+        public static VoteTiming Timing => new VoteTiming
+        {
+            Grace = TimeSpan.FromMinutes(Math.Max(0, Settings.eventGraceMinutes)),
+            Interval = TimeSpan.FromMinutes(Math.Max(1, Settings.eventIntervalMinutes)),
+            Quiet = TimeSpan.FromMinutes(Math.Max(0, Settings.eventQuietMinutes)),
+        };
 
         /// <summary>Darf gerade abgestimmt werden? Wie Befehle: Brücke aktiv und Kategorie RimWorld, im Testmodus immer.</summary>
         private static bool Allowed =>
             Settings.eventVotes && Bridge.IsActive && Find.TickManager != null && (Settings.testMode || (Bridge.Link?.GateOpen ?? false));
 
+        /// <summary>Gnadenfrist ab Streambeginn; ohne bekannten Beginn (Testmodus) ab dem Einschalten.</summary>
+        private static DateTime? GraceFrom => !Settings.testMode && Settings.StreamStartedUtc.HasValue ? Settings.StreamStartedUtc : _armedUtc;
+
+        /// <summary>P13: Ereignis, das nicht aus der Abstimmung kam (Spiel-Erzähler, RICS-Kauf, Quest).</summary>
+        public static void NoteExternalEvent()
+        {
+            if (!_firing) LastExternalUtc = DateTime.UtcNow;
+        }
+
+        /// <summary>Neuer Stream: gewonnene Ereignisse dürfen wieder kommen, Gnadenfrist beginnt neu.</summary>
+        public static void OnNewStream()
+        {
+            Settings.eventsUsedThisStream?.Clear();
+            _lastEndUtc = null;
+        }
+
         /// <summary>Im Hauptthread, aus <see cref="Bridge.MainThreadTick"/>.</summary>
         public static void Tick()
         {
             DateTime now = DateTime.UtcNow;
+            VoteTiming timing = Timing;
+            if (Pending != null)
+            {
+                if (VoteSchedule.MayFire(LastExternalUtc, now, timing)) Execute(Pending, now);
+                return;
+            }
             VoteRound round = Current;
             if (round != null)
             {
@@ -43,19 +74,21 @@ namespace TwitchCompanion.RimWorld
             }
             if (!Allowed) { _armedUtc = null; return; }
             _armedUtc ??= now;
-            if (VoteSchedule.IsDue(_lastEndUtc, _armedUtc, now, TimeSpan.FromMinutes(Math.Max(1, Settings.eventIntervalMinutes))))
+            if (VoteSchedule.IsDue(GraceFrom, _lastEndUtc, LastExternalUtc, now, timing))
                 Start(now);
         }
 
         /// <summary>Neue Runde mit Vorschlägen des Erzählers; falsch, wenn nicht genug Ereignisse möglich sind.</summary>
         public static bool Start(DateTime nowUtc)
         {
-            if (Current != null || global::Verse.Current.Game == null) return false;
-            List<EventCandidate> options = EventPlanner.Propose(Candidates(), Settings.eventOptions, Rng, Settings.eventIncludeDoom, _lastWinner);
-            if (options.Count < EventPlanner.MinOptions)
+            if (Current != null || Pending != null || global::Verse.Current.Game == null) return false;
+            Map map = HomeMap;
+            List<EventCandidate> options = EventPlanner.Propose(Candidates(), Settings.eventOptions, Rng,
+                Settings.eventsUsedThisStream, map?.weatherDecider != null);
+            if (!EventPlanner.Enough(options))
             {
                 _lastEndUtc = nowUtc; // nicht in jedem Takt neu versuchen
-                LastResult = "Keine Abstimmung: zu wenige Ereignisse möglich (" + options.Count + ").";
+                LastResult = "Keine Abstimmung: zu wenige Ereignisse möglich (" + options.Count(o => !o.IsCalm) + ").";
                 Log.Message(LogPrefix + LastResult);
                 return false;
             }
@@ -71,11 +104,20 @@ namespace TwitchCompanion.RimWorld
             Current = null;
             _lastEndUtc = nowUtc;
             if (winner == null) return;
-            _lastWinner = winner.DefName;
-            bool fired = Fire(winner.DefName);
-            LastResult = DateTime.Now.ToString("HH:mm") + ": „" + winner.Label + "“ (" + round.Votes[round.WinnerIndex] + " Stimmen)"
-                + (fired ? string.Empty : " – ließ sich nicht auslösen");
-            Messages.Message("Der Chat hat gewählt: " + winner.Label + (fired ? string.Empty : " – geht gerade nicht."),
+            LastResult = DateTime.Now.ToString("HH:mm") + ": „" + winner.Label + "“ (" + round.Votes[round.WinnerIndex] + " Stimmen)";
+            if (!winner.IsCalm) Settings.MarkEventUsed(winner.DefName);
+            if (VoteSchedule.MayFire(LastExternalUtc, nowUtc, Timing)) { Execute(winner, nowUtc); return; }
+            Pending = winner;
+            Messages.Message("Der Chat hat gewählt: " + winner.Label + ". Der Erzähler wartet noch kurz.", MessageTypeDefOf.NeutralEvent, false);
+        }
+
+        private static void Execute(EventCandidate winner, DateTime nowUtc)
+        {
+            Pending = null;
+            _lastEndUtc = nowUtc;
+            bool fired = winner.Calm == CalmKind.Nothing || Fire(winner);
+            if (!fired) LastResult += " – ließ sich nicht auslösen";
+            Messages.Message("Der Chat hat gewählt: " + winner.Label + (fired ? "." : " – geht gerade nicht."),
                 fired ? MessageTypeDefOf.NeutralEvent : MessageTypeDefOf.RejectInput, false);
             Log.Message(LogPrefix + "Ereignis-Abstimmung: " + LastResult);
         }
@@ -94,35 +136,34 @@ namespace TwitchCompanion.RimWorld
             _lastEndUtc = DateTime.UtcNow;
         }
 
-        // ── Ereignisse aus RICS ─────────────────────────────────────────
+        // ── Ereignisse ─────────────────────────────────────────────────
 
-        /// <summary>
-        /// Ereignisse aus der RICS-Ereignisliste (<c>IncidentsManager.AllBuyableIncidents</c>), ohne Wetter, die gerade
-        /// auf einer Heimatkarte auslösbar sind. Hat der Streamer in RICS Ereignisse eingeschaltet, nur diese; sonst alle,
-        /// die RICS für Befehle geeignet hält.
-        /// </summary>
+        private static Map HomeMap => Find.Maps?.Where(m => m.IsPlayerHome).InRandomOrder().FirstOrDefault();
+
+        /// <summary>Ereignisse aus der eigenen Liste (<see cref="EventCatalog"/>), die es im Spiel gibt und die gerade auslösbar sind.</summary>
         public static List<EventCandidate> Candidates()
         {
-            var all = new List<(EventCandidate c, bool enabled)>();
-            Type manager = AccessTools.TypeByName("CAP_ChatInteractive.Incidents.IncidentsManager");
-            if (!(AccessTools.Property(manager, "AllBuyableIncidents")?.GetValue(null) is IDictionary dict)) return new List<EventCandidate>();
-            Map map = Find.Maps?.FirstOrDefault(m => m.IsPlayerHome);
-            if (map == null) return new List<EventCandidate>();
-            foreach (object inc in dict.Values)
+            var result = new List<EventCandidate>();
+            Map map = HomeMap;
+            if (map == null) return result;
+            foreach (CatalogEntry e in EventCatalog.Default)
             {
-                if (inc == null || Get<bool>(inc, "IsWeatherIncident") || !Get<bool>(inc, "ShouldBeInStore") || !Get<bool>(inc, "IsAvailableForCommands")) continue;
-                IncidentDef def = DefDatabase<IncidentDef>.GetNamedSilentFail(Get<string>(inc, "DefName"));
+                IncidentDef def = DefDatabase<IncidentDef>.GetNamedSilentFail(e.DefName);
                 if (def?.Worker == null || !CanFire(def, map)) continue;
-                all.Add((new EventCandidate
-                {
-                    DefName = def.defName,
-                    Label = def.LabelCap.ToString(),
-                    Karma = EventCandidate.ParseKarma(Get<string>(inc, "KarmaType")),
-                    Weight = def.baseChance,
-                }, Get<bool>(inc, "Enabled")));
+                result.Add(new EventCandidate { DefName = def.defName, Label = def.LabelCap.ToString(), Karma = e.Karma, Weight = def.baseChance });
             }
-            var enabled = all.Where(a => a.enabled).Select(a => a.c).ToList();
-            return enabled.Count >= Settings.eventOptions ? enabled : all.Select(a => a.c).ToList();
+            return result;
+        }
+
+        /// <summary>Alle Einträge der Liste mit Spielnamen und ob es sie im Spiel gibt (für die Einstellungen).</summary>
+        public static IEnumerable<string> CatalogStatus()
+        {
+            foreach (CatalogEntry e in EventCatalog.Default)
+            {
+                IncidentDef def = DefDatabase<IncidentDef>.GetNamedSilentFail(e.DefName);
+                yield return (def == null ? "– " : "• ") + (def?.LabelCap.ToString() ?? e.DefName) + " (" + VoteRound.KarmaWord(new EventCandidate { Karma = e.Karma })
+                    + (def == null ? ", nicht im Spiel" : string.Empty) + ")";
+            }
         }
 
         private static bool CanFire(IncidentDef def, Map map)
@@ -136,28 +177,47 @@ namespace TwitchCompanion.RimWorld
             catch { return false; }
         }
 
-        /// <summary>Löst das Ereignis aus wie RICS (<c>DefaultParmsNow</c>, erzwungen), auf einer zufälligen Heimatkarte.</summary>
-        public static bool Fire(string defName)
+        /// <summary>Löst das Ereignis aus wie RICS (<c>DefaultParmsNow</c>, erzwungen); Wetterwechsel wie im Spiel vorgesehen.</summary>
+        public static bool Fire(EventCandidate c)
         {
-            IncidentDef def = DefDatabase<IncidentDef>.GetNamedSilentFail(defName);
-            if (def?.Worker == null) return false;
-            foreach (Map map in Find.Maps.Where(m => m.IsPlayerHome).InRandomOrder())
+            _firing = true;
+            try
             {
-                try
+                if (c.Calm == CalmKind.Weather)
                 {
-                    IncidentParms parms = StorytellerUtility.DefaultParmsNow(def.category, map);
-                    parms.forced = true;
-                    if (def.Worker.CanFireNow(parms) && def.Worker.TryExecute(parms)) return true;
+                    Map home = HomeMap;
+                    if (home?.weatherDecider == null) return false;
+                    home.weatherDecider.StartNextWeather();
+                    return true;
                 }
-                catch (Exception ex) { Log.Warning(LogPrefix + "Ereignis " + defName + " nicht ausgelöst: " + ex.Message); }
+                IncidentDef def = DefDatabase<IncidentDef>.GetNamedSilentFail(c.DefName);
+                if (def?.Worker == null) return false;
+                foreach (Map map in Find.Maps.Where(m => m.IsPlayerHome).InRandomOrder())
+                {
+                    try
+                    {
+                        IncidentParms parms = StorytellerUtility.DefaultParmsNow(def.category, map);
+                        parms.forced = true;
+                        if (def.Worker.CanFireNow(parms) && def.Worker.TryExecute(parms)) return true;
+                    }
+                    catch (Exception ex) { Log.Warning(LogPrefix + "Ereignis " + c.DefName + " nicht ausgelöst: " + ex.Message); }
+                }
+                return false;
             }
-            return false;
+            finally { _firing = false; }
         }
+    }
 
-        private static T Get<T>(object o, string name)
+    /// <summary>P13: merkt Ereignisse des Spiel-Erzählers (und alle anderen, die nicht aus der Abstimmung kommen).</summary>
+    internal static class IncidentWatch
+    {
+        public static void Apply(Harmony harmony) =>
+            harmony.Patch(AccessTools.Method(typeof(IncidentWorker), nameof(IncidentWorker.TryExecute)),
+                postfix: new HarmonyMethod(typeof(IncidentWatch), nameof(Postfix)));
+
+        private static void Postfix(bool __result)
         {
-            object v = AccessTools.Property(o.GetType(), name)?.GetValue(o);
-            return v is T t ? t : default;
+            if (__result) EventVotes.NoteExternalEvent();
         }
     }
 
@@ -200,7 +260,7 @@ namespace TwitchCompanion.RimWorld
             {
                 EventCandidate o = round.Options[i];
                 Widgets.Label(new Rect(0f, y, inRect.width - 120f, 30f),
-                    (i + 1) + ". " + o.Label + " (" + VoteRound.KarmaWord(o.Karma) + ") – " + round.Votes[i]);
+                    (i + 1) + ". " + o.Label + " (" + VoteRound.KarmaWord(o) + ") – " + round.Votes[i]);
                 int index = i;
                 if (Widgets.ButtonText(new Rect(inRect.width - 110f, y, 50f, 26f), "+1")) round.AddVote(index);
                 if (Widgets.ButtonText(new Rect(inRect.width - 55f, y, 55f, 26f), "+10")) round.AddVote(index, 10);

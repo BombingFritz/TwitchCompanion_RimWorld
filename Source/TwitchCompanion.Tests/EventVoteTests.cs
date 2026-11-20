@@ -22,47 +22,66 @@ namespace TwitchCompanion.RimWorld.Tests
         private static readonly DateTime T0 = new DateTime(2026, 11, 20, 18, 0, 0, DateTimeKind.Utc);
 
         [Fact]
-        public void ErzaehlerMischtGutNeutralSchlecht()
+        public void ErzaehlerMischtGutSchlechtRuhigNeutral()
         {
+            var calm = new HashSet<string>();
             for (int seed = 0; seed < 50; seed++)
             {
-                var o = EventPlanner.Propose(Pool, 3, new Random(seed), includeDoom: false);
-                Assert.Equal(3, o.Count);
-                Assert.Equal(3, o.Select(x => x.DefName).Distinct().Count());
+                var o = EventPlanner.Propose(Pool, 4, new Random(seed));
+                Assert.Equal(4, o.Count);
+                Assert.Equal(4, o.Select(x => x.DefName).Distinct().Count());
                 Assert.Contains(o, x => x.Karma == EventKarma.Good);
                 Assert.Contains(o, x => x.Karma == EventKarma.Bad);
-                Assert.Contains(o, x => x.Karma == EventKarma.Neutral);
+                Assert.Contains(o, x => x.Karma == EventKarma.Neutral && !x.IsCalm);
+                Assert.Single(o, x => x.IsCalm);
                 Assert.DoesNotContain(o, x => x.Karma == EventKarma.Doom);
+                calm.Add(o.Single(x => x.IsCalm).DefName);
             }
+            Assert.Equal(new[] { EventCandidate.NothingDefName, EventCandidate.WeatherDefName }.OrderBy(x => x), calm.OrderBy(x => x));
         }
 
         [Fact]
-        public void VerheerendNurAufWunsch()
+        public void OhneWetterNurNichts()
         {
-            var o = EventPlanner.Propose(Pool, 5, new Random(1), includeDoom: true);
-            Assert.Contains(o, x => x.Karma == EventKarma.Doom);
+            for (int seed = 0; seed < 20; seed++)
+                Assert.Equal(CalmKind.Nothing, EventPlanner.Propose(Pool, 3, new Random(seed), null, weatherPossible: false).Single(x => x.IsCalm).Calm);
+        }
+
+        [Fact]
+        public void VerheerendNie()
+        {
+            for (int seed = 0; seed < 20; seed++)
+                Assert.DoesNotContain(EventPlanner.Propose(Pool, 5, new Random(seed)), x => x.Karma == EventKarma.Doom);
         }
 
         [Fact]
         public void FehlendeSorteWirdAufgefuellt()
         {
             var onlyBad = new[] { C("Raid", EventKarma.Bad), C("Seuche", EventKarma.Bad), C("Insekten", EventKarma.Bad) };
-            Assert.Equal(3, EventPlanner.Propose(onlyBad, 3, new Random(2), false).Count);
-            Assert.Single(EventPlanner.Propose(new[] { C("Raid", EventKarma.Bad) }, 3, new Random(2), false));
+            var o = EventPlanner.Propose(onlyBad, 4, new Random(2));
+            Assert.Equal(4, o.Count);
+            Assert.True(EventPlanner.Enough(o));
+            Assert.False(EventPlanner.Enough(EventPlanner.Propose(new[] { C("Raid", EventKarma.Bad) }, 3, new Random(2))));
         }
 
         [Fact]
-        public void LetzterGewinnerKommtNichtGleichWieder()
+        public void GewinnerDesStreamsKommenNichtWiederSolangeAuswahlBleibt()
         {
+            var used = new HashSet<string> { "Händler", "Raid" };
             for (int seed = 0; seed < 30; seed++)
-                Assert.DoesNotContain(EventPlanner.Propose(Pool, 3, new Random(seed), false, "Sonnenfinsternis"), x => x.DefName == "Sonnenfinsternis");
+            {
+                var o = EventPlanner.Propose(Pool, 3, new Random(seed), used);
+                Assert.DoesNotContain(o, x => used.Contains(x.DefName));
+            }
+            var allGood = new HashSet<string> { "Händler", "Wanderer" };   // keine ungenutzten guten mehr: dann doch wieder
+            Assert.Contains(EventPlanner.Propose(Pool, 3, new Random(1), allGood), x => x.Karma == EventKarma.Good);
         }
 
         [Fact]
         public void GewichtZaehlt()
         {
             var pool = new[] { C("Häufig", EventKarma.Good, 10f), C("Selten", EventKarma.Good, 0.1f), C("Raid", EventKarma.Bad) };
-            int haeufig = Enumerable.Range(0, 500).Count(s => EventPlanner.Propose(pool, 2, new Random(s), false).Any(x => x.DefName == "Häufig"));
+            int haeufig = Enumerable.Range(0, 500).Count(s => EventPlanner.Propose(pool, 3, new Random(s)).Any(x => x.DefName == "Häufig"));
             Assert.True(haeufig > 450, haeufig.ToString());
         }
 
@@ -105,15 +124,33 @@ namespace TwitchCompanion.RimWorld.Tests
             Assert.Equal("Raid", VoteRound.Shorten(" Raid ", 25));
         }
 
+        private static readonly VoteTiming Timing = new VoteTiming();
+
         [Fact]
-        public void Zeitplan()
+        public void GnadenfristEineStundeAbStreambeginn()
         {
-            var every = TimeSpan.FromMinutes(20);
-            Assert.False(VoteSchedule.IsDue(null, null, T0, every));
-            Assert.False(VoteSchedule.IsDue(null, T0, T0.AddMinutes(4), every));
-            Assert.True(VoteSchedule.IsDue(null, T0, T0.AddMinutes(5), every));
-            Assert.False(VoteSchedule.IsDue(T0, T0, T0.AddMinutes(19), every));
-            Assert.True(VoteSchedule.IsDue(T0, T0, T0.AddMinutes(20), every));
+            Assert.False(VoteSchedule.IsDue(null, null, null, T0, Timing));
+            Assert.False(VoteSchedule.IsDue(T0, null, null, T0.AddMinutes(59), Timing));
+            Assert.True(VoteSchedule.IsDue(T0, null, null, T0.AddMinutes(60), Timing));
+        }
+
+        [Fact]
+        public void DreissigMinutenAbstand()
+        {
+            DateTime end = T0.AddMinutes(70);
+            Assert.False(VoteSchedule.IsDue(T0, end, null, end.AddMinutes(29), Timing));
+            Assert.True(VoteSchedule.IsDue(T0, end, null, end.AddMinutes(30), Timing));
+        }
+
+        [Fact]
+        public void ZehnMinutenRuheNachEreignisDesSpielErzaehlers()
+        {
+            DateTime ext = T0.AddMinutes(100);
+            Assert.False(VoteSchedule.IsDue(T0, T0.AddMinutes(60), ext, ext.AddMinutes(9), Timing));
+            Assert.True(VoteSchedule.IsDue(T0, T0.AddMinutes(60), ext, ext.AddMinutes(10), Timing));
+            Assert.False(VoteSchedule.MayFire(ext, ext.AddMinutes(3), Timing));   // Gewinner wartet
+            Assert.True(VoteSchedule.MayFire(ext, ext.AddMinutes(10), Timing));
+            Assert.True(VoteSchedule.MayFire(null, ext, Timing));
         }
 
         [Fact]

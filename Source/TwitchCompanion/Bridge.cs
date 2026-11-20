@@ -196,6 +196,8 @@ namespace TwitchCompanion.RimWorld
             if (changed)
             {
                 Settings.queueJoinedThisStream?.Clear();
+                Settings.streamStartedTicks = channel.Live ? now.Ticks : 0;
+                EventVotes.OnNewStream();
                 Spam.Reset();
                 _spamLoaded = true;
                 Settings.spamStrikes = new List<string>();
