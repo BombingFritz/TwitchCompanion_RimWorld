@@ -2,7 +2,7 @@
 
 Diese Ereignisse darf der Erzähler zur Abstimmung stellen (Stufe 3, Spec `specs/mod.md`). Die Mod nimmt die Liste aus `Source/TwitchCompanion/Core/EventCatalog.cs`; beide werden zusammen geändert.
 
-Vorgaben (Nutzer, 20.11.2026): nichts Verheerendes, nichts extrem Gutes. Ausgleich über ein Gesamt-Karma ist für später geplant. Einordnung und Beschreibung stammen von Claude, Vorlage war die Ereignisliste von RICS. Ereignisse eines nicht installierten DLC fallen von selbst weg. Vor jeder Runde prüft das Spiel, ob ein Ereignis gerade möglich ist.
+Vorgaben (Nutzer, 20.11.2026): nichts Verheerendes, nichts extrem Gutes. Gestrichen vom Nutzer (20.11.2026): Muskelparasiten, Schlafkrankheit, faserige und sensorische Mechaniten. Ausgleich über ein Gesamt-Karma ist für später geplant. Einordnung und Beschreibung stammen von Claude, Vorlage war die Ereignisliste von RICS. Ereignisse eines nicht installierten DLC fallen von selbst weg. Vor jeder Runde prüft das Spiel, ob ein Ereignis gerade möglich ist.
 
 Zusätzlich hat jede Runde eine ruhige Option: „Nichts passiert“ oder „Wetterwechsel“ (nächstes Wetter, wie es das Spiel auch sonst wählen würde). Das Wetter wechselt außerdem normal weiter, wie im Spiel vorgesehen.
 
@@ -21,6 +21,7 @@ Zusätzlich hat jede Runde eine ruhige Option: „Nichts passiert“ oder „Wet
 | `AmbrosiaSprout` | Ambrosia wächst |
 | `PsychicSoothe` | Psychische Beruhigung, bessere Stimmung |
 | `Aurora` | Polarlicht, bessere Stimmung |
+| `RefugeePodCrash_Baby` | Transportkapsel mit einem Baby stürzt ab (Biotech; Nutzer, 20.11.2026) |
 
 ### Neutral
 | Ereignis (Spielname) | Beschreibung |
@@ -53,10 +54,6 @@ Zusätzlich hat jede Runde eine ruhige Option: „Nichts passiert“ oder „Wet
 | `Disease_Malaria` | Malaria |
 | `Disease_Plague` | Pest |
 | `Disease_GutWorms` | Darmwürmer |
-| `Disease_MuscleParasites` | Muskelparasiten |
-| `Disease_SleepingSickness` | Schlafkrankheit |
-| `Disease_FibrousMechanites` | Faserige Mechaniten |
-| `Disease_SensoryMechanites` | Sensorische Mechaniten |
 | `Disease_AnimalFlu` | Tiergrippe |
 | `Disease_AnimalPlague` | Tierpest |
 | `NoxiousHaze` | Saurer Smog (Biotech) |
@@ -75,7 +72,6 @@ Zusätzlich hat jede Runde eine ruhige Option: „Nichts passiert“ oder „Wet
 | `GiveQuest_*` (Quests, Bettler, Pilger, Arbeitsstätte, Komplexe) | kein Ereignis, sondern ein Auftrag; teils sehr lohnend |
 | `AnimaTreeSpawn`, `GauranlenPodSpawn`, `PoluxTreeSpawn`, `WanderersSkylantern` | extrem gut bzw. besonders (Royalty, Ideology, Biotech) |
 | `StrangerInBlackJoin`, `GameEndedWanderersJoin` | nur für eine Kolonie ohne Siedler gedacht |
-| `RefugeePodCrash_Baby` | Baby in der Kapsel (Biotech); ungewöhnlich, nach Wunsch |
 | `CaravanMeeting`, `RansomDemand`, Endspiel-Quests | passen nicht zu einer Abstimmung |
 | Anomaly (z. B. Bluttregen, Fleischbestien, Monolith) | großenteils verheerend; nur falls installiert und gewünscht |
 | Odyssey (z. B. Dürre, Vulkanasche, Lava, Überflutung) | nur falls installiert und gewünscht |
