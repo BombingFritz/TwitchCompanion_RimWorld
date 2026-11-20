@@ -3,6 +3,10 @@
 Format nach [Keep a Changelog](https://keepachangelog.com/de/1.1.0/), Versionen nach [Semantic Versioning](https://semver.org/lang/de/). Versionen stehen nur hier und in Git-Tags (`vX.Y.Z`); Tags und Releases legt Fritz in der GitHub-Oberfläche an.
 
 ## [Unveröffentlicht]
+
+## [0.1.0] – 2026-11-20
+Erster Stand zum Test im Stream: Stufe 1 (Chat und Pfennig über den Server), Ausmisten, Warteschlange, Spamschutz, Ereignis-Abstimmung über Twitch und eingehende Raids als Angriff. Server ab `main` `cc6da34` (Server-PR #83) mit Scope `channel:manage:polls`, RICS 1.56, RimWorld 1.6.
+
 ### Geändert
 - Ausmisten gegen Befehlsflut: Antworten nur im Spiel (eine Einblendung je Befehl mit Guthaben), erlaubte Befehle für Zuschauer (Kauf, neuer Kolonist, Warteschlange, Raid-Beitritt), Lootbox beim ersten Befehl automatisch geöffnet, neue Kolonisten nur zufällig und höchstens einer je 30 min, Knopf „Laden auf Auswahl beschränken“ (8 Items mit eigenen Namen und Grenze je Kauf).
 - Holz heißt im Laden jetzt „Holz“ statt „Holz vor der Hütte“, damit `$Holz 20` in jeder Spielsprache greift. Neu im Laden: Schoki (Schokolade, max. 5) und Hausmittel (Kräutermedizin, max. 3). Wer den Laden schon beschränkt hat, drückt den Knopf noch einmal.
