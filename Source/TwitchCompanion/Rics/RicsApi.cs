@@ -161,6 +161,9 @@ namespace TwitchCompanion.RimWorld.Rics
             return _getViewer.Invoke(null, new[] { NewWrapper(login, string.Empty, userId) });
         }
 
+        /// <summary>Nachrichtenobjekt von RICS zu einer Chatnachricht (für Aufrufe außerhalb von <see cref="Deliver"/>).</summary>
+        internal static object NewWrapperFor(ChatLine line) => NewWrapper(line.NameForRics, line.Text ?? string.Empty, line.UserId);
+
         private static object NewWrapper(string username, string text, string userId)
         {
             var args = new object[_wrapperParams.Length];
