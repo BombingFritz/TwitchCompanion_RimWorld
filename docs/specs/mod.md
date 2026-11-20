@@ -161,6 +161,9 @@ Nutzer, 20.11.2026: Ereignisse sind nicht kaufbar; der „Erzähler“ schlägt 
 - **Zusatzstimmen** mit Kanalpunkten (Nutzer, 19.11.2026): fest 3000 Kanalpunkte je Zusatzstimme, je Abstimmung mit Wahrscheinlichkeit 1/3; gilt für alle Abstimmungen der Mod, auch die Raid-Rolle [Deutung von Claude, Bestätigung offen].
 - Weitere Abstimmungen auf demselben Weg, sobald #81 da ist: Lebenslauf neuer Kolonisten, Bleiben oder Gehen nach `!leave`, Raid-Rolle.
 
+## Später: Gesamt-Karma („ausgleichende Gerechtigkeit“)
+Idee des Nutzers (20.11.2026), erst nach einem erfolgreichen Test der Ereignis-Abstimmung: Aus dem Karma aller Zuschauer ergibt sich ein Gesamt-Karma. Ist es sehr schlecht, kann der Streamer mit extrem guten Ereignissen belohnt werden; ist es sehr gut, kann etwas ganz Schlimmes passieren. Dann dürfen auch die Ereignisse, die heute „draußen“ sind (verheerend, extrem gut, `docs/ereignisse.md`), wieder vorkommen. Schwellen, Häufigkeit und Herleitung aus dem RICS-Karma [UNGEKLÄRT]. Feature-Issue #24.
+
 ## Stufe 4 (später)
 Spielereignisse (Raid beginnt, Kolonist stirbt) an den Server melden; der Server könnte daraus Wetten starten oder Effekte auslösen. Eigene Serveranforderung, wenn es so weit ist. Weiteres Balancing erst nach den ersten Streams.
 
