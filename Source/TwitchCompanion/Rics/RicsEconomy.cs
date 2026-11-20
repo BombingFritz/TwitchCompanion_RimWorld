@@ -139,6 +139,27 @@ namespace TwitchCompanion.RimWorld.Rics
             return true;
         }
 
+        /// <summary>Kurze !bal-Antwort für den Zuschauer der Nachricht; <c>null</c>, wenn nicht ermittelbar.</summary>
+        public static string ShortBalance(object messageWrapper)
+        {
+            Type viewers = AccessTools.TypeByName(Ns + "Viewers");
+            MethodInfo getViewer = AccessTools.Method(viewers, "GetViewer", new[] { messageWrapper.GetType() });
+            object viewer = getViewer?.Invoke(null, new[] { messageWrapper });
+            if (viewer == null) return null;
+            int coins = Get(viewer, "Coins", 0);
+            float karma = Get(viewer, "Karma", 100f);
+            string username = Get<string>(viewer, "Username", null);
+            MethodInfo emoji = AccessTools.Method(AccessTools.TypeByName(Ns + "Commands.ViewerCommands.Bal"), "GetKarmaEmoji");
+            string karmaEmoji = emoji?.Invoke(null, new object[] { karma }) as string;
+
+            int lootboxes = 0;
+            GameComponent box = Current.Game?.components?.FirstOrDefault(c => c.GetType().FullName == Ns + "LootBoxComponent");
+            MethodInfo count = box == null ? null : AccessTools.Method(box.GetType(), "HowManyLootboxesDoesViewerHave", new[] { typeof(string) });
+            if (count != null && username != null) lootboxes = (int)count.Invoke(box, new object[] { username });
+
+            return ChatTranslator.Balance(coins, CurrencyName, karmaEmoji, lootboxes);
+        }
+
         public static void SaveViewers() => AccessTools.Method(AccessTools.TypeByName(Ns + "Viewers"), "SaveViewers")?.Invoke(null, null);
 
         private static T Get<T>(object target, string name, T fallback)

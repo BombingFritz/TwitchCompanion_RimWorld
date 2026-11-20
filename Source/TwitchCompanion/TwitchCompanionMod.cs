@@ -22,6 +22,7 @@ namespace TwitchCompanion.RimWorld
         public string serverUrl = DefaultServerUrl;
         public bool lootboxOdds = true;
         public bool betBonus = true;
+        public bool germanChat = true;
         public float priceFactor = 10f;
         /// <summary>IDs bereits belohnter Wetten (keine Personendaten), höchstens 50.</summary>
         public List<string> awardedPredictions = new List<string>();
@@ -46,6 +47,7 @@ namespace TwitchCompanion.RimWorld
             Scribe_Values.Look(ref serverUrl, "serverUrl", DefaultServerUrl);
             Scribe_Values.Look(ref lootboxOdds, "lootboxOdds", true);
             Scribe_Values.Look(ref betBonus, "betBonus", true);
+            Scribe_Values.Look(ref germanChat, "germanChat", true);
             Scribe_Values.Look(ref priceFactor, "priceFactor", 10f);
             Scribe_Collections.Look(ref awardedPredictions, "awardedPredictions", LookMode.Value);
             if (Scribe.mode == LoadSaveMode.PostLoadInit && awardedPredictions == null) awardedPredictions = new List<string>();
@@ -189,6 +191,8 @@ namespace TwitchCompanion.RimWorld
             list.CheckboxLabeled("Lootbox: über " + LootboxOdds.Threshold + " nur 1 zu 20", ref Settings.lootboxOdds,
                 "Sonst " + LootboxOdds.LowMin + "–" + LootboxOdds.Threshold + "; mit 5 % bis " + RicsEconomy.LootboxMax
                 + " (Höchstwert aus RICS). Im Mittel etwa " + LootboxOdds.Expected(RicsEconomy.LootboxMax).ToString("0") + " je Lootbox.");
+            list.CheckboxLabeled("Chat kurz und auf Deutsch", ref Settings.germanChat,
+                "Kurze !bal-Antwort und deutsche Fassung der fest eingebauten RICS-Texte. Die übrigen RICS-Texte kommen aus der deutschen Sprachdatei dieser Mod, wenn RimWorld auf Deutsch läuft.");
             list.CheckboxLabeled("Wettbonus: 1000 gewonnene Kanalpunkte = 1 Zuschaustunde", ref Settings.betBonus,
                 "Ganze Auszahlung zählt, Verlierer verlieren nichts. Twitch meldet nur die bis zu 10 Tipper mit dem höchsten Einsatz je Ausgang.");
         }

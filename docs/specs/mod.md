@@ -70,6 +70,7 @@ Was die Mod vom Server braucht, ist als Serveranforderung angelegt (Server-Issue
 | P3 | `ChatCommandProcessor.SendToPlatform` (privat) | Prefix, überspringt für `twitch` | Antworten auf Befehle direkt abgreifen; sichert P2 ab, falls der kleine Getter vom JIT eingebettet wird |
 | P4 | `CAPChatInteractive_GameComponent.TryAwardWallClockCoinReward` (privat) | Prefix, überspringt | Coins nur in der Kategorie RimWorld und nur mit Serververbindung |
 | P5 | `LootBoxCommandHandler` (alle Methoden mit `Rand.Range(…, LootBoxRandomCoinRange.max)`) | Transpiler | Lootbox-Pfennig nach eigenen Chancen (Abschnitt „Wirtschaft“) |
+| P6 | `Commands.ViewerCommands.Bal.Execute` | Postfix | kurze deutsche Antwort auf `!bal` (Abschnitt „Chat auf Deutsch“) |
 | E3 | `StoreInventory.AllStoreItems`, `StoreItem.CalculateBasePrice`, `StoreInventory.SaveStoreToJsonImmediate`, `RaceSettingsManager.RaceSettings`/`SaveSettings`, `GlobalSettings.CurrencyName`/`BaseCoinReward`/`LootBoxRandomCoinRange`, `Viewer.GiveCoins`, `Viewers.SaveViewers` | Aufruf | Preis-Werkzeug, Währung, Wettbonus |
 
 Alle Stellen findet die Mod zur Laufzeit per Reflexion (keine Kompilier-Abhängigkeit von RICS). Fehlt eine Pflichtstelle nach einem RICS-Update, bleibt die Brücke aus und die Einstellungen nennen sie; fehlen nur `ChatMessageLogger.AddMessage` oder P4, gibt es eine Warnung im Log. Geprüft an RICS 1.56 (installiert) und 1.57 (Branch `1.6`).
@@ -99,6 +100,13 @@ Brücke an/aus, Server-Adresse (Vorgabe `http://localhost:3000`; die Befehlszeil
   - Ereignisse, Wetter und Traits bleiben unverändert [UNGEKLÄRT, nach Blick auf die Preisliste entscheiden].
 - **Lootbox (P5):** 95 % der Lootboxen bringen 25–150 Pfennig, 5 % (1 zu 20) 151 bis zum Höchstwert aus RICS (Vorgabe 750). Im Mittel etwa 106 Pfennig. Abschaltbar.
 - **Wettbonus:** Nach einer aufgelösten Twitch-Wette bekommt jeder Gewinner je 1000 ausgezahlte Kanalpunkte (ganze Auszahlung, nicht Reingewinn) eine Zuschaustunde, gerundet; Verlierer verlieren nichts. Quelle: gemergter Lese-Endpunkt `GET /api/twitch/prediction/current` (Server-Spec `wetten-abstimmungen.md`, Schritt 1), jede Minute abgefragt; Privat-Liste über `GET /api/privacy/optouts`. Nur in der Kategorie RimWorld, nur wenn die Privat-Liste abrufbar ist, je Wette einmal (IDs in den Mod-Einstellungen). Grenze von Twitch: nur die bis zu 10 Tipper mit dem höchsten Einsatz je Ausgang. Eine Chatzeile „Wettbonus: @anna +600 Pfennig, …“.
+
+## Chat auf Deutsch (Nutzer, 20.11.2026: kurz und deutsch, Ausführliches auf der Webseite #9)
+- **Sprachdatei** `Languages/German (Deutsch)/Keyed/RICS_Chat.xml`: deutsche, kurze Fassung von 223 Chattexten von RICS 1.56 (allgemeine Befehle, Guthaben, Lootbox, Warteschlange, Item- und Kolonistenkauf, Moderation). Greift, wenn RimWorld auf Deutsch läuft. Fehlende Texte (z. B. `!mypawn`, Operationen, Traits, Wetter, Briefe im Spiel) bleiben vorerst englisch.
+- **Fest eingebaute Texte** (Lootbox-Begrüßung, fehlende Berechtigung, Abklingzeit, Namensänderung) stehen in RICS im Code; die Mod schreibt sie beim Senden um (`ChatTranslator`).
+- **`!bal`** (P6): „1× Lootbox offen · Guthaben: 100 Pfennig · Karma 🙂“ statt vier Zeilen.
+- Schalter „Chat kurz und auf Deutsch“ (Vorgabe an) für P6 und die Umschreibung.
+- Falls RICS selbst eine deutsche Übersetzung bekommt, meldet RimWorld doppelte Schlüssel; dann die Datei hier entfernen oder mit RICS abstimmen.
 
 ## Version 0.1b: Preisinflation
 Wunsch des Nutzers (19.11.2026): Je mehr gekauft wird, desto teurer wird alles; ohne Käufe sinken die Preise wieder.

@@ -1,0 +1,246 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- SPDX-License-Identifier: AGPL-3.0-or-later
+     Deutsche Fassung der Chattexte von RICS ([CAP] Rimworld Interactive Chat Service), Schlüssel aus RICS 1.56.
+     Kurz gehalten; Ausführliches steht auf der Webseite (Feature-Issue #9). Fehlende Schlüssel zeigt RimWorld auf Englisch. -->
+<LanguageData>
+  <!-- Allgemein, Shop -->
+  <RICS.CC.event.usage>So geht's: !event [Name] oder !lookup event [Name]</RICS.CC.event.usage>
+  <RICS.CC.weather.usage>So geht's: !weather [Art], z. B. rain, snow, fog, thunderstorm, clear</RICS.CC.weather.usage>
+  <RICS.CC.Buy.Usage>So geht's: !buy {item} [Qualität] [Material] [Anzahl]; außerdem !use !equip !wear</RICS.CC.Buy.Usage>
+  <RICS.CC.Buy.StoreDisabled>Der Laden ist gerade geschlossen.</RICS.CC.Buy.StoreDisabled>
+  <RICS.CC.Buy.PurchaseLimit>Kauflimit erreicht ({0} je {1} Tage).</RICS.CC.Buy.PurchaseLimit>
+  <RICS.CC.use.usage>So geht's: !use {item}</RICS.CC.use.usage>
+  <RICS.CC.equip.usage>So geht's: !equip {item} [Qualität] [Material]</RICS.CC.equip.usage>
+  <RICS.CC.wear.usage>So geht's: !wear {item} [Qualität] [Material]</RICS.CC.wear.usage>
+  <RICS.CC.backpack.usage>So geht's: !backpack {item} [Qualität] [Material]</RICS.CC.backpack.usage>
+  <RICS.CC.purchaselist.message>Preise und Anleitung: {0}</RICS.CC.purchaselist.message>
+  <RICS.CC.pricecheck.usage>Welches Item? Beispiel: !pricecheck steel</RICS.CC.pricecheck.usage>
+  <RICS.CC.pricecheck.notfound>❌ „{0}“ gibt es im Laden nicht.</RICS.CC.pricecheck.notfound>
+  <RICS.CC.pricecheck.errorthingdef>❌ „{0}“ ist unbekannt.</RICS.CC.pricecheck.errorthingdef>
+  <RICS.CC.pricecheck.errorquality>❌ Qualität {0} ist nicht käuflich.</RICS.CC.pricecheck.errorquality>
+  <RICS.CC.pricecheck.success>💰 {0} {1} {2} {3} = {4} {5}</RICS.CC.pricecheck.success>
+  <RICS.CC.pricecheck.error>Preis nicht berechenbar.</RICS.CC.pricecheck.error>
+  <RICS.CC.pricecheck.meleeDps>⚔️ Nahkampf-DPS: {0}</RICS.CC.pricecheck.meleeDps>
+  <RICS.CC.pricecheck.rangedDamage>🔫 Schaden: {0}</RICS.CC.pricecheck.rangedDamage>
+  <RICS.CC.pricecheck.rangedDamageAp>🔫 Schaden: {0} | Durchschlag: {1}</RICS.CC.pricecheck.rangedDamageAp>
+  <RICS.CC.pricecheck.rangedGeneric>🔫 Fernkampfwaffe</RICS.CC.pricecheck.rangedGeneric>
+  <RICS.CC.surgery.usage>So geht's: !surgery {Implantat} [left/right] [Anzahl]</RICS.CC.surgery.usage>
+  <RICS.CC.raid.unkownarg>Unbekannt: {0}. Optionen: !raidinfo</RICS.CC.raid.unkownarg>
+  <RICS.CC.raid.invalidraidtype>Raid-Art „{0}“ nicht erlaubt. Erlaubt: {1}</RICS.CC.raid.invalidraidtype>
+  <RICS.CC.raid.invalidstratagy>Strategie „{0}“ nicht erlaubt. Erlaubt: {1}</RICS.CC.raid.invalidstratagy>
+  <RICS.CC.raidinfo>So geht's: !raid [Art] [Strategie] [Einsatz]</RICS.CC.raidinfo>
+  <RICS.CC.common.interaction.dlc_required>Braucht das Ideology-DLC.</RICS.CC.common.interaction.dlc_required>
+  <RICS.CC.common.PurchaseLimit>Kauflimit erreicht ({0} je {1} Tage).</RICS.CC.common.PurchaseLimit>
+  <RICS.CC.togglestore.invalid_and_usage>Ungültig. So geht's: !togglestore [on/off]. Laden gerade: {0}</RICS.CC.togglestore.invalid_and_usage>
+  <RICS.CC.togglestore.already_status>Laden ist schon {0}.</RICS.CC.togglestore.already_status>
+  <RICS.CC.Togglestore.success>Laden jetzt {0}.</RICS.CC.Togglestore.success>
+  <RICS.CC.togglestore.success>Laden jetzt {0}!</RICS.CC.togglestore.success>
+  <RICS.CC.common.store.enabled>OFFEN</RICS.CC.common.store.enabled>
+  <RICS.CC.common.store.disabled>GESCHLOSSEN</RICS.CC.common.store.disabled>
+
+  <!-- Kolonist -->
+  <RICS.CC.pawn.usage>So geht's: !pawn [Rasse] [Xenotyp] [Geschlecht] [Alter]</RICS.CC.pawn.usage>
+  <RICS.CC.pawn.handlist.usage>Listen: !pawn list races, !pawn list xenotypes human</RICS.CC.pawn.handlist.usage>
+  <RICS.CC.mypawn.usage>!mypawn body, health, implants, gear, kills, needs, relations, skills, stats, story, traits, work, owned, disown</RICS.CC.mypawn.usage>
+  <RICS.CC.leave.nopawn>Du hast keinen Kolonisten.</RICS.CC.leave.nopawn>
+  <RICS.CC.leave.successs>✅ Du hast {0} {1} freigegeben. Neuer Kolonist: !pawn</RICS.CC.leave.successs>
+  <RICS.CC.leave.yourpawn>deinen Kolonisten</RICS.CC.leave.yourpawn>
+  <RICS.CC.leave.deceased>(verstorben)</RICS.CC.leave.deceased>
+  <RICS.CC.leave.deadpawnletter>{0} hat die Verbindung zum verstorbenen {1} gelöst. Seine Geschichte in der Kolonie ist zu Ende.</RICS.CC.leave.deadpawnletter>
+  <RICS.CC.leave.pawnletter>{0} hat sich von {1} getrennt. Der Kolonist spürt das zerrissene Band und verlässt die Siedlung.</RICS.CC.leave.pawnletter>
+  <RICS.CC.setfavoritecolor.nodlc>!setfavoritecolor braucht das Ideology-DLC.</RICS.CC.setfavoritecolor.nodlc>
+
+  <!-- Guthaben (die kurze Antwort auf !bal setzt die Mod selbst zusammen) -->
+  <RICS.CC.bal.notfound>Keine Daten zu dir gefunden.</RICS.CC.bal.notfound>
+  <RICS.CC.bal.line1>Guthaben: {0} {1}</RICS.CC.bal.line1>
+  <RICS.CC.bal.line2>Karma {1}</RICS.CC.bal.line2>
+  <RICS.CC.bal.line3>{0} {1} je 2 min</RICS.CC.bal.line3>
+  <RICS.CC.bal.line4>~{0} {1} je Stunde</RICS.CC.bal.line4>
+  <RICS.CC.bal.activeRemaining>Noch {0} min aktiv</RICS.CC.bal.activeRemaining>
+  <RICS.CC.bal.notActive>Gerade nicht aktiv – schreib im Chat!</RICS.CC.bal.notActive>
+  <RICS.CC.whatiskarma>Abgeschaltet, nimm !karmasettings.</RICS.CC.whatiskarma>
+  <RICS.CC.help>Alle Befehle und Preise: !purchaselist</RICS.CC.help>
+  <RICS.CC.commands.header>Befehle:</RICS.CC.commands.header>
+  <RICS.CC.lookup.usage>So geht's: !lookup [item|event|weather|trait|race|xenotype] [Name], z. B. !lookup item rifle</RICS.CC.lookup.usage>
+  <RICS.CC.lookup.needTerm>So geht's: !lookup {0} [Name]</RICS.CC.lookup.needTerm>
+  <RICS.CC.giftcoins.usage>So geht's: !giftcoins [Zuschauer] [Betrag]</RICS.CC.giftcoins.usage>
+  <RICS.CC.giftcoins.invalidAmount>Bitte einen gültigen Betrag angeben.</RICS.CC.giftcoins.invalidAmount>
+  <RICS.CC.giftcoins.selfGift>Dir selbst kannst du nichts schenken.</RICS.CC.giftcoins.selfGift>
+  <RICS.CC.giftcoins.notEnough>Zu wenig Guthaben: du hast {0}, wolltest {1} verschenken.</RICS.CC.giftcoins.notEnough>
+  <RICS.CC.giftcoins.targetNotFound>„{0}“ nicht gefunden.</RICS.CC.giftcoins.targetNotFound>
+  <RICS.CC.giftcoins.targetBanned>„{0}“ ist gesperrt.</RICS.CC.giftcoins.targetBanned>
+  <RICS.CC.giftcoins.success>{0} an {1} verschenkt. Dir bleiben {2}.</RICS.CC.giftcoins.success>
+  <RICS.CC.giftcoins.error>Hat nicht geklappt, bitte nochmal.</RICS.CC.giftcoins.error>
+  <RICS.CC.study.dlcrequired>Braucht das Anomaly-DLC.</RICS.CC.study.dlcrequired>
+  <RICS.CC.modsettings.currencysettings>👋 {0} {1} je 2 min | Karma max. {2} 🎯</RICS.CC.modsettings.currencysettings>
+  <RICS.CC.modsettings.eventsOn>Ereignisse: {0} / {1} Tage</RICS.CC.modsettings.eventsOn>
+  <RICS.CC.modsettings.eventsOff>Ereignis-Abklingzeiten: AUS</RICS.CC.modsettings.eventsOff>
+  <RICS.CC.modsettings.purchases>Käufe: {0}/{1} Tage</RICS.CC.modsettings.purchases>
+  <RICS.CC.modsettings.eventoff>| Ereignis-Abklingzeiten: AUS ❌</RICS.CC.modsettings.eventoff>
+  <RICS.CC.modsettings.maxtraits>| 🎭 max. Traits: {0}</RICS.CC.modsettings.maxtraits>
+  <RICS.CC.modinfo>RICS {0} mit Twitch Companion</RICS.CC.modinfo>
+  <RICS.CC.factions.allies>Verbündete</RICS.CC.factions.allies>
+  <RICS.CC.factions.neutrals>Neutrale</RICS.CC.factions.neutrals>
+  <RICS.CC.factions.enemies>Feinde</RICS.CC.factions.enemies>
+  <RICS.CC.colonists.basic>{0} Kolonisten, {1} Tiere.</RICS.CC.colonists.basic>
+  <RICS.CC.colonists.withViewers>{0} Kolonisten ({1} gespielt von Zuschauern), {2} Tiere.</RICS.CC.colonists.withViewers>
+  <RICS.CC.storage.usage>So geht's: !storage [Item], z. B. !storage steel</RICS.CC.storage.usage>
+  <RICS.CC.storage.noMap>Keine aktive Karte.</RICS.CC.storage.noMap>
+  <RICS.CC.storage.noMatch>Nichts zu „{0}“ im Lager.</RICS.CC.storage.noMatch>
+  <RICS.CC.storage.noItemsAtAll>Das Lager ist leer.</RICS.CC.storage.noItemsAtAll>
+  <RICS.CC.storage.headerOne>Im Lager:</RICS.CC.storage.headerOne>
+  <RICS.CC.storage.headerMultiple>{0} Sorten zu „{1}“:</RICS.CC.storage.headerMultiple>
+  <RICS.CC.storage.defsButZero>„{0}“ gibt es, aber gerade nicht im Lager.</RICS.CC.storage.defsButZero>
+  <RICS.CC.storyteller.none>Kein Erzähler aktiv.</RICS.CC.storyteller.none>
+  <RICS.CC.storyteller.label>Erzähler</RICS.CC.storyteller.label>
+  <RICS.CC.storyteller.difficulty>Schwierigkeit</RICS.CC.storyteller.difficulty>
+  <RICS.CC.storyteller.unknown>unbekannt</RICS.CC.storyteller.unknown>
+  <RICS.CCP.RedeemThanks>Danke für „{0}“! Du bekommst {1}{2}.</RICS.CCP.RedeemThanks>
+
+  <!-- Raid-Beitritt -->
+  <RICS.CC.joinraid.noTwitch>Raid-Beitritt gerade nicht möglich.</RICS.CC.joinraid.noTwitch>
+  <RICS.CC.joinraid.noRaid>Gerade läuft kein Raid.</RICS.CC.joinraid.noRaid>
+  <RICS.CC.joinraid.alreadyJoined>Du bist schon dabei.</RICS.CC.joinraid.alreadyJoined>
+  <RICS.CC.joinraid.success>Du bist beim Raid dabei!</RICS.CC.joinraid.success>
+
+  <!-- Moderation -->
+  <RICS.CC.givecoins.usage>So geht's: !givecoins [Zuschauer|all] [Betrag]</RICS.CC.givecoins.usage>
+  <RICS.CC.givecoins.errorcoin>Bitte einen gültigen Betrag angeben.</RICS.CC.givecoins.errorcoin>
+  <RICS.CC.givecoins.notfound>„{0}“ nicht gefunden.</RICS.CC.givecoins.notfound>
+  <RICS.CC.givecoins.success>{0} an {1} gegeben, jetzt {2}.</RICS.CC.givecoins.success>
+  <RICS.CC.givecoins>{0} an alle gegeben.</RICS.CC.givecoins>
+  <RICS.CC.givekarma.usage>So geht's: !givekarma [Zuschauer|all] [Betrag]</RICS.CC.givekarma.usage>
+  <RICS.CC.givekarma.error>Bitte einen gültigen Betrag angeben.</RICS.CC.givekarma.error>
+  <RICS.CC.givekarma.all>{0} Karma an alle gegeben.</RICS.CC.givekarma.all>
+  <RICS.CC.givekarma.notfound>„{0}“ nicht gefunden.</RICS.CC.givekarma.notfound>
+  <RICS.CC.givekarma.success>{0} Karma an {1}, jetzt {2}.</RICS.CC.givekarma.success>
+  <RICS.CC.rban.usage>So geht's: !rban Name (nur im Spiel, Twitch-Chat bleibt)</RICS.CC.rban.usage>
+  <RICS.CC.rban.notfound>„{0}“ nicht gefunden.</RICS.CC.rban.notfound>
+  <RICS.CC.rban.self>Dich selbst kannst du nicht sperren.</RICS.CC.rban.self>
+  <RICS.CC.rban.owner>Den Streamer kannst du nicht sperren.</RICS.CC.rban.owner>
+  <RICS.CC.rban.already>{0} ist schon gesperrt.</RICS.CC.rban.already>
+  <RICS.CC.rban.ok>{0} im Spiel gesperrt, bis !runban.</RICS.CC.rban.ok>
+  <RICS.CC.runban.usage>So geht's: !runban Name</RICS.CC.runban.usage>
+  <RICS.CC.runban.notbanned>{0} ist nicht gesperrt.</RICS.CC.runban.notbanned>
+  <RICS.CC.runban.ok>{0} wieder freigegeben.</RICS.CC.runban.ok>
+  <RICS.CC.rto.usage>So geht's: !rto Name [Dauer], z. B. !rto bob 10m</RICS.CC.rto.usage>
+  <RICS.CC.rto.alreadybanned>{0} ist schon gesperrt, erst !runban.</RICS.CC.rto.alreadybanned>
+  <RICS.CC.rto.range>Dauer zwischen {0} s und {1} h.</RICS.CC.rto.range>
+  <RICS.CC.rto.ok>{0} für {1} pausiert, bis {2}.</RICS.CC.rto.ok>
+  <RICS.CC.setalias.usage>So geht's: !setalias Befehl [Alias|clear], z. B. !setalias raid r</RICS.CC.setalias.usage>
+  <RICS.CC.setalias.notfound>Befehl „{0}“ gibt es nicht.</RICS.CC.setalias.notfound>
+  <RICS.CC.setalias.badalias>Alias: 2–16 Buchstaben oder Ziffern, ohne Präfix.</RICS.CC.setalias.badalias>
+  <RICS.CC.setalias.samename>„{0}“ ist schon der Name des Befehls.</RICS.CC.setalias.samename>
+  <RICS.CC.setalias.taken>„{0}“ ist schon vergeben.</RICS.CC.setalias.taken>
+  <RICS.CC.setalias.none>{0} hat keinen Alias.</RICS.CC.setalias.none>
+  <RICS.CC.setalias.current>Alias von {0}: {1}</RICS.CC.setalias.current>
+  <RICS.CC.setalias.ok>!{1} startet jetzt {0}.</RICS.CC.setalias.ok>
+  <RICS.CC.setalias.cleared>Alias von {0} entfernt.</RICS.CC.setalias.cleared>
+  <RICS.CC.setalias.savefail>Alias für {0} nicht gespeichert.</RICS.CC.setalias.savefail>
+
+  <!-- Lootbox -->
+  <RICS.LBCH.NotAvailable>Lootboxen gibt es gerade nicht.</RICS.LBCH.NotAvailable>
+  <RICS.LBCH.Count>{0}× Lootbox offen.</RICS.LBCH.Count>
+  <RICS.LBCH.CountSingular>1× Lootbox offen.</RICS.LBCH.CountSingular>
+  <RICS.LBCH.CountPlural>{0}× Lootbox offen.</RICS.LBCH.CountPlural>
+  <RICS.LBCH.SettingsNotAvailable>Lootbox gerade nicht möglich.</RICS.LBCH.SettingsNotAvailable>
+  <RICS.LBCH.Opened>🎁 Lootbox: {0} {1}!</RICS.LBCH.Opened>
+  <RICS.LBCH.NoLootboxes>Keine Lootbox offen.</RICS.LBCH.NoLootboxes>
+  <RICS.LBCH.OpenedAll>🎁 Alle Lootboxen: {0} {1}!</RICS.LBCH.OpenedAll>
+  <RICS.LBCH.Error>Lootbox hat nicht geklappt, bitte nochmal.</RICS.LBCH.Error>
+
+  <!-- Warteschlange -->
+  <RICS.PQCH.AlreadyHasPawn>Du hast schon einen Kolonisten. Erst !leave.</RICS.PQCH.AlreadyHasPawn>
+  <RICS.PQCH.AlreadyInQueue>Du stehst schon auf Platz {0}.</RICS.PQCH.AlreadyInQueue>
+  <RICS.PQCH.JoinSuccess>✅ In der Warteschlange: Platz {0} von {1}</RICS.PQCH.JoinSuccess>
+  <RICS.PQCH.JoinFailed>Hat nicht geklappt, bitte nochmal.</RICS.PQCH.JoinFailed>
+  <RICS.PQCH.NotInQueue>Du stehst nicht in der Warteschlange.</RICS.PQCH.NotInQueue>
+  <RICS.PQCH.LeaveSuccess>✅ Aus der Warteschlange raus.</RICS.PQCH.LeaveSuccess>
+  <RICS.PQCH.LeaveFailed>Hat nicht geklappt, bitte nochmal.</RICS.PQCH.LeaveFailed>
+  <RICS.PQCH.Error.LeaveQueue>Hat nicht geklappt, bitte nochmal.</RICS.PQCH.Error.LeaveQueue>
+  <RICS.PQCH.QueueStatusIn>Platz {0} von {1}.</RICS.PQCH.QueueStatusIn>
+  <RICS.PQCH.QueueStatusNot>Du stehst nicht drin. Wartende: {0}</RICS.PQCH.QueueStatusNot>
+  <RICS.PQCH.NoPendingOffer>Kein Angebot für dich. Anstellen: !joinqueue</RICS.PQCH.NoPendingOffer>
+  <RICS.PQCH.AcceptAlreadyHasPawn>Du hast schon einen Kolonisten. Erst !leave.</RICS.PQCH.AcceptAlreadyHasPawn>
+  <RICS.PQCH.AcceptSuccess>🎉 @{0}, {1} gehört jetzt dir. Willkommen in der Kolonie!</RICS.PQCH.AcceptSuccess>
+  <RICS.PQCH.AcceptFailed>❌ Angebot abgelaufen. Neu anstellen: !joinqueue</RICS.PQCH.AcceptFailed>
+  <RICS.PQCH.AcceptError>Hat nicht geklappt, bitte nochmal.</RICS.PQCH.AcceptError>
+  <RICS.PQCH.ErrorJoin>Hat nicht geklappt, bitte nochmal.</RICS.PQCH.ErrorJoin>
+  <RICS.PQCH.ErrorLeave>Hat nicht geklappt, bitte nochmal.</RICS.PQCH.ErrorLeave>
+
+  <!-- Item kaufen (Chat; Lieferbriefe im Spiel bleiben vorerst englisch) -->
+  <RICS.BICH.Return.ItemNotFound>„{0}“ gibt es bei Rimazon nicht.</RICS.BICH.Return.ItemNotFound>
+  <RICS.BICH.Return.ItemDisabled>„{0}“ ist nicht käuflich.</RICS.BICH.Return.ItemDisabled>
+  <RICS.BICH.Return.NotEquippable>{0} lässt sich nicht ausrüsten.</RICS.BICH.Return.NotEquippable>
+  <RICS.BICH.Return.NotWearable>{0} lässt sich nicht anziehen.</RICS.BICH.Return.NotWearable>
+  <RICS.BICH.Return.WrongItemType>{0} ist {1}, kein {2}. Nimm !buy.</RICS.BICH.Return.WrongItemType>
+  <RICS.BICH.Return.ResearchRequired>{0} braucht noch Forschung.</RICS.BICH.Return.ResearchRequired>
+  <RICS.BICH.Return.QualityNotAllowed>Qualität „{0}“ ist nicht käuflich.</RICS.BICH.Return.QualityNotAllowed>
+  <RICS.BICH.Return.DefNotFound>Item unbekannt.</RICS.BICH.Return.DefNotFound>
+  <RICS.BICH.Return.BannedRace>„{0}“ ist nicht käuflich.</RICS.BICH.Return.BannedRace>
+  <RICS.BICH.Return.InvalidMaterial>Material „{0}“ passt nicht zu {1}.</RICS.BICH.Return.InvalidMaterial>
+  <RICS.BICH.Return.CannotAfford>{1} {2} kostet {0}, du hast {3}.</RICS.BICH.Return.CannotAfford>
+  <RICS.BICH.Return.PawnDead>Dein Kolonist ist tot.</RICS.BICH.Return.PawnDead>
+  <RICS.BICH.Return.GenericError>Kauf hat nicht geklappt, bitte nochmal.</RICS.BICH.Return.GenericError>
+  <RICS.BICH.Return.ItemNotEquippable>{0} lässt sich nicht ausrüsten.</RICS.BICH.Return.ItemNotEquippable>
+  <RICS.BICH.Return.ItemNotWearable>{0} lässt sich nicht anziehen.</RICS.BICH.Return.ItemNotWearable>
+  <RICS.BICH.Return.RaceBanned>„{0}“ ist nicht käuflich.</RICS.BICH.Return.RaceBanned>
+  <RICS.BICH.Return.MissingBodyPartForWear>Deinem Kolonisten fehlt dafür ein Körperteil: {0}</RICS.BICH.Return.MissingBodyPartForWear>
+  <RICS.BICH.Return.Success>{0} {1} für {2}, {3}. Rest: {4}</RICS.BICH.Return.Success>
+  <RICS.BICH.Return.NoSpace>{1}× {0} passt nicht mehr hin (kein Platz). Nichts abgebucht.</RICS.BICH.Return.NoSpace>
+  <RICS.BICH.Return.PartialNoSpace>{0}× {1} passte nicht mehr hin, nicht abgebucht.</RICS.BICH.Return.PartialNoSpace>
+  <RICS.BICH.Return.Action.AddedToInventory>ins Gepäck</RICS.BICH.Return.Action.AddedToInventory>
+  <RICS.BICH.Return.Action.Equipped>ausgerüstet</RICS.BICH.Return.Action.Equipped>
+  <RICS.BICH.Return.Action.Worn>angezogen</RICS.BICH.Return.Action.Worn>
+  <RICS.BICH.Return.Action.Delivered>per Rimazon geliefert</RICS.BICH.Return.Action.Delivered>
+  <RICS.BICH.Return.Action.Locker>im Rimazon-Schließfach</RICS.BICH.Return.Action.Locker>
+  <RICS.BICH.Return.HARRaceRestricted>{0} kann von deiner Rasse nicht {1} werden.</RICS.BICH.Return.HARRaceRestricted>
+
+  <!-- Kolonist kaufen (Chat) -->
+  <RICS.BPCH.AlreadyHasPawn>Du hast schon {0}! Zustand: !mypawn health</RICS.BPCH.AlreadyHasPawn>
+  <RICS.BPCH.RaceNotFound>Rasse „{0}“ gibt es nicht.</RICS.BPCH.RaceNotFound>
+  <RICS.BPCH.RaceDisabled>Rasse „{0}“ ist nicht käuflich.</RICS.BPCH.RaceDisabled>
+  <RICS.BPCH.InvalidRaceRequest>Ungültige Anfrage für {0}.</RICS.BPCH.InvalidRaceRequest>
+  <RICS.BPCH.AgeOutOfRange>Alter für {2}: {0} bis {1}.</RICS.BPCH.AgeOutOfRange>
+  <RICS.BPCH.XenotypeDisabled>Xenotyp „{0}“ ist für {1} gesperrt.</RICS.BPCH.XenotypeDisabled>
+  <RICS.BPCH.XenotypeNotFound>Xenotyp „{0}“ gibt es nicht. Liste: !xenotypes [Rasse]</RICS.BPCH.XenotypeNotFound>
+  <RICS.BPCH.XenotypeNotAllowedForRace>Xenotyp „{0}“ gibt es nicht für {1}. Liste: !xenotypes {1}</RICS.BPCH.XenotypeNotAllowedForRace>
+  <RICS.BPCH.CustomXenotypesDisabled>Eigene Xenotypen sind für {0} nicht erlaubt.</RICS.BPCH.CustomXenotypesDisabled>
+  <RICS.BPCH.InsufficientFunds>Ein {2} kostet {0} {1}, du hast {3} {1}.</RICS.BPCH.InsufficientFunds>
+  <RICS.BPCH.GameNotReady>Gerade nicht möglich (keine Kolonie geladen).</RICS.BPCH.GameNotReady>
+  <RICS.BPCH.PurchaseSuccess>{0}{1} für {2} {3} gekauft. Willkommen in der Kolonie, {4}!</RICS.BPCH.PurchaseSuccess>
+  <RICS.BPCH.NoHomeMap>Keine Kolonie gefunden.</RICS.BPCH.NoHomeMap>
+  <RICS.BPCH.PawnKindNotFound>Für {0} gibt es keine passende Art.</RICS.BPCH.PawnKindNotFound>
+  <RICS.BPCH.RaceDefNotFound>Rasse „{0}“ gibt es nicht.</RICS.BPCH.RaceDefNotFound>
+  <RICS.BPCH.GenderNotAllowed>{0} erlaubt nur: {1}. Anderes Geschlecht oder „random“ wählen.</RICS.BPCH.GenderNotAllowed>
+  <RICS.BPCH.SpawnLocationNotFound>Kein Platz zum Ankommen gefunden.</RICS.BPCH.SpawnLocationNotFound>
+  <RICS.BPCH.GenerationError>Fehler: {0}</RICS.BPCH.GenerationError>
+  <RICS.BPCH.PawnGenerated>Kolonist gekauft!</RICS.BPCH.PawnGenerated>
+  <RICS.BPCH.Gender.None>kein Geschlecht</RICS.BPCH.Gender.None>
+  <RICS.BPCH.Gender.OnlyMale>nur männlich</RICS.BPCH.Gender.OnlyMale>
+  <RICS.BPCH.Gender.OnlyFemale>nur weiblich</RICS.BPCH.Gender.OnlyFemale>
+  <RICS.BPCH.Gender.MaleOrFemale>männlich oder weiblich</RICS.BPCH.Gender.MaleOrFemale>
+  <RICS.BPCH.Gender.Any>jedes Geschlecht</RICS.BPCH.Gender.Any>
+  <RICS.BPCH.Usage>So geht's: !pawn [Rasse] [Xenotyp] [Geschlecht] [Alter]</RICS.BPCH.Usage>
+  <RICS.BPCH.PickARaceHint>Kaufen: !pawn &lt;Rasse&gt;. Rassen: !races, Xenotypen: !xenotypes [Rasse]</RICS.BPCH.PickARaceHint>
+  <RICS.BPCH.RaceNotFound.Suggestion>Meintest du: {0}?</RICS.BPCH.RaceNotFound.Suggestion>
+  <RICS.BPCH.RaceNotFound.UseList>Rassen: !races</RICS.BPCH.RaceNotFound.UseList>
+  <RICS.BPCH.ParseError>Nicht verstanden. So geht's: !pawn [Rasse] [Xenotyp] [Geschlecht] [Alter]</RICS.BPCH.ParseError>
+  <RICS.BPCH.Error.Purchase>Kauf hat nicht geklappt.</RICS.BPCH.Error.Purchase>
+  <RICS.BPCH.NoRacesAvailable>Gerade keine Rasse käuflich.</RICS.BPCH.NoRacesAvailable>
+  <RICS.BPCH.RacesList>Rassen: {0}</RICS.BPCH.RacesList>
+  <RICS.BPCH.RacesList.More>(und {0} weitere)</RICS.BPCH.RacesList.More>
+  <RICS.BPCH.RacesList.New>[NEU]</RICS.BPCH.RacesList.New>
+  <RICS.BPCH.NoXenotypesForRace>Keine Xenotypen für {0}.</RICS.BPCH.NoXenotypesForRace>
+  <RICS.BPCH.TrySpecificRace>(je Rasse: !xenotypes [Rasse])</RICS.BPCH.TrySpecificRace>
+  <RICS.BPCH.BiotechNotActive>Ohne Biotech nur Baseliner.</RICS.BPCH.BiotechNotActive>
+  <RICS.BPCH.XenotypesForRace>Xenotypen für {0}: {1}</RICS.BPCH.XenotypesForRace>
+  <RICS.BPCH.XenotypesForRace.More>(… {0} weitere)</RICS.BPCH.XenotypesForRace.More>
+  <RICS.BPCH.NoXenotypesFound>Keine Xenotypen außer Baseliner.</RICS.BPCH.NoXenotypesFound>
+  <RICS.BPCH.CommonXenotypes>Xenotypen: {0}</RICS.BPCH.CommonXenotypes>
+  <RICS.BPCH.CommonXenotypes.More>(und viele mehr, je Rasse: !pawn [Rasse])</RICS.BPCH.CommonXenotypes.More>
+  <RICS.BPCH.XenotypeListError>Liste gerade nicht abrufbar; eigene Xenotyp-Namen gehen trotzdem.</RICS.BPCH.XenotypeListError>
+  <RICS.BPCH.MyPawn.HasPawn>{0} ist {1}. Gesundheit: {2}, Alter: {3}, Traits: {4}/{5}</RICS.BPCH.MyPawn.HasPawn>
+  <RICS.BPCH.MyPawn.Status.AliveAndInColony>am Leben und in der Kolonie</RICS.BPCH.MyPawn.Status.AliveAndInColony>
+  <RICS.BPCH.MyPawn.Status.AliveNotInColony>am Leben, aber nicht in der Kolonie</RICS.BPCH.MyPawn.Status.AliveNotInColony>
+</LanguageData>

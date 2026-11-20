@@ -25,7 +25,7 @@ Diese Seite beschreibt, unter welcher Lizenz die Mod steht, worauf sie aufbaut u
 | .NET-Framework-Referenzen | NuGet `Microsoft.NETFramework.ReferenceAssemblies` | MIT; nur zum Bauen |
 | Testwerkzeuge | NuGet `xunit`, `xunit.runner.visualstudio`, `Microsoft.NET.Test.Sdk` | Apache-2.0 bzw. MIT; nur für Tests, nicht mitgeliefert |
 
-Fremder Code: keiner bisher.
+Fremder Code: keiner bisher. Die deutsche Sprachdatei übersetzt Texte aus RICS (AGPL-3.0) und steht wie die Mod unter AGPL-3.0.
 
 ## Daten und Verbindungen
 | Verbindung / Speicherung | Zweck | Daten |
