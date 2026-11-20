@@ -27,6 +27,10 @@ namespace TwitchCompanion.RimWorld.Tests
         public volatile string OptoutsJson = "{\"userIds\":[]}";
         public volatile int OptoutsStatus = 200;
         public int PredictionRequests;
+        /// <summary>Antwort auf POST /api/twitch/poll/start; Status 404 = älterer Server ohne Teil C.</summary>
+        public volatile int PollStartStatus = 200;
+        public volatile string PollStartJson = "{\"ok\":true,\"pollId\":\"p1\",\"startedAt\":\"2026-11-20T18:00:00Z\",\"endsAt\":\"2026-11-20T18:02:00Z\"}";
+        public readonly ConcurrentQueue<string> PollStarts = new ConcurrentQueue<string>();
         public int ActiveRequests;
 
         private HttpListener _listener;
@@ -129,6 +133,12 @@ namespace TwitchCompanion.RimWorld.Tests
                 if (path == "/api/privacy/optouts")
                 {
                     Reply(ctx, OptoutsStatus, OptoutsStatus == 200 ? OptoutsJson : "{\"error\":\"x\"}");
+                    return;
+                }
+                if (path == "/api/twitch/poll/start" && ctx.Request.HttpMethod == "POST")
+                {
+                    PollStarts.Enqueue(new StreamReader(ctx.Request.InputStream, Encoding.UTF8).ReadToEnd());
+                    Reply(ctx, PollStartStatus, PollStartJson);
                     return;
                 }
                 if (path == "/api/chat/send" && ctx.Request.HttpMethod == "POST")

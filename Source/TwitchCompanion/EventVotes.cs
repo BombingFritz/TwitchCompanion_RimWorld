@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Twitch Companion for RimWorld – Ereignis-Abstimmung im Spiel (Stufe 3, Feature-Issue #4).
-// Abstimmen lässt bis zum Server-Vertrag (Server-Issue #81) eine Test-Abstimmung im Spiel: Stimmen per Klick, sonst Zufall.
+// Abgestimmt wird über eine echte Twitch-Abstimmung, die der Server startet (Server-Spec chat-bruecke.md, Teil C, Server-PR #83);
+// im Testmodus oder ohne Server über eine Test-Abstimmung im Spiel: Stimmen per Klick, sonst Zufall.
 
 using System;
 using System.Collections.Generic;
@@ -25,7 +26,15 @@ namespace TwitchCompanion.RimWorld
         public static DateTime? LastExternalUtc { get; private set; }
         private static DateTime? _lastEndUtc;
         private static DateTime? _armedUtc;
+        private static DateTime? _retryAtUtc;
         private static bool _firing;
+        /// <summary>So lange auf die Antwort zum Start warten; danach gilt der Versuch als gescheitert.</summary>
+        private static readonly TimeSpan StartTimeout = TimeSpan.FromSeconds(60);
+        /// <summary>So lange nach dem geplanten Ende auf <c>poll_result</c> warten (Server kontrolliert spätestens nach 5 min).</summary>
+        private static readonly TimeSpan ResultTimeout = TimeSpan.FromMinutes(7);
+
+        /// <summary>Echte Twitch-Abstimmung über den Server statt Test-Abstimmung im Spiel.</summary>
+        public static bool UseTwitch => !Settings.testMode && Settings.eventTwitchPoll && Bridge.Link != null;
 
         private static CompanionSettings Settings => TwitchCompanionMod.Settings;
 
@@ -69,13 +78,73 @@ namespace TwitchCompanion.RimWorld
             VoteRound round = Current;
             if (round != null)
             {
-                if (round.IsDue(now)) Finish(round, now);
+                if (round.AwaitingStart)
+                {
+                    if (now - round.StartedUtc > StartTimeout) Abort(round, "Keine Antwort vom Server auf den Start der Abstimmung.", now, TimeSpan.FromMinutes(2));
+                }
+                else if (round.ServerPollId != null)
+                {
+                    if (now > round.EndsUtc + ResultTimeout) Abort(round, "Kein Ergebnis vom Server erhalten (Verbindung oder Neustart).", now, null);
+                }
+                else if (round.IsDue(now)) Finish(round, round.Resolve(Rng), now);
                 return;
             }
             if (!Allowed) { _armedUtc = null; return; }
             _armedUtc ??= now;
+            if (_retryAtUtc.HasValue)
+            {
+                if (now < _retryAtUtc.Value || !VoteSchedule.MayFire(LastExternalUtc, now, timing)) return;
+                _retryAtUtc = null;
+                Start(now);
+                return;
+            }
             if (VoteSchedule.IsDue(GraceFrom, _lastEndUtc, LastExternalUtc, now, timing))
                 Start(now);
+        }
+
+        /// <summary>Antwort des Servers auf den Start (Hauptthread).</summary>
+        public static void OnPollStart(PollStartEvent ev)
+        {
+            VoteRound round = Current;
+            if (round == null || !round.AwaitingStart || ev.RoundId != round.Id) return;
+            DateTime now = DateTime.UtcNow;
+            if (ev.Result.Ok)
+            {
+                round.AwaitingStart = false;
+                round.ServerPollId = ev.Result.PollId;
+                if (ev.Result.EndsAt.HasValue) round.EndsUtc = ev.Result.EndsAt.Value.ToUniversalTime();
+                Messages.Message("Abstimmung läuft: " + string.Join(" · ", round.OptionTitles), MessageTypeDefOf.NeutralEvent, false);
+                Log.Message(LogPrefix + "Twitch-Abstimmung gestartet (" + round.Options.Count + " Optionen"
+                    + (round.ChannelPointsPerVote > 0 ? ", Zusatzstimmen " + round.ChannelPointsPerVote + " Kanalpunkte" : string.Empty) + ").");
+                return;
+            }
+            Abort(round, ConsumerPolls.Describe(ev.Result), now, ConsumerPolls.RetryAfter(ev.Result, now));
+        }
+
+        /// <summary>Ergebnis der Twitch-Abstimmung (Hauptthread); nur für die eigene laufende Runde.</summary>
+        public static void OnPollResult(PollResultEvent ev)
+        {
+            VoteRound round = Current;
+            if (round?.ServerPollId == null || ev.Result?.PollId != round.ServerPollId) return;
+            EventCandidate winner = round.ApplyServerResult(ev.Result, Rng);
+            if (winner == null)
+            {
+                Abort(round, "Abstimmung ohne Ergebnis beendet (" + ev.Result.Status + ").", DateTime.UtcNow, null);
+                return;
+            }
+            Finish(round, winner, DateTime.UtcNow);
+        }
+
+        /// <summary>Runde ohne Ereignis beenden; mit <paramref name="retry"/> neuer Versuch nach dieser Zeit, sonst in der nächsten Runde.</summary>
+        private static void Abort(VoteRound round, string why, DateTime nowUtc, TimeSpan? retry)
+        {
+            if (round != null) round.State = VoteState.Cancelled;
+            Current = null;
+            _lastEndUtc = nowUtc;
+            _retryAtUtc = retry.HasValue ? nowUtc + retry.Value : (DateTime?)null;
+            LastResult = DateTime.Now.ToString("HH:mm") + ": " + why + (retry.HasValue ? " Neuer Versuch in " + Math.Max(1, (int)Math.Round(retry.Value.TotalMinutes)) + " min." : string.Empty);
+            Messages.Message(why, MessageTypeDefOf.RejectInput, false);
+            Log.Message(LogPrefix + "Ereignis-Abstimmung: " + LastResult);
         }
 
         /// <summary>Neue Runde mit Vorschlägen des Erzählers; falsch, wenn nicht genug Ereignisse möglich sind.</summary>
@@ -93,16 +162,21 @@ namespace TwitchCompanion.RimWorld
                 return false;
             }
             Current = new VoteRound(options, nowUtc, Settings.eventVoteSeconds) { ChannelPointsPerVote = VoteSchedule.ChannelPoints(Rng) };
-            Messages.Message("Abstimmung: " + string.Join(" · ", Current.OptionTitles), MessageTypeDefOf.NeutralEvent, false);
+            if (UseTwitch)
+            {
+                Current.AwaitingStart = true;
+                Bridge.Link.StartPoll(Current.Id, ConsumerPolls.BuildStartBody(ServerLink.Client, Current));
+            }
+            else Messages.Message("Abstimmung (Test): " + string.Join(" · ", Current.OptionTitles), MessageTypeDefOf.NeutralEvent, false);
             if (Settings.eventOverlay) Find.WindowStack.Add(new EventVoteWindow());
             return true;
         }
 
-        private static void Finish(VoteRound round, DateTime nowUtc)
+        private static void Finish(VoteRound round, EventCandidate winner, DateTime nowUtc)
         {
-            EventCandidate winner = round.Resolve(Rng);
             Current = null;
             _lastEndUtc = nowUtc;
+            _retryAtUtc = null;
             if (winner == null) return;
             LastResult = DateTime.Now.ToString("HH:mm") + ": „" + winner.Label + "“ (" + round.Votes[round.WinnerIndex] + " Stimmen)";
             if (!winner.IsCalm) Settings.MarkEventUsed(winner.DefName);
@@ -125,7 +199,7 @@ namespace TwitchCompanion.RimWorld
         /// <summary>Test-Abstimmung sofort auswerten (Knopf im Fenster).</summary>
         public static void FinishNow()
         {
-            if (Current != null) Finish(Current, DateTime.UtcNow);
+            if (Current != null && Current.ServerPollId == null && !Current.AwaitingStart) Finish(Current, Current.Resolve(Rng), DateTime.UtcNow);
         }
 
         public static void Cancel()
@@ -248,23 +322,33 @@ namespace TwitchCompanion.RimWorld
             VoteRound round = EventVotes.Current;
             if (round == null) { Close(); return; }
             TimeSpan left = round.Remaining(DateTime.UtcNow);
+            bool twitch = round.ServerPollId != null || round.AwaitingStart;
             Text.Font = GameFont.Medium;
             Widgets.Label(new Rect(0f, 0f, inRect.width, 32f), round.Title);
             Text.Font = GameFont.Small;
-            Widgets.Label(new Rect(0f, 32f, inRect.width, 24f),
-                "Noch " + (int)left.TotalMinutes + ":" + left.Seconds.ToString("00")
+            string state = round.AwaitingStart ? "Abstimmung startet …"
+                : "Noch " + (int)left.TotalMinutes + ":" + left.Seconds.ToString("00") + (twitch && left == TimeSpan.Zero ? " – Ergebnis kommt gleich" : string.Empty);
+            Widgets.Label(new Rect(0f, 32f, inRect.width, 24f), state
                 + (round.ChannelPointsPerVote > 0 ? " · Zusatzstimmen: " + round.ChannelPointsPerVote + " Kanalpunkte" : string.Empty)
-                + " · Test-Abstimmung");
+                + (twitch ? " · Abstimmen über Twitch" : " · Test-Abstimmung"));
             float y = 60f;
             for (int i = 0; i < round.Options.Count; i++)
             {
                 EventCandidate o = round.Options[i];
                 Widgets.Label(new Rect(0f, y, inRect.width - 120f, 30f),
-                    (i + 1) + ". " + o.Label + " (" + VoteRound.KarmaWord(o) + ") – " + round.Votes[i]);
+                    (i + 1) + ". " + o.Label + " (" + VoteRound.KarmaWord(o) + ")" + (twitch ? string.Empty : " – " + round.Votes[i]));
                 int index = i;
-                if (Widgets.ButtonText(new Rect(inRect.width - 110f, y, 50f, 26f), "+1")) round.AddVote(index);
-                if (Widgets.ButtonText(new Rect(inRect.width - 55f, y, 55f, 26f), "+10")) round.AddVote(index, 10);
+                if (!twitch)
+                {
+                    if (Widgets.ButtonText(new Rect(inRect.width - 110f, y, 50f, 26f), "+1")) round.AddVote(index);
+                    if (Widgets.ButtonText(new Rect(inRect.width - 55f, y, 55f, 26f), "+10")) round.AddVote(index, 10);
+                }
                 y += 34f;
+            }
+            if (twitch)
+            {
+                if (Widgets.ButtonText(new Rect(0f, inRect.height - 26f, 200f, 26f), "Ergebnis ignorieren")) EventVotes.Cancel();
+                return;
             }
             if (Widgets.ButtonText(new Rect(0f, inRect.height - 26f, 140f, 26f), "Jetzt auswerten")) EventVotes.FinishNow();
             if (Widgets.ButtonText(new Rect(150f, inRect.height - 26f, 120f, 26f), "Abbrechen")) EventVotes.Cancel();

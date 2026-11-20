@@ -53,6 +53,12 @@ namespace TwitchCompanion.RimWorld
         public int eventVoteSeconds = 120;
         public int eventOptions = 4;
         public bool eventOverlay = true;
+        /// <summary>Echte Twitch-Abstimmung über den Server (Server-PR #83); aus = Test-Abstimmung im Spiel.</summary>
+        public bool eventTwitchPoll = true;
+        /// <summary>Eingehende Twitch-Raids im Spiel (RICS-Raid mit Beitrittsfenster, Server-PR #83).</summary>
+        public bool twitchRaids = true;
+        /// <summary>Wer in den letzten Minuten vor dem Raid geplaudert hat, tritt dem Raid automatisch bei.</summary>
+        public bool raidAutoJoinActive = true;
         /// <summary>In diesem Stream schon gewonnene Ereignisse (DefNames, keine Personendaten).</summary>
         public List<string> eventsUsedThisStream = new List<string>();
         /// <summary>Beginn des laufenden Streams laut Mod (UTC-Ticks), 0 = unbekannt.</summary>
@@ -129,6 +135,9 @@ namespace TwitchCompanion.RimWorld
             Scribe_Collections.Look(ref eventsUsedThisStream, "eventsUsedThisStream", LookMode.Value);
             Scribe_Values.Look(ref streamStartedTicks, "streamStartedTicks", 0L);
             Scribe_Values.Look(ref eventOverlay, "eventOverlay", true);
+            Scribe_Values.Look(ref eventTwitchPoll, "eventTwitchPoll", true);
+            Scribe_Values.Look(ref twitchRaids, "twitchRaids", true);
+            Scribe_Values.Look(ref raidAutoJoinActive, "raidAutoJoinActive", true);
             if (Scribe.mode == LoadSaveMode.PostLoadInit)
             {
                 queueJoinedThisStream ??= new List<string>();
@@ -256,7 +265,9 @@ namespace TwitchCompanion.RimWorld
             list.Label("Ereignisse");
             list.CheckboxLabeled("Ereignis-Abstimmungen", ref Settings.eventVotes,
                 "Der Erzähler schlägt Ereignisse aus der Liste der Mod vor, der Chat wählt, der Gewinner wird ausgelöst. "
-                + "Bis der Server Twitch-Abstimmungen starten kann (Server-Issue #81), ist es eine Test-Abstimmung im Spiel: Stimmen per Klick, sonst Zufall.");
+                + "Abgestimmt wird über eine echte Twitch-Abstimmung, die der Server startet; im Testmodus über eine Test-Abstimmung im Spiel (Stimmen per Klick, sonst Zufall).");
+            list.CheckboxLabeled("  Über Twitch abstimmen (Server)", ref Settings.eventTwitchPoll,
+                "Aus: Test-Abstimmung im Spiel, auch mit Server. Der Server braucht den Scope channel:manage:polls und eine neue Anmeldung (/login).");
             list.TextFieldNumericLabeled("  Gnadenfrist ab Streambeginn (min)", ref Settings.eventGraceMinutes, ref _graceBuffer, 0, 600);
             list.TextFieldNumericLabeled("  Abstand (min)", ref Settings.eventIntervalMinutes, ref _intervalBuffer, 1, 240);
             list.TextFieldNumericLabeled("  Ruhe nach Ereignis des Spiel-Erzählers (min)", ref Settings.eventQuietMinutes, ref _quietBuffer, 0, 120);
@@ -273,9 +284,16 @@ namespace TwitchCompanion.RimWorld
             if (EventVotes.Pending != null) list.Label("  Wartet: " + EventVotes.Pending.Label + " (Ruhe nach Ereignis des Spiel-Erzählers)");
             list.CheckboxLabeled("  Einblendung im Spiel", ref Settings.eventOverlay, "Fenster oben mit Optionen und Restzeit; im Test mit Knöpfen für Stimmen.");
             if (EventVotes.Current != null) list.Label("  Läuft: " + string.Join(" · ", EventVotes.Current.OptionTitles));
+            list.GapLine();
+            list.Label("Twitch-Raids");
+            list.CheckboxLabeled("Eingehende Raids im Spiel", ref Settings.twitchRaids,
+                "Der Server meldet einen Raid, die Mod öffnet das RICS-Beitrittsfenster (!joinraid). Der Anführer heißt wie der raidende Kanal. Vorerst immer als Angriff; Rollen folgen.");
+            list.CheckboxLabeled("  Plaudernde der letzten " + (int)Raids.AutoJoinWindow.TotalMinutes + " min treten automatisch bei", ref Settings.raidAutoJoinActive);
+            if (RicsApi.Available && !Raids.RicsRaidsEnabled) list.Label("  ⚠ In RICS sind Twitch-Raids aus: dort „Twitch-Raids“ einschalten, sonst passiert im Spiel nichts.");
+            if (Raids.LastRaid != null) list.Label("  Zuletzt: " + Raids.LastRaid);
             if (EventVotes.LastResult != null) list.Label("  Zuletzt: " + EventVotes.LastResult);
             bool inGame = Current.Game != null;
-            if (list.ButtonText(inGame ? "Test-Abstimmung jetzt starten" : "Test-Abstimmung: erst einen Spielstand laden") && inGame && EventVotes.Current == null)
+            if (list.ButtonText(!inGame ? "Abstimmung: erst einen Spielstand laden" : EventVotes.UseTwitch ? "Twitch-Abstimmung jetzt starten" : "Test-Abstimmung jetzt starten") && inGame && EventVotes.Current == null)
             {
                 if (!EventVotes.Start(DateTime.UtcNow)) Messages.Message(EventVotes.LastResult ?? "Keine Abstimmung möglich.", MessageTypeDefOf.RejectInput, false);
             }

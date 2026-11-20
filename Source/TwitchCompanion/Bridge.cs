@@ -112,6 +112,8 @@ namespace TwitchCompanion.RimWorld
         public static int PawnBlocked { get; private set; }
         public static int QueueRejoinBlocked { get; private set; }
         public static int SpamIgnored { get; private set; }
+        /// <summary>Letzte Liste plaudernder Chatter (ohne Ignorierte), für den Raid-Beitritt.</summary>
+        public static List<ActiveChatter> LastActiveChatters { get; private set; } = new List<ActiveChatter>();
         /// <summary>Verwarnungen wegen Spam; Stand liegt in den Einstellungen (nur IDs).</summary>
         public static readonly SpamGuard Spam = new SpamGuard();
         private static bool _spamLoaded;
@@ -233,10 +235,20 @@ namespace TwitchCompanion.RimWorld
                 case PredictionEvent prediction:
                     AwardBetBonus(prediction);
                     break;
+                case PollStartEvent pollStart:
+                    EventVotes.OnPollStart(pollStart);
+                    break;
+                case PollResultEvent pollResult:
+                    EventVotes.OnPollResult(pollResult);
+                    break;
+                case RaidEvent raid:
+                    Raids.OnRaid(raid.Raid, LastActiveChatters);
+                    break;
                 case ActiveEvent active:
                     if (!Link.GateOpen || !RicsApi.Available || Find.TickManager == null) return;
                     // Wer nach 3 Verwarnungen ignoriert wird, bekommt bis Streamende auch keine Pfennig.
-                    var (refreshed, created) = RicsApi.RefreshActivity(active.Chatters.Where(c => !Spam.IsIgnored(c.UserId)).ToList());
+                    LastActiveChatters = active.Chatters.Where(c => !Spam.IsIgnored(c.UserId)).ToList();
+                    var (refreshed, created) = RicsApi.RefreshActivity(LastActiveChatters);
                     LastActivitySummary = DateTime.Now.ToString("HH:mm") + ": " + refreshed + " von " + active.TotalOnServer
                         + " aktiven Chattern aufgefrischt" + (created > 0 ? ", " + created + " neu in RICS" : string.Empty);
                     break;
