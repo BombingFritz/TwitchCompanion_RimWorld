@@ -66,7 +66,7 @@ namespace TwitchCompanion.RimWorld.Tests
         public void LadenAuswahl()
         {
             Assert.Equal(6, ShopSelection.Default.Count);
-            Assert.Equal(new[] { "Dosenbrot", "Rausch", "Ei", "Kartoffeln", "Flausch", "Holz vor der Hütte" }, ShopSelection.Default.Select(e => e.CustomName));
+            Assert.Equal(new[] { "Dosenbrot", "Rausch", "Ei", "Kartoffeln", "Flausch", "Holz" }, ShopSelection.Default.Select(e => e.CustomName));
             Assert.All(ShopSelection.Default, e => Assert.True(e.MaxPerPurchase > 0));
         }
     }

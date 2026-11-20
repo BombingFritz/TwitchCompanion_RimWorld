@@ -29,7 +29,7 @@
 | Antworten | nur im Spiel, nicht im Chat |
 | Befehle | stark ausdünnen; `!bal`, `!openlootbox`, Ereignisse, Wetter, Anpassen des eigenen Kolonisten entfallen |
 | Lootbox | automatisch beim ersten Befehl öffnen, danach Guthaben zeigen |
-| Laden | nur Dosenbrot, Rausch, Ei, Kartoffeln, Flausch, Holz vor der Hütte |
+| Laden | nur Dosenbrot, Rausch, Ei, Kartoffeln, Flausch, Holz („Holz vor der Hütte“ am 20.11.2026 auf „Holz“ gekürzt, damit `$Holz` in jeder Spielsprache greift) |
 | Neue Kolonisten | zufällig, nach dem Zuschauer benannt, höchstens einer je 30 min; Lebenslauf später per Abstimmung |
 | Ereignisse | nicht kaufbar; später vom Erzähler vorgeschlagen, der Chat wählt |
 | Flüstern | späteres Ziel |
