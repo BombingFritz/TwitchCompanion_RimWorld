@@ -44,6 +44,28 @@ namespace TwitchCompanion.RimWorld
         public List<string> spamStrikes = new List<string>();
         /// <summary>Was mit einem Kolonisten nach <c>!leave</c> passiert; später per Abstimmung (blockiert durch Server-Issue #81).</summary>
         public LeaveMode leaveMode = LeaveMode.StaysAsDulli;
+
+        // Ereignis-Abstimmung (Stufe 3, Feature-Issue #4); Startwerte Vorschlag von Claude, OFFEN.md #13.
+        public bool eventVotes;
+        public int eventGraceMinutes = 60;
+        public int eventIntervalMinutes = 30;
+        public int eventQuietMinutes = 10;
+        public int eventVoteSeconds = 120;
+        public int eventOptions = 4;
+        public bool eventOverlay = true;
+        /// <summary>In diesem Stream schon gewonnene Ereignisse (DefNames, keine Personendaten).</summary>
+        public List<string> eventsUsedThisStream = new List<string>();
+        /// <summary>Beginn des laufenden Streams laut Mod (UTC-Ticks), 0 = unbekannt.</summary>
+        public long streamStartedTicks;
+
+        public DateTime? StreamStartedUtc => streamStartedTicks > 0 ? new DateTime(streamStartedTicks, DateTimeKind.Utc) : (DateTime?)null;
+
+        public void MarkEventUsed(string defName)
+        {
+            eventsUsedThisStream ??= new List<string>();
+            if (!eventsUsedThisStream.Contains(defName)) eventsUsedThisStream.Add(defName);
+            Write();
+        }
         /// <summary>Zuletzt gesehen, dass der Stream live ist (UTC-Ticks), 0 = unbekannt.</summary>
         public long lastLiveTicks;
 
@@ -98,10 +120,20 @@ namespace TwitchCompanion.RimWorld
             Scribe_Values.Look(ref lastLiveTicks, "lastLiveTicks", 0L);
             Scribe_Collections.Look(ref spamStrikes, "spamStrikes", LookMode.Value);
             Scribe_Values.Look(ref leaveMode, "leaveMode", LeaveMode.StaysAsDulli);
+            Scribe_Values.Look(ref eventVotes, "eventVotes", false);
+            Scribe_Values.Look(ref eventGraceMinutes, "eventGraceMinutes", 60);
+            Scribe_Values.Look(ref eventIntervalMinutes, "eventIntervalMinutes2", 30); // neuer Schlüssel: Vorgabe 20 → 30
+            Scribe_Values.Look(ref eventQuietMinutes, "eventQuietMinutes", 10);
+            Scribe_Values.Look(ref eventVoteSeconds, "eventVoteSeconds", 120);
+            Scribe_Values.Look(ref eventOptions, "eventOptions2", 4); // neuer Schlüssel: Vorgabe 3 → 4
+            Scribe_Collections.Look(ref eventsUsedThisStream, "eventsUsedThisStream", LookMode.Value);
+            Scribe_Values.Look(ref streamStartedTicks, "streamStartedTicks", 0L);
+            Scribe_Values.Look(ref eventOverlay, "eventOverlay", true);
             if (Scribe.mode == LoadSaveMode.PostLoadInit)
             {
                 queueJoinedThisStream ??= new List<string>();
                 spamStrikes ??= new List<string>();
+                eventsUsedThisStream ??= new List<string>();
                 allowedCommands = CommandFilter.Migrate(allowedCommands);
             }
             if (Scribe.mode == LoadSaveMode.PostLoadInit && awardedPredictions == null) awardedPredictions = new List<string>();
@@ -132,10 +164,15 @@ namespace TwitchCompanion.RimWorld
             if (before != Settings.enabled + "|" + Settings.testMode + "|" + Settings.serverUrl) Bridge.Link?.Reconnect();
         }
 
+        private Vector2 _scroll;
+        private float _viewHeight = 1600f;
+
         private void DrawSettings(Rect inRect)
         {
+            var view = new Rect(0f, 0f, inRect.width - 20f, _viewHeight);
+            Widgets.BeginScrollView(inRect, ref _scroll, view);
             var list = new Listing_Standard();
-            list.Begin(inRect);
+            list.Begin(view);
 
             list.CheckboxLabeled("Brücke aktiv", ref Settings.enabled,
                 "RICS bekommt Befehle über den Server und antwortet über ihn. In RICS keinen Twitch-Token eintragen.");
@@ -170,6 +207,8 @@ namespace TwitchCompanion.RimWorld
 
             DrawEconomy(list);
             list.GapLine();
+            DrawEvents(list);
+            list.GapLine();
 
             list.CheckboxLabeled("Testmodus (ohne Server)", ref Settings.testMode,
                 "Keine Serververbindung. Antworten von RICS gehen ins Log statt in den Chat. Testnachrichten können unten eingespeist werden.");
@@ -203,7 +242,43 @@ namespace TwitchCompanion.RimWorld
                 }
             }
 
+            _viewHeight = Math.Max(inRect.height, list.CurHeight + 40f);
             list.End();
+            Widgets.EndScrollView();
+        }
+
+        private string _intervalBuffer, _voteSecondsBuffer, _optionsBuffer, _graceBuffer, _quietBuffer;
+        private bool _showCatalog;
+
+        /// <summary>Ereignis-Abstimmung: Der Erzähler schlägt vor, der Chat wählt (Stufe 3, Feature-Issue #4).</summary>
+        private void DrawEvents(Listing_Standard list)
+        {
+            list.Label("Ereignisse");
+            list.CheckboxLabeled("Ereignis-Abstimmungen", ref Settings.eventVotes,
+                "Der Erzähler schlägt Ereignisse aus der Liste der Mod vor, der Chat wählt, der Gewinner wird ausgelöst. "
+                + "Bis der Server Twitch-Abstimmungen starten kann (Server-Issue #81), ist es eine Test-Abstimmung im Spiel: Stimmen per Klick, sonst Zufall.");
+            list.TextFieldNumericLabeled("  Gnadenfrist ab Streambeginn (min)", ref Settings.eventGraceMinutes, ref _graceBuffer, 0, 600);
+            list.TextFieldNumericLabeled("  Abstand (min)", ref Settings.eventIntervalMinutes, ref _intervalBuffer, 1, 240);
+            list.TextFieldNumericLabeled("  Ruhe nach Ereignis des Spiel-Erzählers (min)", ref Settings.eventQuietMinutes, ref _quietBuffer, 0, 120);
+            list.TextFieldNumericLabeled("  Dauer der Abstimmung (s)", ref Settings.eventVoteSeconds, ref _voteSecondsBuffer, VoteRound.MinSeconds, VoteRound.MaxSeconds);
+            list.TextFieldNumericLabeled("  Optionen", ref Settings.eventOptions, ref _optionsBuffer, EventPlanner.MinOptions, EventPlanner.MaxOptions);
+            list.Label("  Je Runde: ein gutes, ein schlechtes, „Nichts passiert“ oder „Wetterwechsel“, dann neutrale. Nichts Verheerendes, nichts extrem Gutes; Gewinner kommen im selben Stream nicht wieder"
+                + " (bisher " + (Settings.eventsUsedThisStream?.Count ?? 0) + ").");
+            if (list.ButtonText(_showCatalog ? "  Ereignisliste ausblenden" : "  Ereignisliste zeigen (" + EventCatalog.Default.Count + ")")) _showCatalog = !_showCatalog;
+            if (_showCatalog)
+            {
+                if (Current.Game == null) list.Label("    Erst einen Spielstand laden.");
+                else foreach (string line in EventVotes.CatalogStatus()) list.Label("    " + line);
+            }
+            if (EventVotes.Pending != null) list.Label("  Wartet: " + EventVotes.Pending.Label + " (Ruhe nach Ereignis des Spiel-Erzählers)");
+            list.CheckboxLabeled("  Einblendung im Spiel", ref Settings.eventOverlay, "Fenster oben mit Optionen und Restzeit; im Test mit Knöpfen für Stimmen.");
+            if (EventVotes.Current != null) list.Label("  Läuft: " + string.Join(" · ", EventVotes.Current.OptionTitles));
+            if (EventVotes.LastResult != null) list.Label("  Zuletzt: " + EventVotes.LastResult);
+            bool inGame = Current.Game != null;
+            if (list.ButtonText(inGame ? "Test-Abstimmung jetzt starten" : "Test-Abstimmung: erst einen Spielstand laden") && inGame && EventVotes.Current == null)
+            {
+                if (!EventVotes.Start(DateTime.UtcNow)) Messages.Message(EventVotes.LastResult ?? "Keine Abstimmung möglich.", MessageTypeDefOf.RejectInput, false);
+            }
         }
     }
 
@@ -290,7 +365,9 @@ namespace TwitchCompanion.RimWorld
             if (!RicsApi.Available) return;
             try
             {
-                RicsPatches.Apply(new Harmony("BombingFritz.TwitchCompanion.RimWorld"));
+                var harmony = new Harmony("BombingFritz.TwitchCompanion.RimWorld");
+                RicsPatches.Apply(harmony);
+                IncidentWatch.Apply(harmony); // P13
                 Bridge.Start();
             }
             catch (Exception ex)
