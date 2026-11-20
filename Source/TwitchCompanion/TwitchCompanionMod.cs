@@ -37,6 +37,27 @@ namespace TwitchCompanion.RimWorld
             lastPawnPurchaseTicks = utc.Ticks;
             Write();
         }
+
+        /// <summary>Twitch-IDs (keine Namen) aller, die sich in diesem Stream angestellt haben; geleert nach dem Stream.</summary>
+        public List<string> queueJoinedThisStream = new List<string>();
+        /// <summary>Zuletzt gesehen, dass der Stream live ist (UTC-Ticks), 0 = unbekannt.</summary>
+        public long lastLiveTicks;
+
+        public DateTime? LastLiveUtc
+        {
+            get => lastLiveTicks > 0 ? new DateTime(lastLiveTicks, DateTimeKind.Utc) : (DateTime?)null;
+            set => lastLiveTicks = value?.Ticks ?? 0;
+        }
+
+        public bool HasJoinedQueue(string userId) => !string.IsNullOrEmpty(userId) && queueJoinedThisStream != null && queueJoinedThisStream.Contains(userId);
+
+        public void MarkJoinedQueue(string userId)
+        {
+            if (string.IsNullOrEmpty(userId) || HasJoinedQueue(userId)) return;
+            queueJoinedThisStream ??= new List<string>();
+            queueJoinedThisStream.Add(userId);
+            Write();
+        }
         public float priceFactor = 10f;
         /// <summary>IDs bereits belohnter Wetten (keine Personendaten), höchstens 50.</summary>
         public List<string> awardedPredictions = new List<string>();
@@ -69,6 +90,13 @@ namespace TwitchCompanion.RimWorld
             Scribe_Values.Look(ref lastPawnPurchaseTicks, "lastPawnPurchaseTicks", 0L);
             Scribe_Values.Look(ref priceFactor, "priceFactor", 10f);
             Scribe_Collections.Look(ref awardedPredictions, "awardedPredictions", LookMode.Value);
+            Scribe_Collections.Look(ref queueJoinedThisStream, "queueJoinedThisStream", LookMode.Value);
+            Scribe_Values.Look(ref lastLiveTicks, "lastLiveTicks", 0L);
+            if (Scribe.mode == LoadSaveMode.PostLoadInit)
+            {
+                queueJoinedThisStream ??= new List<string>();
+                allowedCommands = CommandFilter.Migrate(allowedCommands);
+            }
             if (Scribe.mode == LoadSaveMode.PostLoadInit && awardedPredictions == null) awardedPredictions = new List<string>();
         }
     }
@@ -221,6 +249,8 @@ namespace TwitchCompanion.RimWorld
             Settings.allowedCommands = list.TextEntry(Settings.allowedCommands);
             if (list.ButtonText("  Vorgabe wiederherstellen")) Settings.allowedCommands = CommandFilter.DefaultAllowed;
             list.TextFieldNumericLabeled("  Neuer Kolonist höchstens alle … min (alle zusammen)", ref Settings.pawnCooldownMinutes, ref _cooldownBuffer, 0, 600);
+            list.Label("  Warteschlange: Neue stehen vorne, anstellen einmal je Stream, geleert " + (int)QueueRules.StreamGap.TotalMinutes
+                + " min nach Streamende. Angestellt in diesem Stream: " + (Settings.queueJoinedThisStream?.Count ?? 0) + ".");
             list.Label("  Laden: " + string.Join(", ", ShopSelection.Default.Select(e => e.CustomName + " (max. " + e.MaxPerPurchase + ")")));
             if (list.ButtonText("Laden auf diese Auswahl beschränken …"))
             {

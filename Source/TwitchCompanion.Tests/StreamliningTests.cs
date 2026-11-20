@@ -15,6 +15,9 @@ namespace TwitchCompanion.RimWorld.Tests
         [InlineData("!buy beer", false, true)]
         [InlineData("!pawn", false, true)]
         [InlineData("!JoinQueue", false, true)]
+        [InlineData("!acceptpawn", false, false)]
+        [InlineData("!queuestatus", false, false)]
+        [InlineData("!leavequeue", false, false)]
         [InlineData("!bal", false, false)]
         [InlineData("!openlootbox", false, false)]
         [InlineData("!event raid", false, false)]
@@ -68,6 +71,63 @@ namespace TwitchCompanion.RimWorld.Tests
             Assert.Equal(8, ShopSelection.Default.Count);
             Assert.Equal(new[] { "Dosenbrot", "Rausch", "Ei", "Kartoffeln", "Flausch", "Holz", "Schoki", "Hausmittel" }, ShopSelection.Default.Select(e => e.CustomName));
             Assert.All(ShopSelection.Default, e => Assert.True(e.MaxPerPurchase > 0));
+        }
+    
+        [Fact]
+        public void AlteVorgabeWirdErsetztEigeneBleibt()
+        {
+            Assert.Equal(CommandFilter.DefaultAllowed, CommandFilter.Migrate(CommandFilter.PreviousDefault));
+            Assert.Equal(CommandFilter.DefaultAllowed, CommandFilter.Migrate(null));
+            Assert.Equal("buy, pawn", CommandFilter.Migrate("buy, pawn"));
+        }
+
+        [Fact]
+        public void NeueStehenVorne()
+        {
+            var q = new System.Collections.Generic.List<string> { "twitch:1", "twitch:2", "twitch:3" };
+            QueueRules.MoveLastToFront(q);
+            Assert.Equal(new[] { "twitch:3", "twitch:1", "twitch:2" }, q);
+            var one = new System.Collections.Generic.List<string> { "twitch:1" };
+            QueueRules.MoveLastToFront(one);
+            Assert.Equal(new[] { "twitch:1" }, one);
+        }
+
+        private static readonly DateTime T0 = new DateTime(2026, 11, 20, 18, 0, 0, DateTimeKind.Utc);
+
+        [Fact]
+        public void StreamStartLeertEinmal()
+        {
+            DateTime? last = null;
+            Assert.True(QueueRules.StreamChanged(true, T0, ref last));               // erster Stream
+            Assert.False(QueueRules.StreamChanged(true, T0.AddMinutes(1), ref last));
+            for (int m = 2; m <= 180; m++) Assert.False(QueueRules.StreamChanged(true, T0.AddMinutes(m), ref last)); // drei Stunden live
+        }
+
+        [Fact]
+        public void KurzeUnterbrechungIstDerselbeStream()
+        {
+            DateTime? last = T0;
+            Assert.False(QueueRules.StreamChanged(false, T0.AddMinutes(10), ref last)); // Absturz, 10 min offline
+            Assert.False(QueueRules.StreamChanged(true, T0.AddMinutes(20), ref last));  // wieder live
+            Assert.Equal(T0.AddMinutes(20), last);
+        }
+
+        [Fact]
+        public void StreamendeLeertNach30Minuten()
+        {
+            DateTime? last = T0;
+            Assert.False(QueueRules.StreamChanged(false, T0.AddMinutes(30), ref last));
+            Assert.True(QueueRules.StreamChanged(false, T0.AddMinutes(31), ref last));
+            Assert.Null(last);
+            Assert.False(QueueRules.StreamChanged(false, T0.AddHours(5), ref last));    // nur einmal
+            Assert.True(QueueRules.StreamChanged(true, T0.AddDays(1), ref last));       // nächster Stream
+        }
+
+        [Fact]
+        public void NeustartVonRimWorldAmNaechstenTag()
+        {
+            DateTime? last = T0;                                                         // gespeichert, dann RimWorld zu
+            Assert.True(QueueRules.StreamChanged(true, T0.AddDays(1), ref last));
         }
     }
 }

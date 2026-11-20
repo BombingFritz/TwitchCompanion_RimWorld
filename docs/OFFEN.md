@@ -19,7 +19,7 @@
 | Spargel | 10 Zuschauminuten (gibt es nur mit Mod) |
 | Lootbox | Höhere Gewinne seltener: über 150 nur 1 zu 20 |
 | Währung | Pfennig |
-| Warteschlange zum Übernehmen | kostet nichts; Rauswurf nach über 1 h ohne Chat, Wette oder Einlösung – sonst „zuletzt hinzugefügt oben“, Leeren nach jedem Stream (Umsetzung offen, #12) |
+| Warteschlange zum Übernehmen | kostet nichts; Rauswurf nach über 1 h ohne Chat, Wette oder Einlösung – sonst „zuletzt hinzugefügt oben“, Leeren nach jedem Stream (ersetzt am 20.11.2026, siehe „Ausmisten“) |
 | Wettbonus | ganze Auszahlung zählt (hohe Wetten belohnen) |
 | Chatnachrichten | kurz und auf Deutsch, Ausführliches auf der Webseite (#9) |
 
@@ -32,6 +32,7 @@
 | Laden | nur Dosenbrot, Rausch, Ei, Kartoffeln, Flausch, Holz, Schoki, Hausmittel (Schoki und Hausmittel am 20.11.2026 ergänzt, keine Notration; „Holz vor der Hütte“ am 20.11.2026 auf „Holz“ gekürzt, damit `$Holz` in jeder Spielsprache greift) |
 | Neue Kolonisten | zufällig, nach dem Zuschauer benannt, höchstens einer je 30 min; Lebenslauf später per Abstimmung |
 | Ereignisse | nicht kaufbar; später vom Erzähler vorgeschlagen, der Chat wählt |
+| Warteschlange | nur `!joinqueue`; wer sich zuletzt anstellt, steht vorne; einmal je Stream; nach dem Stream geleert; Vergeben ohne `!acceptpawn`; Rauswurf wegen Inaktivität vorerst keiner [UNGEKLÄRT, nachfragen] |
 | Flüstern | späteres Ziel |
 | Anleitung/Preisliste | wird angepinnt bzw. von Hand gepostet, kein Befehl dafür |
 

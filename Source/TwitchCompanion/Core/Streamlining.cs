@@ -10,8 +10,13 @@ namespace TwitchCompanion.RimWorld.Core
     /// <summary>Welche Befehle Zuschauer nutzen dürfen; Moderatoren und Streamer dürfen alles.</summary>
     public static class CommandFilter
     {
-        /// <summary>Vorgabe: kaufen, neuer Kolonist, Warteschlange, Kolonist freigeben, Raid-Beitritt.</summary>
-        public const string DefaultAllowed = "buy, pawn, joinqueue, leavequeue, queuestatus, acceptpawn, leave, joinraid";
+        /// <summary>Vorgabe: kaufen, neuer Kolonist, anstellen, Kolonist freigeben, Raid-Beitritt (Nutzer, 20.11.2026).</summary>
+        public const string DefaultAllowed = "buy, pawn, joinqueue, leave, joinraid";
+
+        /// <summary>Vorgabe bis 20.11.2026; gespeicherte Einstellungen mit genau diesem Wert bekommen die neue Vorgabe.</summary>
+        public const string PreviousDefault = "buy, pawn, joinqueue, leavequeue, queuestatus, acceptpawn, leave, joinraid";
+
+        public static string Migrate(string saved) => saved == null || saved == PreviousDefault ? DefaultAllowed : saved;
 
         public static HashSet<string> ParseList(string list) =>
             new HashSet<string>((list ?? string.Empty).Split(new[] { ',', ' ', ';' }, StringSplitOptions.RemoveEmptyEntries)
@@ -99,6 +104,50 @@ namespace TwitchCompanion.RimWorld.Core
             }
             if (!string.IsNullOrWhiteSpace(balance)) clean.Add(balance.Trim());
             return clean.Count == 0 ? null : at + ": " + string.Join(" · ", clean);
+        }
+    }
+
+    /// <summary>
+    /// Warteschlange zum Übernehmen (Nutzer, 20.11.2026): Wer sich zuletzt anstellt, steht vorne; anstellen nur einmal je
+    /// Stream; nach dem Stream wird die Liste geleert.
+    /// </summary>
+    public static class QueueRules
+    {
+        /// <summary>
+        /// So lange darf der Stream offline sein, bevor er als beendet gilt (Absturz, kurze Unterbrechung). Vorschlag von Claude.
+        /// </summary>
+        public static readonly TimeSpan StreamGap = TimeSpan.FromMinutes(30);
+
+        public const string AlreadyJoined = "Du hast dich in diesem Stream schon angestellt.";
+
+        /// <summary>
+        /// Verfolgt, ob der Stream läuft. Wahr, wenn die Warteschlange geleert werden soll: ein neuer Stream beginnt
+        /// (live nach mehr als <see cref="StreamGap"/> Pause oder zum ersten Mal) oder ein Stream ist seit mehr als
+        /// <see cref="StreamGap"/> zu Ende.
+        /// </summary>
+        public static bool StreamChanged(bool live, DateTime nowUtc, ref DateTime? lastLiveUtc)
+        {
+            if (live)
+            {
+                bool newStream = lastLiveUtc == null || nowUtc - lastLiveUtc.Value > StreamGap;
+                lastLiveUtc = nowUtc;
+                return newStream;
+            }
+            if (lastLiveUtc != null && nowUtc - lastLiveUtc.Value > StreamGap)
+            {
+                lastLiveUtc = null;
+                return true;
+            }
+            return false;
+        }
+
+        /// <summary>RICS hängt neue Einträge hinten an; die Mod holt den zuletzt angehängten nach vorne.</summary>
+        public static void MoveLastToFront<T>(IList<T> queue)
+        {
+            if (queue == null || queue.Count < 2) return;
+            T last = queue[queue.Count - 1];
+            queue.RemoveAt(queue.Count - 1);
+            queue.Insert(0, last);
         }
     }
 }

@@ -46,6 +46,7 @@ namespace TwitchCompanion.RimWorld
         private static float _nextPrefixCheck;
         private static bool _activityResetDone;
         private static bool _lastLive;
+        private static DateTime _lastLiveWrite;
 
         private static CompanionSettings Settings => TwitchCompanionMod.Settings;
 
@@ -109,6 +110,7 @@ namespace TwitchCompanion.RimWorld
         private static int _mainThreadId = -1;
         public static int NotAllowed { get; private set; }
         public static int PawnBlocked { get; private set; }
+        public static int QueueRejoinBlocked { get; private set; }
 
         /// <summary>Antwort im Spiel einblenden (sichtbar im Stream) statt im Chat; nur Hauptthread.</summary>
         private static void ShowInGame(string text)
@@ -178,6 +180,24 @@ namespace TwitchCompanion.RimWorld
             if (channel == null) return;
             if (channel.Live && !_lastLive) Privacy.Reset(); // Hinweis an !privat-Zuschauer einmal je Stream
             _lastLive = channel.Live;
+
+            // Warteschlange nach dem Stream leeren, anstellen wieder frei (Nutzer, 20.11.2026).
+            DateTime? lastLive = Settings.LastLiveUtc;
+            DateTime now = DateTime.UtcNow;
+            bool changed = QueueRules.StreamChanged(channel.Live, now, ref lastLive);
+            Settings.LastLiveUtc = lastLive;
+            if (changed)
+            {
+                Settings.queueJoinedThisStream?.Clear();
+                bool cleared = RicsQueue.Clear();
+                Log.Message(LogPrefix + (channel.Live ? "Neuer Stream" : "Stream beendet") + ": Warteschlange "
+                    + (cleared ? "geleert" : "nicht geleert (kein Spielstand)") + ", anstellen wieder frei.");
+            }
+            if (changed || now - _lastLiveWrite > TimeSpan.FromMinutes(5)) // Zeitpunkt überlebt einen Neustart von RimWorld
+            {
+                _lastLiveWrite = now;
+                Settings.Write();
+            }
         }
 
         private static void HandleServerEvent(object ev)
@@ -260,6 +280,13 @@ namespace TwitchCompanion.RimWorld
                 coinsBefore = RicsEconomy.CoinsOf(line);
             }
 
+            if (word == "joinqueue" && Settings.HasJoinedQueue(line.UserId) && !RicsQueue.IsInQueue(line.NameForRics))
+            {
+                QueueRejoinBlocked++;
+                Reply(line, QueueRules.AlreadyJoined);
+                return;
+            }
+
             bool lootboxOpened = false;
             Captured.Clear();
             _capturing = Settings.repliesInGame;
@@ -287,6 +314,8 @@ namespace TwitchCompanion.RimWorld
 
             if (word == "pawn" && coinsBefore != null && RicsEconomy.CoinsOf(line) < coinsBefore)
                 Settings.MarkPawnPurchase(DateTime.UtcNow);
+            if (word == "joinqueue" && RicsQueue.IsInQueue(line.NameForRics))
+                Settings.MarkJoinedQueue(line.UserId);
 
             if (Settings.repliesInGame)
             {
