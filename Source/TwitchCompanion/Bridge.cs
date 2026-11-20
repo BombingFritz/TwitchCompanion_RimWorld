@@ -111,6 +111,10 @@ namespace TwitchCompanion.RimWorld
         public static int NotAllowed { get; private set; }
         public static int PawnBlocked { get; private set; }
         public static int QueueRejoinBlocked { get; private set; }
+        public static int SpamIgnored { get; private set; }
+        /// <summary>Verwarnungen wegen Spam; Stand liegt in den Einstellungen (nur IDs).</summary>
+        public static readonly SpamGuard Spam = new SpamGuard();
+        private static bool _spamLoaded;
 
         /// <summary>Antwort im Spiel einblenden (sichtbar im Stream) statt im Chat; nur Hauptthread.</summary>
         private static void ShowInGame(string text)
@@ -189,6 +193,9 @@ namespace TwitchCompanion.RimWorld
             if (changed)
             {
                 Settings.queueJoinedThisStream?.Clear();
+                Spam.Reset();
+                _spamLoaded = true;
+                Settings.spamStrikes = new List<string>();
                 bool cleared = RicsQueue.Clear();
                 Log.Message(LogPrefix + (channel.Live ? "Neuer Stream" : "Stream beendet") + ": Warteschlange "
                     + (cleared ? "geleert" : "nicht geleert (kein Spielstand)") + ", anstellen wieder frei.");
@@ -223,7 +230,8 @@ namespace TwitchCompanion.RimWorld
                     break;
                 case ActiveEvent active:
                     if (!Link.GateOpen || !RicsApi.Available || Find.TickManager == null) return;
-                    var (refreshed, created) = RicsApi.RefreshActivity(active.Chatters);
+                    // Wer nach 3 Verwarnungen ignoriert wird, bekommt bis Streamende auch keine Pfennig.
+                    var (refreshed, created) = RicsApi.RefreshActivity(active.Chatters.Where(c => !Spam.IsIgnored(c.UserId)).ToList());
                     LastActivitySummary = DateTime.Now.ToString("HH:mm") + ": " + refreshed + " von " + active.TotalOnServer
                         + " aktiven Chattern aufgefrischt" + (created > 0 ? ", " + created + " neu in RICS" : string.Empty);
                     break;
@@ -268,6 +276,21 @@ namespace TwitchCompanion.RimWorld
 
             // Ausmisten (Nutzer, 20.11.2026): Zuschauer nur erlaubte Befehle, still verworfen; Moderatoren und Streamer alles.
             bool privileged = line.IsBroadcaster || line.IsModerator;
+
+            // Spamschutz (Nutzer, 20.11.2026): zählt jeden Befehl, auch nicht erlaubte; Moderatoren und Streamer nicht.
+            if (!privileged)
+            {
+                if (!_spamLoaded) { Spam.Load(Settings.spamStrikes); _spamLoaded = true; }
+                SpamVerdict verdict = Spam.Record(line.UserId, DateTime.UtcNow);
+                if (verdict == SpamVerdict.Ignored) { SpamIgnored++; return; }
+                if (verdict == SpamVerdict.Strike)
+                {
+                    Settings.spamStrikes = Spam.Save();
+                    Settings.Write();
+                    Reply(line, SpamGuard.Message(Spam.StrikesOf(line.UserId)));
+                    return;
+                }
+            }
             if (!CommandFilter.IsAllowed(line.Text, CommandFilter.ParseList(Settings.allowedCommands), privileged)) { NotAllowed++; return; }
 
             string word = CommandFilter.CommandWord(line.Text);
@@ -313,7 +336,10 @@ namespace TwitchCompanion.RimWorld
             }
 
             if (word == "pawn" && coinsBefore != null && RicsEconomy.CoinsOf(line) < coinsBefore)
+            {
                 Settings.MarkPawnPurchase(DateTime.UtcNow);
+                RicsQueue.Remove(line.NameForRics); // jeder hat höchstens einen Kolonisten
+            }
             if (word == "joinqueue" && RicsQueue.IsInQueue(line.NameForRics))
                 Settings.MarkJoinedQueue(line.UserId);
 

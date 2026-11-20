@@ -4,9 +4,11 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using HarmonyLib;
 using TwitchCompanion.RimWorld.Core;
+using RimWorld;
 using Verse;
 
 namespace TwitchCompanion.RimWorld.Rics
@@ -41,7 +43,136 @@ namespace TwitchCompanion.RimWorld.Rics
                 harmony.Patch(draw, prefix: new HarmonyMethod(typeof(RicsQueue), nameof(DialogPrefix)));
                 done.Add("P9");
             }
-            return done.Count == 0 ? "P8 und P9 fehlen" : string.Join(", ", done);
+            // P10: !leave – Kolonist bleibt in der Kolonie (RICS schickt ihn sonst weg), kein Abschiedsbrief, eigene Antwort.
+            Type leave = AccessTools.TypeByName(Ns + "Commands.ViewerCommands.Leave");
+            MethodInfo depart = leave == null ? null : AccessTools.Method(leave, "PreparePawnForDeparture");
+            MethodInfo letter = leave == null ? null : AccessTools.Method(leave, "SendDepartureLetter");
+            MethodInfo execute = leave == null ? null : AccessTools.Method(leave, "Execute");
+            if (depart != null && letter != null && execute != null)
+            {
+                harmony.Patch(depart, prefix: new HarmonyMethod(typeof(RicsQueue), nameof(Skip)));
+                harmony.Patch(letter, prefix: new HarmonyMethod(typeof(RicsQueue), nameof(LetterPrefix)));
+                harmony.Patch(execute, prefix: new HarmonyMethod(typeof(RicsQueue), nameof(LeavePrefix)),
+                    postfix: new HarmonyMethod(typeof(RicsQueue), nameof(LeavePostfix)));
+                done.Add("P10");
+            }
+            // P11: Wer seinen Kolonisten verliert, macht ihn zum „Dulli“.
+            MethodInfo unassign = ManagerType == null ? null : AccessTools.Method(ManagerType, "UnassignCore");
+            if (unassign != null && AssignmentsField != null)
+            {
+                harmony.Patch(unassign, prefix: new HarmonyMethod(typeof(RicsQueue), nameof(UnassignPrefix)),
+                    postfix: new HarmonyMethod(typeof(RicsQueue), nameof(UnassignPostfix)));
+                done.Add("P11");
+            }
+            // P12: Im Fenster „Pawn Queue“ nicht an jemanden vergeben, der schon einen lebenden Kolonisten hat.
+            MethodInfo assignDirect = DialogType == null ? null : AccessTools.Method(DialogType, "AssignPawnDirectly");
+            if (assignDirect != null)
+            {
+                harmony.Patch(assignDirect, prefix: new HarmonyMethod(typeof(RicsQueue), nameof(AssignDirectlyPrefix)));
+                done.Add("P12");
+            }
+            return done.Count == 0 ? "P8 bis P12 fehlen" : string.Join(", ", done);
+        }
+
+        private static readonly FieldInfo AssignmentsField = ManagerType == null ? null : AccessTools.Field(ManagerType, "viewerPawnAssignments");
+        private static readonly MethodInfo FindPawn = ManagerType == null ? null : AccessTools.Method(ManagerType, "FindPawnByThingId");
+
+        private static bool Skip() => false;
+
+        private static Pawn PawnOf(object manager, string identifier)
+        {
+            if (manager == null || string.IsNullOrEmpty(identifier) || !(AssignmentsField?.GetValue(manager) is Dictionary<string, string> map)) return null;
+            return map.TryGetValue(identifier, out string thingId) ? FindPawn?.Invoke(null, new object[] { thingId }) as Pawn : null;
+        }
+
+        private static bool DulliMode => TwitchCompanionMod.Settings?.leaveMode != LeaveMode.Departs;
+
+        /// <summary>Abschiedsbrief von RICS nur, wenn der Kolonist wirklich geht.</summary>
+        private static bool LetterPrefix() => !DulliMode;
+
+        private static void UnassignPrefix(object __instance, string identifier, out Pawn __state)
+        {
+            __state = PawnOf(__instance, identifier);
+            _nameBefore = __state?.Name;
+        }
+
+        private static Name _nameBefore;
+        private static bool _inLeave;
+        private static Pawn _departing;
+
+        /// <summary>
+        /// Nach dem Lösen setzt RICS den alten Spitznamen. Bleibt der Kolonist, setzt die Mod „Dulli“, „Dulli 2“, …;
+        /// geht er per <c>!leave</c>, behält er den Namen des Zuschauers und wird nach dem Befehl verbannt.
+        /// </summary>
+        private static void UnassignPostfix(bool __result, Pawn __state)
+        {
+            if (!__result || __state == null || __state.Dead) return;
+            if (!DulliMode)
+            {
+                if (_inLeave) { if (_nameBefore != null) __state.Name = _nameBefore; _departing = __state; }
+                return;
+            }
+            try
+            {
+                var used = PawnsFinder.AllMapsWorldAndTemporary_AliveOrDead.Where(p => p != __state && p.Name != null)
+                    .Select(p => p.Name is NameTriple t ? t.Nick : p.Name.ToStringShort);
+                string nick = DulliNames.Next(used);
+                __state.Name = __state.Name is NameTriple n ? new NameTriple(n.First, nick, n.Last) : (Name)new NameSingle(nick);
+                LastDulli = nick;
+            }
+            catch (Exception ex) { Log.Warning("[Twitch Companion] Dulli-Name nicht gesetzt: " + ex.Message); }
+        }
+
+        /// <summary>Zuletzt vergebener Dulli-Name (Hauptthread).</summary>
+        public static string LastDulli;
+
+        private static void LeavePrefix()
+        {
+            LastDulli = null;
+            _departing = null;
+            _inLeave = true;
+        }
+
+        private static void LeavePostfix(ref string __result)
+        {
+            _inLeave = false;
+            if (LastDulli != null) { __result = "✅ Freigegeben. Dein Kolonist bleibt als „" + LastDulli + "“ in der Kolonie."; return; }
+            Pawn pawn = _departing;
+            _departing = null;
+            if (pawn == null || pawn.Dead) return;
+            try
+            {
+                // Wie „verbannen“ im Spiel: verlässt die Kolonie und zieht in die Spielwelt.
+                if (pawn.Faction == Faction.OfPlayer) PawnBanishUtility.Banish(pawn, giveThoughts: false);
+                __result = "👋 " + pawn.Name.ToStringShort + " verlässt die Kolonie und zieht in die Welt hinaus.";
+            }
+            catch (Exception ex) { Log.Warning("[Twitch Companion] Kolonist nicht verabschiedet: " + ex.Message); }
+        }
+
+        private static bool AssignDirectlyPrefix(string username)
+        {
+            try
+            {
+                object manager = Manager;
+                MethodInfo has = ManagerType == null ? null : AccessTools.Method(ManagerType, "HasAssignedPawn", new[] { typeof(string) });
+                if (manager == null || has == null || string.IsNullOrEmpty(username) || !(bool)has.Invoke(manager, new object[] { username })) return true;
+                Remove(username);
+                Messages.Message(username + " hat schon einen Kolonisten und ist aus der Warteschlange raus.", MessageTypeDefOf.RejectInput, false);
+                return false;
+            }
+            catch (Exception ex)
+            {
+                Log.Warning("[Twitch Companion] Prüfung vor dem Zuweisen fehlgeschlagen: " + ex.Message);
+                return true;
+            }
+        }
+
+        /// <summary>Nimmt jemanden aus der Warteschlange (z. B. nach einem gekauften Kolonisten).</summary>
+        public static void Remove(string username)
+        {
+            object manager = Manager;
+            MethodInfo m = ManagerType == null ? null : AccessTools.Method(ManagerType, "RemoveFromQueue", new[] { typeof(string) });
+            if (manager != null && m != null && !string.IsNullOrEmpty(username)) m.Invoke(manager, new object[] { username });
         }
 
         /// <summary>P8: Wer sich zuletzt anstellt, steht vorne (RICS hängt hinten an).</summary>

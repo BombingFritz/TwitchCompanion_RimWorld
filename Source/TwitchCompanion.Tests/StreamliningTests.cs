@@ -129,5 +129,61 @@ namespace TwitchCompanion.RimWorld.Tests
             DateTime? last = T0;                                                         // gespeichert, dann RimWorld zu
             Assert.True(QueueRules.StreamChanged(true, T0.AddDays(1), ref last));
         }
+    
+        [Fact]
+        public void DulliDurchnummeriert()
+        {
+            Assert.Equal("Dulli", DulliNames.Next(new[] { "Anna", "Bert" }));
+            Assert.Equal("Dulli 2", DulliNames.Next(new[] { "dulli" }));
+            Assert.Equal("Dulli 3", DulliNames.Next(new[] { "Dulli", "Dulli 2", "Dulli 4" }));
+            Assert.Equal("Dulli", DulliNames.Next(null));
+        }
+
+        [Fact]
+        public void SpamSechsBefehleInEinerMinuteGibtVerwarnung()
+        {
+            var g = new SpamGuard();
+            for (int i = 0; i < 5; i++) Assert.Equal(SpamVerdict.Ok, g.Record("1", T0.AddSeconds(i * 10)));
+            Assert.Equal(SpamVerdict.Strike, g.Record("1", T0.AddSeconds(55)));
+            Assert.Equal(1, g.StrikesOf("1"));
+            Assert.Equal(SpamVerdict.Ok, g.Record("1", T0.AddSeconds(56)));   // nach der Verwarnung von vorn
+            Assert.Equal(0, g.StrikesOf("2"));
+        }
+
+        [Fact]
+        public void SpamElfBefehleInZehnMinutenGibtVerwarnung()
+        {
+            var g = new SpamGuard();
+            for (int i = 0; i < 10; i++) Assert.Equal(SpamVerdict.Ok, g.Record("1", T0.AddSeconds(i * 50)));
+            Assert.Equal(SpamVerdict.Strike, g.Record("1", T0.AddSeconds(500)));
+        }
+
+        [Fact]
+        public void RuhigesSchreibenGibtKeineVerwarnung()
+        {
+            var g = new SpamGuard();
+            for (int i = 0; i < 100; i++) Assert.Equal(SpamVerdict.Ok, g.Record("1", T0.AddSeconds(i * 61)));
+        }
+
+        [Fact]
+        public void DreiVerwarnungenIgnorierenBisZumReset()
+        {
+            var g = new SpamGuard();
+            DateTime t = T0;
+            for (int strike = 1; strike <= 3; strike++)
+            {
+                for (int i = 0; i < 5; i++) g.Record("1", t = t.AddSeconds(1));
+                Assert.Equal(SpamVerdict.Strike, g.Record("1", t = t.AddSeconds(1)));
+                t = t.AddMinutes(11);
+            }
+            Assert.True(g.IsIgnored("1"));
+            Assert.Equal(SpamVerdict.Ignored, g.Record("1", t.AddHours(1)));
+            Assert.Contains("ignoriert dich bis zum Ende", SpamGuard.Message(3));
+            var copy = new SpamGuard();
+            copy.Load(g.Save());
+            Assert.True(copy.IsIgnored("1"));
+            g.Reset();
+            Assert.False(g.IsIgnored("1"));
+        }
     }
 }

@@ -150,4 +150,82 @@ namespace TwitchCompanion.RimWorld.Core
             queue.Insert(0, last);
         }
     }
+
+    /// <summary>Freigegebene Kolonisten heißen „Dulli“, „Dulli 2“, … (Nutzer, 20.11.2026).</summary>
+    public static class DulliNames
+    {
+        public const string Base = "Dulli";
+
+        public static string Next(IEnumerable<string> usedNicks)
+        {
+            var used = new HashSet<string>((usedNicks ?? Enumerable.Empty<string>()).Where(n => n != null).Select(n => n.Trim()),
+                StringComparer.OrdinalIgnoreCase);
+            if (!used.Contains(Base)) return Base;
+            for (int i = 2; ; i++)
+                if (!used.Contains(Base + " " + i)) return Base + " " + i;
+        }
+    }
+
+    /// <summary>
+    /// Nach <c>!leave</c>: bleibt als „Dulli“ in der Kolonie, oder verlässt sie unter dem Namen des Zuschauers
+    /// (wie verbannt). Später soll der Chat abstimmen (Nutzer, 20.11.2026; blockiert durch Server-Issue #81).
+    /// </summary>
+    public enum LeaveMode { StaysAsDulli, Departs }
+
+    public enum SpamVerdict { Ok, Strike, Ignored }
+
+    /// <summary>
+    /// Spamschutz (Nutzer, 20.11.2026): mehr als 5 Befehle in einer Minute oder mehr als 10 in 10 Minuten geben eine
+    /// Verwarnung; nach 3 Verwarnungen ignoriert der Bot den Zuschauer bis Streamende. Nach einer Verwarnung zählt die
+    /// Mod von vorn, damit ein einzelner Schwall nur eine Verwarnung gibt.
+    /// </summary>
+    public sealed class SpamGuard
+    {
+        public const int MaxStrikes = 3;
+        public static readonly (int Count, TimeSpan Window)[] Limits = { (5, TimeSpan.FromMinutes(1)), (10, TimeSpan.FromMinutes(10)) };
+
+        private readonly Dictionary<string, List<DateTime>> _recent = new Dictionary<string, List<DateTime>>();
+        public Dictionary<string, int> Strikes { get; } = new Dictionary<string, int>();
+
+        public int StrikesOf(string userId) => userId != null && Strikes.TryGetValue(userId, out int n) ? n : 0;
+        public bool IsIgnored(string userId) => StrikesOf(userId) >= MaxStrikes;
+
+        public SpamVerdict Record(string userId, DateTime nowUtc)
+        {
+            if (string.IsNullOrEmpty(userId)) return SpamVerdict.Ok;
+            if (IsIgnored(userId)) return SpamVerdict.Ignored;
+            if (!_recent.TryGetValue(userId, out List<DateTime> times)) _recent[userId] = times = new List<DateTime>();
+            TimeSpan longest = Limits.Max(l => l.Window);
+            times.RemoveAll(t => nowUtc - t >= longest);
+            times.Add(nowUtc);
+            if (!Limits.Any(l => times.Count(t => nowUtc - t < l.Window) > l.Count)) return SpamVerdict.Ok;
+            times.Clear();
+            Strikes[userId] = StrikesOf(userId) + 1;
+            return SpamVerdict.Strike;
+        }
+
+        public void Reset()
+        {
+            _recent.Clear();
+            Strikes.Clear();
+        }
+
+        /// <summary>Speicherform „userId=Anzahl“ (nur IDs, keine Namen).</summary>
+        public List<string> Save() => Strikes.Select(kv => kv.Key + "=" + kv.Value).ToList();
+
+        public void Load(IEnumerable<string> saved)
+        {
+            Strikes.Clear();
+            foreach (string e in saved ?? Enumerable.Empty<string>())
+            {
+                int eq = e?.LastIndexOf('=') ?? -1;
+                if (eq > 0 && int.TryParse(e.Substring(eq + 1), out int n) && n > 0) Strikes[e.Substring(0, eq)] = n;
+            }
+        }
+
+        public static string Message(int strikes) => strikes >= MaxStrikes
+            ? "Dritte Verwarnung: Der Bot ignoriert dich bis zum Ende des Streams."
+            : "Bitte nicht spammen – Verwarnung " + strikes + " von " + MaxStrikes + ". Bei " + MaxStrikes + " ignoriert dich der Bot bis Streamende.";
+    }
 }
+

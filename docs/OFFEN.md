@@ -32,7 +32,10 @@
 | Laden | nur Dosenbrot, Rausch, Ei, Kartoffeln, Flausch, Holz, Schoki, Hausmittel (Schoki und Hausmittel am 20.11.2026 ergänzt, keine Notration; „Holz vor der Hütte“ am 20.11.2026 auf „Holz“ gekürzt, damit `$Holz` in jeder Spielsprache greift) |
 | Neue Kolonisten | zufällig, nach dem Zuschauer benannt, höchstens einer je 30 min; Lebenslauf später per Abstimmung |
 | Ereignisse | nicht kaufbar; später vom Erzähler vorgeschlagen, der Chat wählt |
-| Warteschlange | nur `!joinqueue`; wer sich zuletzt anstellt, steht vorne; einmal je Stream; nach dem Stream geleert; Vergeben ohne `!acceptpawn`; Rauswurf wegen Inaktivität vorerst keiner [UNGEKLÄRT, nachfragen] |
+| Warteschlange | nur `!joinqueue`; wer sich zuletzt anstellt, steht vorne; einmal je Stream; nach dem Stream geleert; Vergeben ohne `!acceptpawn`; kein Rauswurf wegen Inaktivität (verworfen, #12) |
+| `!leave` | bleibt erlaubt; Kolonist bleibt als „Dulli“ (durchnummeriert) oder verlässt die Kolonie unter seinem Namen; später entscheidet eine Abstimmung (blockiert durch Server-Issue #81) |
+| Ein Kolonist je Person | zu jeder Zeit; nach Anstellen, Bekommen und `!leave` im selben Stream kein neues Anstellen |
+| Spam | über 5 Befehle je Minute oder über 10 je 10 min = Verwarnung mit Hinweis; nach 3 bis Streamende ignoriert; nach dem Stream gelöscht |
 | Flüstern | späteres Ziel |
 | Anleitung/Preisliste | wird angepinnt bzw. von Hand gepostet, kein Befehl dafür |
 
