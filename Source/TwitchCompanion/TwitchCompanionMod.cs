@@ -225,7 +225,7 @@ namespace TwitchCompanion.RimWorld
             if (list.ButtonText("Laden auf diese Auswahl beschränken …"))
             {
                 Find.WindowStack.Add(Dialog_MessageBox.CreateConfirmation(
-                    "Alle anderen Items in RICS werden abgeschaltet; die sechs bekommen ihren Namen und eine Grenze je Kauf. Fortfahren?",
+                    "Alle anderen Items in RICS werden abgeschaltet; die ausgewählten bekommen ihren Namen und eine Grenze je Kauf. Fortfahren?",
                     () =>
                     {
                         string r = RicsEconomy.ApplyShopSelection(ShopSelection.Default);
