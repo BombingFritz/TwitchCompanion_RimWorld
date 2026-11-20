@@ -18,6 +18,8 @@ namespace TwitchCompanion.RimWorld.Core
         public string BaseUrl;
         public string[] Prefixes;
         public bool RequireCategory = true;
+        /// <summary>Wettbonus (Feature-Issue #11): Stand der Wette und Privat-Liste mit abfragen.</summary>
+        public bool BetBonus;
 
         /// <summary>Ändert sich der Schlüssel, meldet sich die Mod mit einer neuen Verbindung neu an.</summary>
         public string Key => (BaseUrl ?? string.Empty).TrimEnd('/') + "|" + string.Join(",", Prefixes ?? new string[0]);
@@ -27,9 +29,11 @@ namespace TwitchCompanion.RimWorld.Core
     public sealed class ChatEvent { public ChatLine Line; public DateTime QueuedAtUtc = DateTime.UtcNow; }
     public sealed class PrivacyEvent { public PrivacyChange Change; }
     public sealed class ActiveEvent { public List<ActiveChatter> Chatters; public int TotalOnServer; }
+    /// <summary>Eine aufgelöste Wette, je Wette höchstens einmal je Verbindung gemeldet; dazu die Privat-Liste zum Zeitpunkt.</summary>
+    public sealed class PredictionEvent { public PredictionResult Result; public HashSet<string> PrivateUserIds; }
 
     /// <summary>
-    /// Verbindung nach der Server-Spec „Chat-Brücke“ (Server-Issues #74, #79; Vertrag noch nicht gemergt):
+    /// Verbindung nach der Server-Spec „Chat-Brücke“ (Server-Issues #74, #79; gemergt, Server-PR #82):
     /// <list type="bullet">
     /// <item>Ereignisstrom <c>GET /api/chat/stream</c>, nach Abbruch nach <see cref="ReconnectDelay"/> neu verbinden.</item>
     /// <item>Jede <see cref="PollInterval"/>: Kategorie (<c>GET /api/twitch/channel</c>), dann, wenn erlaubt,
@@ -270,7 +274,9 @@ namespace TwitchCompanion.RimWorld.Core
                 LinkConfig cfg = SafeConfig();
                 if (cfg == null) continue;
                 PollChannel(cfg);
-                if (_connected && CategoryGate.IsOpen(true, cfg.RequireCategory, _channel)) PollActive(cfg);
+                bool gateOpen = _connected && CategoryGate.IsOpen(true, cfg.RequireCategory, _channel);
+                if (gateOpen) PollActive(cfg);
+                if (_connected && cfg.BetBonus) PollPrediction(cfg, gateOpen);
             }
         }
 
@@ -305,6 +311,31 @@ namespace TwitchCompanion.RimWorld.Core
             var selected = CategoryGate.SelectForRefresh(all, cfg.RequireCategory, _channel, DateTime.UtcNow);
             LastActiveRefreshUtc = DateTime.UtcNow;
             Events.Enqueue(new ActiveEvent { Chatters = selected, TotalOnServer = all.Count });
+        }
+
+        // ── Wettbonus (Feature-Issue #11) ───────────────────────────────
+
+        private string _lastPredictionSeen;
+
+        /// <summary>
+        /// Liest den letzten Stand der Wette (Server-Spec <c>wetten-abstimmungen.md</c>, Schritt 1, gemergt). Eine neu
+        /// aufgelöste Wette wird nur gemeldet, wenn gerade RimWorld läuft und die Privat-Liste abrufbar ist; sonst gilt
+        /// sie als gesehen und bringt keinen Bonus.
+        /// </summary>
+        private void PollPrediction(LinkConfig cfg, bool gateOpen)
+        {
+            HttpResult r = Request(Base(cfg) + "/api/twitch/prediction/current", "GET", null);
+            if (r.Status != 200) return;
+            PredictionResult result = BetBonus.Parse(r.Body);
+            if (result == null || string.IsNullOrEmpty(result.Id) || !result.IsResolved) return;
+            if (result.Id == _lastPredictionSeen) return;
+            _lastPredictionSeen = result.Id;
+            if (!gateOpen) { _log("Wette aufgelöst, aber nicht in der Kategorie RimWorld: kein Wettbonus."); return; }
+
+            HttpResult o = Request(Base(cfg) + "/api/privacy/optouts", "GET", null);
+            HashSet<string> privateIds = o.Status == 200 ? ServerEvents.ParseOptouts(o.Body) : null;
+            if (privateIds == null) { _log("Privat-Liste nicht abrufbar (" + o.Describe() + "): kein Wettbonus für diese Wette."); return; }
+            Events.Enqueue(new PredictionEvent { Result = result, PrivateUserIds = privateIds });
         }
 
         // ── Senden ──────────────────────────────────────────────────────

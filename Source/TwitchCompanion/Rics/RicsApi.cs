@@ -147,11 +147,18 @@ namespace TwitchCompanion.RimWorld.Rics
             }
         }
 
-        private static object GetGlobalSettings()
+        internal static object GetGlobalSettings()
         {
             object mod = _modInstance?.GetValue(null, null);
             object settings = mod == null ? null : _modSettings.GetValue(mod, null);
             return settings == null ? null : _globalSettings.GetValue(settings);
+        }
+
+        /// <summary>Zuschauer zu einer Twitch-ID holen oder anlegen (wie RICS beim ersten Chat), ohne Aktivität zu zählen.</summary>
+        public static object GetOrCreateViewer(string userId, string login)
+        {
+            if (!Available || string.IsNullOrEmpty(userId) || string.IsNullOrEmpty(login)) return null;
+            return _getViewer.Invoke(null, new[] { NewWrapper(login, string.Empty, userId) });
         }
 
         private static object NewWrapper(string username, string text, string userId)

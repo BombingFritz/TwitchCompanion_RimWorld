@@ -145,6 +145,17 @@ namespace TwitchCompanion.RimWorld.Core
         }
 
         /// <summary>Feld <c>sent</c> einer 200-Antwort; <c>null</c>, wenn es fehlt.</summary>
+        /// <summary><c>GET /api/privacy/optouts</c> → <c>{userIds: [...]}</c>; <c>null</c>, wenn unlesbar.</summary>
+        public static HashSet<string> ParseOptouts(string data)
+        {
+            Dictionary<string, object> o = Json.TryParseObject(data);
+            List<object> ids = o == null ? null : Json.GetArray(o, "userIds");
+            if (ids == null) return null;
+            var set = new HashSet<string>(StringComparer.Ordinal);
+            foreach (object id in ids) if (id is string s && s.Length > 0) set.Add(s);
+            return set;
+        }
+
         public static bool? ParseSent(string data) => Json.GetNullableBool(Json.TryParseObject(data), "sent");
 
         public static string BuildSendBody(string feature, string message)

@@ -11,9 +11,9 @@ namespace TwitchCompanion.RimWorld.Tests
     /// <summary>Verbindung gegen die Attrappe (<see cref="FakeServer"/>); nie gegen den echten Server.</summary>
     public class ServerLinkTests
     {
-        private static ServerLink NewLink(FakeServer server, bool requireCategory = true, string baseUrl = null)
+        private static ServerLink NewLink(FakeServer server, bool requireCategory = true, string baseUrl = null, bool betBonus = false)
         {
-            var cfg = new LinkConfig { Enabled = true, BaseUrl = baseUrl ?? server.BaseUrl, Prefixes = new[] { "!", "$" }, RequireCategory = requireCategory };
+            var cfg = new LinkConfig { Enabled = true, BaseUrl = baseUrl ?? server.BaseUrl, Prefixes = new[] { "!", "$" }, RequireCategory = requireCategory, BetBonus = betBonus };
             var link = new ServerLink(() => cfg, _ => { })
             {
                 ReconnectDelay = TimeSpan.FromMilliseconds(200),
@@ -222,6 +222,87 @@ namespace TwitchCompanion.RimWorld.Tests
                 Assert.Single(ev.Chatters);
                 Assert.Equal("anna", ev.Chatters[0].Login);
                 Assert.True(ev.Chatters[0].IsSubscriber);
+            }
+            finally { link.Stop(); }
+        }
+
+        private const string ResolvedPrediction = "{\"predictionId\":\"p1\",\"status\":\"RESOLVED\",\"winningOutcomeId\":\"o1\",\"outcomes\":["
+            + "{\"id\":\"o1\",\"topPredictors\":[{\"userId\":\"42\",\"userLogin\":\"anna\",\"userName\":\"Anna\",\"channelPointsUsed\":500,\"channelPointsWon\":2000},"
+            + "{\"userId\":\"7\",\"userLogin\":\"privo\",\"userName\":\"Privo\",\"channelPointsUsed\":100,\"channelPointsWon\":400}]},"
+            + "{\"id\":\"o2\",\"topPredictors\":[{\"userId\":\"9\",\"userLogin\":\"bert\",\"userName\":\"Bert\",\"channelPointsUsed\":800,\"channelPointsWon\":0}]}]}";
+
+        [Fact]
+        public void ResolvedPredictionIsReportedOnlyOnce()
+        {
+            using var server = new FakeServer();
+            server.PredictionJson = ResolvedPrediction;
+            var link = NewLink(server, betBonus: true);
+            try
+            {
+                int total = 0;
+                WaitFor(() => (total += Drain<PredictionEvent>(link).Count) > 0, "erstes PredictionEvent");
+                int before = server.PredictionRequests;
+                WaitFor(() => server.PredictionRequests >= before + 3, "weitere Abfragen");
+                total += Drain<PredictionEvent>(link).Count;
+                Assert.Equal(1, total);
+            }
+            finally { link.Stop(); }
+        }
+
+        [Fact]
+        public void PredictionEventCarriesWinnersAndPrivateIds()
+        {
+            using var server = new FakeServer();
+            server.OptoutsJson = "{\"userIds\":[\"7\"]}";
+            server.PredictionJson = ResolvedPrediction;
+            var link = NewLink(server, betBonus: true);
+            try
+            {
+                List<PredictionEvent> events = null;
+                WaitFor(() => (events = Drain<PredictionEvent>(link)).Count > 0, "PredictionEvent");
+                PredictionEvent ev = Assert.Single(events);
+                Assert.Equal("p1", ev.Result.Id);
+                Assert.Equal(2, ev.Result.Winners.Count);
+                Assert.Contains("7", ev.PrivateUserIds);
+            }
+            finally { link.Stop(); }
+        }
+
+        [Fact]
+        public void NoPredictionEventWithoutPrivacyListOrOutsideRimWorld()
+        {
+            using var server = new FakeServer();
+            server.PredictionJson = ResolvedPrediction;
+            server.OptoutsStatus = 500;
+            var link = NewLink(server, betBonus: true);
+            try
+            {
+                WaitFor(() => server.PredictionRequests >= 3, "Abfragen");
+                Assert.Empty(Drain<PredictionEvent>(link));
+            }
+            finally { link.Stop(); }
+
+            using var server2 = new FakeServer();
+            server2.PredictionJson = ResolvedPrediction;
+            server2.ChannelJson = "{\"category\":\"Just Chatting\",\"categoryChangedAt\":null,\"live\":true,\"updatedAt\":null}";
+            var link2 = NewLink(server2, betBonus: true);
+            try
+            {
+                WaitFor(() => server2.PredictionRequests >= 3, "Abfragen");
+                Assert.Empty(Drain<PredictionEvent>(link2));
+            }
+            finally { link2.Stop(); }
+        }
+
+        [Fact]
+        public void NoPredictionPollingWhenBetBonusOff()
+        {
+            using var server = new FakeServer();
+            var link = NewLink(server);
+            try
+            {
+                WaitFor(() => server.ActiveRequests >= 2, "Abfragen");
+                Assert.Equal(0, server.PredictionRequests);
             }
             finally { link.Stop(); }
         }

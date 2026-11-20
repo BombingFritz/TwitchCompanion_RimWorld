@@ -12,6 +12,17 @@
 | 7 | `!privat` im Chat-Kanal des Servers | so einfach und stabil wie möglich → Kennzeichen an jeder Nachricht |
 | 8 | Zusatzstimmen mit Kanalpunkten | fest 3000 Punkte je Zusatzstimme, nur bei etwa jeder dritten Abstimmung |
 
+## Entschieden (Nutzer, 20.11.2026)
+| Frage | Entscheidung |
+|---|---|
+| Item-Preise | Faktor ×10 auf den RICS-Standardpreis (statt ×12,5); teuerste Sachen nach Blick auf die Preisliste prüfen |
+| Spargel | 10 Zuschauminuten (gibt es nur mit Mod) |
+| Lootbox | Höhere Gewinne seltener: über 150 nur 1 zu 20 |
+| Währung | Pfennig |
+| Warteschlange zum Übernehmen | kostet nichts; Rauswurf nach über 1 h ohne Chat, Wette oder Einlösung – sonst „zuletzt hinzugefügt oben“, Leeren nach jedem Stream (Umsetzung offen, #12) |
+| Wettbonus | ganze Auszahlung zählt (hohe Wetten belohnen) |
+| Chatnachrichten | kurz und auf Deutsch, Ausführliches auf der Webseite (#9) |
+
 ## Noch zu entscheiden
 | # | Frage | Vorschlag | Betrifft |
 |---|---|---|---|
@@ -30,7 +41,8 @@
 - RimWorld-Option „Im Hintergrund weiterlaufen“ (`runInBackground`) ist auf dem Streaming-PC aus: Ohne Fokus arbeitet RimWorld keine Befehle ab, nach 60 s verfallen sie. Für den Stream einschalten oder RimWorld im Vordergrund lassen (Nutzer entscheidet).
 - RICS-Fenster „Live Chat“ eignet sich ohne echte RICS-Twitch-Verbindung nicht für Befehlstests (Befehle laufen als leere YouTube-Kennung); getippter Text geht über den Bot in den Chat.
 - Kanalname in den RICS-Twitch-Einstellungen (ohne Token) eintragen, damit RICS den Streamer als Kanalinhaber erkennt? Vorher prüfen, dass RICS dann keinen Verbindungsversuch startet.
-- Methode, an der RICS den Kaufpreis bestimmt (Inflation).
+- Methode, an der RICS den Kaufpreis bestimmt (Inflation): Es gibt keine zentrale; die Befehle lesen `StoreItem.BasePrice` bzw. den Rassen-/Xenotyp-Preis direkt (RICS 1.56). Die Grundpreise setzt jetzt das Preis-Werkzeug; die Inflation braucht einen eigenen Weg.
+- Ereignis-, Wetter- und Trait-Preise mit anheben?
 - Saubere Entfernung eines Zuschauers in RICS (`!privat` rückwirkend).
 - Raid-Rollen Verbündete, Händler und Besuch; automatischer Beitritt aller, die im Fenster schreiben.
 - Ob Twitch nur einen festen Kanalpunkte-Preis je Abstimmung kennt.

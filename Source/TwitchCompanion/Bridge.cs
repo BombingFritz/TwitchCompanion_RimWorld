@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Concurrent;
+using System.Linq;
 using TwitchCompanion.RimWorld.Core;
 using TwitchCompanion.RimWorld.Rics;
 using Verse;
@@ -78,6 +79,7 @@ namespace TwitchCompanion.RimWorld
                 BaseUrl = ServerUrl,
                 Prefixes = _prefixes,
                 RequireCategory = s.requireCategory,
+                BetBonus = s.betBonus,
             };
         }
 
@@ -162,12 +164,38 @@ namespace TwitchCompanion.RimWorld
                     // Keine Namen ins Log (Spec, „!privat“). Rückwirkendes Entfernen ist offen (OFFEN.md #11).
                     Log.Message(LogPrefix + "Ein Zuschauer hat !privat " + (privacy.Change.Private ? "eingeschaltet" : "ausgeschaltet") + ".");
                     break;
+                case PredictionEvent prediction:
+                    AwardBetBonus(prediction);
+                    break;
                 case ActiveEvent active:
                     if (!Link.GateOpen || !RicsApi.Available || Find.TickManager == null) return;
                     var (refreshed, created) = RicsApi.RefreshActivity(active.Chatters);
                     LastActivitySummary = DateTime.Now.ToString("HH:mm") + ": " + refreshed + " von " + active.TotalOnServer
                         + " aktiven Chattern aufgefrischt" + (created > 0 ? ", " + created + " neu in RICS" : string.Empty);
                     break;
+            }
+        }
+
+        /// <summary>Wettbonus (Feature-Issue #11): einmal je Wette, auch über Neustarts hinweg (IDs in den Mod-Einstellungen).</summary>
+        private static void AwardBetBonus(PredictionEvent ev)
+        {
+            if (!Settings.betBonus || !IsActive || !Link.GateOpen || Find.TickManager == null) return;
+            if (!Settings.MarkPredictionAwarded(ev.Result.Id)) return;
+            try
+            {
+                var awards = BetBonus.Compute(ev.Result, RicsEconomy.CoinsPerHour, ev.PrivateUserIds);
+                foreach (BonusAward a in awards) RicsEconomy.GiveCoins(a.UserId, a.Login, a.Pfennig);
+                if (awards.Count > 0)
+                {
+                    RicsEconomy.SaveViewers();
+                    EnqueueOutgoing(BetBonus.Announcement(awards, RicsEconomy.CurrencyName));
+                }
+                Log.Message(LogPrefix + "Wettbonus: " + awards.Count + " Gewinner, zusammen " + awards.Sum(x => x.Pfennig) + " Pfennig.");
+            }
+            catch (Exception ex)
+            {
+                LastError = (ex.InnerException ?? ex).Message;
+                Log.Error(LogPrefix + "Wettbonus fehlgeschlagen: " + (ex.InnerException ?? ex));
             }
         }
 

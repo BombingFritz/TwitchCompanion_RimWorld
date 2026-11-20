@@ -23,6 +23,10 @@ namespace TwitchCompanion.RimWorld.Tests
         public volatile bool ChannelMissing;
         public volatile string ActiveJson = "{\"updatedAt\":null,\"windowMinutes\":60,\"chatters\":[]}";
         public int TooEarlyResponses; // so viele Sendungen bekommen zuerst 429
+        public volatile string PredictionJson = "{\"status\":\"WAITING\"}";
+        public volatile string OptoutsJson = "{\"userIds\":[]}";
+        public volatile int OptoutsStatus = 200;
+        public int PredictionRequests;
         public int ActiveRequests;
 
         private HttpListener _listener;
@@ -114,6 +118,17 @@ namespace TwitchCompanion.RimWorld.Tests
                 {
                     Interlocked.Increment(ref ActiveRequests);
                     Reply(ctx, 200, ActiveJson);
+                    return;
+                }
+                if (path == "/api/twitch/prediction/current")
+                {
+                    Interlocked.Increment(ref PredictionRequests);
+                    Reply(ctx, 200, PredictionJson);
+                    return;
+                }
+                if (path == "/api/privacy/optouts")
+                {
+                    Reply(ctx, OptoutsStatus, OptoutsStatus == 200 ? OptoutsJson : "{\"error\":\"x\"}");
                     return;
                 }
                 if (path == "/api/chat/send" && ctx.Request.HttpMethod == "POST")
