@@ -5,9 +5,10 @@ Version 0.1 (Feature-Issue #2): Anbindung an den Server-Vertrag „Chat-Brücke�
 | Datei | Inhalt |
 |---|---|
 | `About/About.xml`, `LoadFolders.xml` | Mod-Daten; packageId `BombingFritz.TwitchCompanion.RimWorld`, braucht Harmony und RICS (`Captolamia.RICS`), lädt danach |
-| `Source/TwitchCompanion/Core/` | reine Logik ohne RimWorld: `ChatLine`, `LineMerger` (Zeilen zusammenfassen), `PrivacyNotices` (Hinweis an `!privat`-Zuschauer einmal je Stream), `Json` (kleiner JSON-Leser), `SseParser`, `ServerEvents` (Daten des Servers), `CategoryGate` (Kategorie RimWorld, Auswahl aktiver Chatter, doppelte IDs), `ServerLink` (Verbindung zum Server, drei Hintergrund-Threads), `Economy` (Zuschaustunde, Preise, Lootbox-Chancen), `BetBonus` (Wettbonus) |
+| `Source/TwitchCompanion/Core/` | reine Logik ohne RimWorld: `ChatLine`, `LineMerger` (Zeilen zusammenfassen), `PrivacyNotices` (Hinweis an `!privat`-Zuschauer einmal je Stream), `Json` (kleiner JSON-Leser), `SseParser`, `ServerEvents` (Daten des Servers), `CategoryGate` (Kategorie RimWorld, Auswahl aktiver Chatter, doppelte IDs), `ServerLink` (Verbindung zum Server, drei Hintergrund-Threads), `Economy` (Zuschaustunde, Preise, Lootbox-Chancen), `BetBonus` (Wettbonus), `ChatTranslator` (feste RICS-Texte deutsch, kurze `!bal`-Antwort) |
 | `Source/TwitchCompanion/Rics/RicsApi.cs` | findet die RICS-Stellen per Reflexion; Eingang (E1), aktive Chatter und Lurker (E2), Präfixe aus den RICS-Einstellungen |
-| `Source/TwitchCompanion/Rics/RicsPatches.cs` | Harmony-Patches P1 bis P5 |
+| `Source/TwitchCompanion/Rics/RicsPatches.cs` | Harmony-Patches P1 bis P6 |
+| `Languages/German (Deutsch)/Keyed/RICS_Chat.xml` | deutsche Chattexte für RICS |
 | `Source/TwitchCompanion/Rics/RicsEconomy.cs` | Preise, Währung und Pfennig in RICS (E3) |
 | `Source/TwitchCompanion/Bridge.cs` | Hauptthread-Seite: Ereignisse des Servers an RICS, Ausgang, Testmodus, Statuszähler |
 | `Source/TwitchCompanion/TwitchCompanionMod.cs` | Mod-Einstellungen mit Status, Start, `GameComponent` als Hauptthread-Takt |

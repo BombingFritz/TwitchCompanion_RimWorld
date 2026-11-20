@@ -43,6 +43,7 @@
 - Kanalname in den RICS-Twitch-Einstellungen (ohne Token) eintragen, damit RICS den Streamer als Kanalinhaber erkennt? Vorher prüfen, dass RICS dann keinen Verbindungsversuch startet.
 - Methode, an der RICS den Kaufpreis bestimmt (Inflation): Es gibt keine zentrale; die Befehle lesen `StoreItem.BasePrice` bzw. den Rassen-/Xenotyp-Preis direkt (RICS 1.56). Die Grundpreise setzt jetzt das Preis-Werkzeug; die Inflation braucht einen eigenen Weg.
 - Ereignis-, Wetter- und Trait-Preise mit anheben?
+- Restliche RICS-Chattexte übersetzen (`!mypawn`, Operationen, Traits, Wetter, Heilen, Wiederbeleben, Ereignisse) und Briefe im Spiel; oder deutsche Übersetzung bei RICS einreichen (nur nach Rückfrage).
 - Saubere Entfernung eines Zuschauers in RICS (`!privat` rückwirkend).
 - Raid-Rollen Verbündete, Händler und Besuch; automatischer Beitritt aller, die im Fenster schreiben.
 - Ob Twitch nur einen festen Kanalpunkte-Preis je Abstimmung kennt.

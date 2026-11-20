@@ -90,7 +90,9 @@ namespace TwitchCompanion.RimWorld
             while (Incoming.Count > MaxIncoming && Incoming.TryDequeue(out _)) { }
         }
 
-        public static void EnqueueOutgoing(string text) => Outgoing.Add(text, DateTime.UtcNow);
+        /// <summary>Ausgang; fest eingebaute englische RICS-Texte werden vorher deutsch und kurz (abschaltbar).</summary>
+        public static void EnqueueOutgoing(string text) =>
+            Outgoing.Add(Settings != null && Settings.germanChat ? ChatTranslator.Translate(text) : text, DateTime.UtcNow);
 
         /// <summary>Im Hauptthread aufrufen (GameComponent). Liefert Eingänge an RICS und gibt Ausgänge weiter.</summary>
         public static void MainThreadTick()

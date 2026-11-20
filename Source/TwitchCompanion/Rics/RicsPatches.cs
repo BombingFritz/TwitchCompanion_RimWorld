@@ -27,8 +27,11 @@ namespace TwitchCompanion.RimWorld.Rics
             if (RicsApi.CoinReward != null)
                 harmony.Patch(RicsApi.CoinReward, prefix: new HarmonyMethod(typeof(RicsPatches), nameof(CoinRewardPrefix)));
             int lootbox = PatchLootbox(harmony);
+            // P6: kurze deutsche Antwort auf !bal (Nutzer, 20.11.2026).
+            MethodInfo bal = AccessTools.Method(AccessTools.TypeByName("CAP_ChatInteractive.Commands.ViewerCommands.Bal"), "Execute");
+            if (bal != null) harmony.Patch(bal, postfix: new HarmonyMethod(typeof(RicsPatches), nameof(BalPostfix)));
             Log.Message("[Twitch Companion] Patches an RICS gesetzt (P1, P2, P3" + (RicsApi.CoinReward != null ? ", P4" : "; P4 fehlt")
-                + (lootbox > 0 ? ", P5 an " + lootbox + " Stellen)." : "; P5 fehlt)."));
+                + (lootbox > 0 ? ", P5 an " + lootbox + " Stellen" : "; P5 fehlt") + (bal != null ? ", P6)." : "; P6 fehlt)."));
         }
 
         // Kann aus Hintergrund-Threads kommen; nur in die thread-sichere Ausgabe legen.
@@ -106,6 +109,18 @@ namespace TwitchCompanion.RimWorld.Rics
         {
             if (TwitchCompanionMod.Settings == null || !TwitchCompanionMod.Settings.lootboxOdds) return Rand.Range(min, max);
             return LootboxOdds.Roll(max, () => Rand.Value);
+        }
+
+        // ── P6: !bal kurz und deutsch ──
+        private static void BalPostfix(object messageWrapper, ref string __result)
+        {
+            if (TwitchCompanionMod.Settings == null || !TwitchCompanionMod.Settings.germanChat || messageWrapper == null) return;
+            try
+            {
+                string shortText = RicsEconomy.ShortBalance(messageWrapper);
+                if (shortText != null) __result = shortText;
+            }
+            catch (System.Exception ex) { Log.Warning("[Twitch Companion] Kurze !bal-Antwort nicht möglich: " + ex.Message); }
         }
 
         // Läuft im Spieltakt. Überspringt die Auszahlung, solange die Brücke Coins sperrt; RICS zahlt danach einmal nach.
