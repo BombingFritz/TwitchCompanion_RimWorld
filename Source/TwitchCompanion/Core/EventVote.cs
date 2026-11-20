@@ -123,6 +123,10 @@ namespace TwitchCompanion.RimWorld.Core
         public int ChannelPointsPerVote;
         public VoteState State = VoteState.Running;
         public int WinnerIndex = -1;
+        /// <summary>Twitch-Abstimmung über den Server: ID aus <c>POST /api/twitch/poll/start</c>, sonst <c>null</c> (Test-Abstimmung).</summary>
+        public string ServerPollId;
+        /// <summary>Auf die Antwort des Servers warten (Start läuft im Hintergrund).</summary>
+        public bool AwaitingStart;
 
         public VoteRound(IList<EventCandidate> options, DateTime nowUtc, int seconds)
         {
@@ -158,7 +162,45 @@ namespace TwitchCompanion.RimWorld.Core
             return text.Length <= max ? text : text.Substring(0, max - 1).TrimEnd() + "…";
         }
 
-        public IEnumerable<string> OptionTitles => Options.Select(o => Shorten(o.Label, OptionMax));
+        /// <summary>Gekürzte, eindeutige Titel der Optionen (Twitch: bis 25 Zeichen); gleich lautende bekommen eine Nummer.</summary>
+        public IList<string> OptionTitles
+        {
+            get
+            {
+                var titles = new List<string>();
+                foreach (EventCandidate o in Options)
+                {
+                    string t = Shorten(o.Label, OptionMax);
+                    for (int n = 2; titles.Contains(t, StringComparer.OrdinalIgnoreCase); n++)
+                        t = Shorten(o.Label, OptionMax - 2 - n.ToString().Length) + " " + n;
+                    titles.Add(t);
+                }
+                return titles;
+            }
+        }
+
+        /// <summary>
+        /// Übernimmt das Ergebnis der Twitch-Abstimmung (<c>poll_result</c>): Stimmen je Option nach Titel, Gewinner aus
+        /// <c>winners</c> (bei Gleichstand Los). Abgebrochene oder entfernte Abstimmungen geben keinen Gewinner.
+        /// </summary>
+        public EventCandidate ApplyServerResult(PollResult result, Random rng)
+        {
+            if (State != VoteState.Running || result == null) return null;
+            IList<string> titles = OptionTitles;
+            int IndexOf(string title) => titles.Select((t, i) => new { t, i })
+                .FirstOrDefault(x => string.Equals(x.t.Trim(), (title ?? string.Empty).Trim(), StringComparison.OrdinalIgnoreCase))?.i ?? -1;
+            foreach (PollChoiceResult c in result.Choices)
+            {
+                int i = IndexOf(c.Title);
+                if (i >= 0) Votes[i] = c.Votes;
+            }
+            if (!result.IsCompleted) { State = VoteState.Cancelled; return null; }
+            var winners = result.WinnerTitles.Select(IndexOf).Where(i => i >= 0).Distinct().ToList();
+            if (winners.Count == 0) return Resolve(rng); // Titel unbekannt: nach den Stimmen
+            WinnerIndex = winners[rng.Next(winners.Count)];
+            State = VoteState.Resolved;
+            return Winner;
+        }
 
         public static string KarmaWord(EventCandidate c) =>
             c.IsCalm ? "ruhig" : c.Karma == EventKarma.Good ? "gut" : c.Karma == EventKarma.Bad ? "schlecht" : c.Karma == EventKarma.Doom ? "verheerend" : "neutral";

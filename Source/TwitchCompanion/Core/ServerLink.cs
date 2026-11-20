@@ -31,6 +31,10 @@ namespace TwitchCompanion.RimWorld.Core
     public sealed class ActiveEvent { public List<ActiveChatter> Chatters; public int TotalOnServer; }
     /// <summary>Eine aufgelöste Wette, je Wette höchstens einmal je Verbindung gemeldet; dazu die Privat-Liste zum Zeitpunkt.</summary>
     public sealed class PredictionEvent { public PredictionResult Result; public HashSet<string> PrivateUserIds; }
+    /// <summary>Antwort auf einen Startversuch (Server-Spec <c>chat-bruecke.md</c>, Teil C).</summary>
+    public sealed class PollStartEvent { public string RoundId; public PollStartResult Result; }
+    public sealed class PollResultEvent { public PollResult Result; }
+    public sealed class RaidEvent { public RaidInfo Raid; }
 
     /// <summary>
     /// Verbindung nach der Server-Spec „Chat-Brücke“ (Server-Issues #74, #79; gemergt, Server-PR #82):
@@ -140,6 +144,27 @@ namespace TwitchCompanion.RimWorld.Core
         /// <summary>Neue Anmeldung erzwingen, z. B. nach Änderung der Einstellungen.</summary>
         public void Reconnect() => AbortStream();
 
+        /// <summary>
+        /// Startet eine Twitch-Abstimmung über den Server (<c>POST /api/twitch/poll/start</c>) im Hintergrund; die Antwort kommt
+        /// als <see cref="PollStartEvent"/> über <see cref="Events"/>.
+        /// </summary>
+        public void StartPoll(string roundId, string body)
+        {
+            ThreadPool.QueueUserWorkItem(_ =>
+            {
+                LinkConfig cfg = SafeConfig();
+                PollStartResult result;
+                if (cfg == null || !_connected) result = new PollStartResult { Reason = "unreachable" };
+                else
+                {
+                    HttpResult r = Request(Base(cfg) + "/api/twitch/poll/start", "POST", body);
+                    result = ConsumerPolls.ParseStart(r.Status, r.Body);
+                    if (r.Status == 0) result.Error = r.Error;
+                }
+                Events.Enqueue(new PollStartEvent { RoundId = roundId, Result = result });
+            });
+        }
+
         /// <summary>Nimmt eine fertige Chatnachricht zum Senden an. Bei mehr als <see cref="MaxPendingSends"/> fällt die älteste weg.</summary>
         public void EnqueueSend(string message)
         {
@@ -235,6 +260,19 @@ namespace TwitchCompanion.RimWorld.Core
                     PrivacyChange change = ServerEvents.ParsePrivacy(ev.Data);
                     if (change != null) Events.Enqueue(new PrivacyEvent { Change = change });
                     break;
+                case "poll_result":
+                    PollResult poll = ConsumerPolls.ParseResult(ev.Data);
+                    if (poll == null) { _log("poll_result ohne Pflichtfelder verworfen."); return; }
+                    if (!_ids.TryAdd("poll:" + poll.PollId)) return;
+                    Events.Enqueue(new PollResultEvent { Result = poll });
+                    break;
+                case "raid":
+                    RaidInfo raid = ConsumerPolls.ParseRaid(ev.Data);
+                    if (raid == null) { _log("raid ohne Pflichtfelder verworfen."); return; }
+                    if (!_ids.TryAdd("raid:" + raid.Id)) return;
+                    Events.Enqueue(new RaidEvent { Raid = raid });
+                    break;
+                // Unbekannte Ereignisse ignorieren (Server-Spec chat-bruecke.md, Teil A).
             }
         }
 
