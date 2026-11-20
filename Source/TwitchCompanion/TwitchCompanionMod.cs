@@ -86,6 +86,8 @@ namespace TwitchCompanion.RimWorld
                 if (Bridge.LastActivitySummary != null) list.Label("  Coins: " + Bridge.LastActivitySummary);
             }
             list.Label("  Brücke: " + (Bridge.IsActive ? "aktiv" : "aus"));
+            if (Current.ProgramState != ProgramState.Playing)
+                list.Label("  Spiel: kein Spielstand geladen – Befehle aus dem Chat werden erst in einer geladenen Kolonie verarbeitet, ältere als 60 s verfallen.");
             if (!string.IsNullOrEmpty(Bridge.LastError)) list.Label("  Letzter Fehler: " + Bridge.LastError);
             list.GapLine();
 

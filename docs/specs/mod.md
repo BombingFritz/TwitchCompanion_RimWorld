@@ -73,7 +73,7 @@ Was die Mod vom Server braucht, ist als Serveranforderung angelegt (Server-Issue
 Alle Stellen findet die Mod zur Laufzeit per Reflexion (keine Kompilier-Abhängigkeit von RICS). Fehlt eine Pflichtstelle nach einem RICS-Update, bleibt die Brücke aus und die Einstellungen nennen sie; fehlen nur `ChatMessageLogger.AddMessage` oder P4, gibt es eine Warnung im Log. Geprüft an RICS 1.56 (installiert) und 1.57 (Branch `1.6`).
 
 ### Einstellungen
-Brücke an/aus, Server-Adresse (Vorgabe `http://localhost:3000`; die Befehlszeile `-twitchcompanion-server=…` hat Vorrang, für Tests mit der Attrappe), „Nur in der Twitch-Kategorie RimWorld“ (Vorgabe an), Status (Verbindung, Kategorie, weitergeleitet, gesendet, Coins zuletzt aufgefrischt, letzter Fehler), Testmodus.
+Brücke an/aus, Server-Adresse (Vorgabe `http://localhost:3000`; die Befehlszeile `-twitchcompanion-server=…` hat Vorrang, für Tests mit der Attrappe), „Nur in der Twitch-Kategorie RimWorld“ (Vorgabe an), Status (Verbindung, Kategorie, weitergeleitet, gesendet, Coins zuletzt aufgefrischt, letzter Fehler, Hinweis ohne geladenen Spielstand), Testmodus. Befehle verarbeiten Mod und RICS nur in einer geladenen Kolonie; im Hauptmenü eingehende Befehle verfallen nach 60 s.
 
 **Testmodus:** keine Serververbindung. In den Mod-Einstellungen lässt sich eine Testnachricht mit Login, Text und Rollen einspeisen; sie läuft wie eine Chatnachricht durch RICS. Antworten landen im Log (`[Twitch Companion] Chat ← …`). Die Kategorieprüfung und P4 gelten im Testmodus nicht.
 
