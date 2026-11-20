@@ -5,6 +5,8 @@
     <IsPackable>false</IsPackable>
     <Nullable>disable</Nullable>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <!-- Die Mod läuft auf net472/Mono und nutzt dort HttpWebRequest; unter net8 gilt es als veraltet. -->
+    <NoWarn>$(NoWarn);SYSLIB0014</NoWarn>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="..\TwitchCompanion\Core\*.cs" Link="Core\%(Filename)%(Extension)" />

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
-// Twitch Companion for RimWorld – Hinweis an Zuschauer mit !privat, höchstens einmal je Sitzung.
+// Twitch Companion for RimWorld – Hinweis an Zuschauer mit !privat, höchstens einmal je Stream.
 
 using System;
 using System.Collections.Generic;
@@ -8,7 +8,7 @@ namespace TwitchCompanion.RimWorld.Core
 {
     /// <summary>
     /// Merkt sich (nur im Arbeitsspeicher), wem der Hinweis schon gegeben wurde. Keine Speicherung über den
-    /// Spielstart hinaus, passend zu <c>!privat</c> (Spec, Abschnitt „!privat“).
+    /// Spielstart hinaus, passend zu <c>!privat</c> (Spec, Abschnitt „!privat“). <see cref="Reset"/> beim Streamstart.
     /// </summary>
     public sealed class PrivacyNotices
     {
