@@ -30,6 +30,8 @@ namespace TwitchCompanion.RimWorld
         private static readonly ConcurrentQueue<string> BackgroundLog = new ConcurrentQueue<string>();
 
         public static ServerLink Link { get; private set; }
+        /// <summary>Nachricht, die RICS gerade verarbeitet (nur Hauptthread, sonst <c>null</c>).</summary>
+        public static ChatLine CurrentIncoming { get; private set; }
         public static string LastError { get; private set; }
         public static int Forwarded { get; private set; }
         public static int BlockedByCategory { get; private set; }
@@ -215,7 +217,9 @@ namespace TwitchCompanion.RimWorld
 
             try
             {
-                RicsApi.Deliver(line);
+                CurrentIncoming = line;
+                try { RicsApi.Deliver(line); }
+                finally { CurrentIncoming = null; }
                 Forwarded++;
             }
             catch (Exception ex)

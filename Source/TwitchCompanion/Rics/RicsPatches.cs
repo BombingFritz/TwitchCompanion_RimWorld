@@ -27,11 +27,14 @@ namespace TwitchCompanion.RimWorld.Rics
             if (RicsApi.CoinReward != null)
                 harmony.Patch(RicsApi.CoinReward, prefix: new HarmonyMethod(typeof(RicsPatches), nameof(CoinRewardPrefix)));
             int lootbox = PatchLootbox(harmony);
+            // P7: keine Lootbox-Begrüßung, wenn die Nachricht selbst !openlootbox ist (sonst Begrüßung und Ergebnis doppelt).
+            MethodInfo welcome = AccessTools.Method(AccessTools.TypeByName("CAP_ChatInteractive.LootBoxComponent"), "WelcomeMessage", new[] { typeof(string) });
+            if (welcome != null) harmony.Patch(welcome, prefix: new HarmonyMethod(typeof(RicsPatches), nameof(WelcomePrefix)));
             // P6: kurze deutsche Antwort auf !bal (Nutzer, 20.11.2026).
             MethodInfo bal = AccessTools.Method(AccessTools.TypeByName("CAP_ChatInteractive.Commands.ViewerCommands.Bal"), "Execute");
             if (bal != null) harmony.Patch(bal, postfix: new HarmonyMethod(typeof(RicsPatches), nameof(BalPostfix)));
             Log.Message("[Twitch Companion] Patches an RICS gesetzt (P1, P2, P3" + (RicsApi.CoinReward != null ? ", P4" : "; P4 fehlt")
-                + (lootbox > 0 ? ", P5 an " + lootbox + " Stellen" : "; P5 fehlt") + (bal != null ? ", P6)." : "; P6 fehlt)."));
+                + (lootbox > 0 ? ", P5 an " + lootbox + " Stellen" : "; P5 fehlt") + (bal != null ? ", P6" : "; P6 fehlt") + (welcome != null ? ", P7)." : "; P7 fehlt)."));
         }
 
         // Kann aus Hintergrund-Threads kommen; nur in die thread-sichere Ausgabe legen.
@@ -109,6 +112,13 @@ namespace TwitchCompanion.RimWorld.Rics
         {
             if (TwitchCompanionMod.Settings == null || !TwitchCompanionMod.Settings.lootboxOdds) return Rand.Range(min, max);
             return LootboxOdds.Roll(max, () => Rand.Value);
+        }
+
+        // ── P7 ──
+        private static bool WelcomePrefix(string username)
+        {
+            Core.ChatLine line = Bridge.CurrentIncoming;
+            return line == null || !Core.LootboxWelcome.IsOpeningCommand(line.Text, line.Login, username);
         }
 
         // ── P6: !bal kurz und deutsch ──

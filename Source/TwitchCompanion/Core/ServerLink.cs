@@ -330,6 +330,11 @@ namespace TwitchCompanion.RimWorld.Core
             if (result == null || string.IsNullOrEmpty(result.Id) || !result.IsResolved) return;
             if (result.Id == _lastPredictionSeen) return;
             _lastPredictionSeen = result.Id;
+            if (!BetBonus.IsFresh(result, DateTime.UtcNow))
+            {
+                _log("Letzte Wette ist schon länger beendet (" + (result.EndedAt?.ToLocalTime().ToString("dd.MM. HH:mm") ?? "Zeit unbekannt") + "): kein Wettbonus.");
+                return;
+            }
             if (!gateOpen) { _log("Wette aufgelöst, aber nicht in der Kategorie RimWorld: kein Wettbonus."); return; }
 
             HttpResult o = Request(Base(cfg) + "/api/privacy/optouts", "GET", null);

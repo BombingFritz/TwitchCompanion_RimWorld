@@ -22,6 +22,8 @@ namespace TwitchCompanion.RimWorld.Core
         public string Id;
         public string Status;
         public string WinningOutcomeId;
+        /// <summary>Ende der Wette laut Twitch (UTC), <c>null</c> wenn unbekannt.</summary>
+        public DateTime? EndedAt;
         /// <summary>Gewinner laut Twitch: nur die bis zu 10 Tipper mit dem höchsten Einsatz je Ausgang.</summary>
         public List<PredictionPayout> Winners = new List<PredictionPayout>();
 
@@ -51,6 +53,7 @@ namespace TwitchCompanion.RimWorld.Core
                 Id = Json.GetString(o, "predictionId"),
                 Status = Json.GetString(o, "status"),
                 WinningOutcomeId = Json.GetString(o, "winningOutcomeId"),
+                EndedAt = Json.GetTime(o, "endedAt"),
             };
             if (string.IsNullOrEmpty(r.Id)) return r;
             foreach (object oc in Json.GetArray(o, "outcomes") ?? new List<object>())
@@ -72,6 +75,15 @@ namespace TwitchCompanion.RimWorld.Core
         }
 
         /// <summary>Bonus je Gewinner: Auszahlung / 1000 × Pfennig je Zuschaustunde, gerundet; ohne <c>!privat</c> und ohne ID.</summary>
+        /// <summary>
+        /// Nur frisch beendete Wetten zählen. Der Server liefert auch eine längst beendete letzte Wette; ohne diese Grenze
+        /// gäbe es beim ersten Abruf nach dem Start einen Bonus für eine alte Wette (Befund vom 21.11.2026).
+        /// </summary>
+        public static readonly TimeSpan MaxAge = TimeSpan.FromMinutes(10);
+
+        public static bool IsFresh(PredictionResult r, DateTime nowUtc) =>
+            r?.EndedAt != null && nowUtc - r.EndedAt.Value.ToUniversalTime() <= MaxAge;
+
         public static List<BonusAward> Compute(PredictionResult result, int coinsPerHour, ICollection<string> privateUserIds)
         {
             var awards = new List<BonusAward>();
