@@ -2,6 +2,7 @@
 // Twitch Companion for RimWorld – Mod-Einstieg, Einstellungen, Hauptthread-Takt.
 
 using System;
+using System.Collections.Generic;
 using HarmonyLib;
 using RimWorld;
 using TwitchCompanion.RimWorld.Core;
@@ -19,6 +20,23 @@ namespace TwitchCompanion.RimWorld
         public bool testMode;
         public bool requireCategory = true;
         public string serverUrl = DefaultServerUrl;
+        public bool lootboxOdds = true;
+        public bool betBonus = true;
+        public float priceFactor = 10f;
+        /// <summary>IDs bereits belohnter Wetten (keine Personendaten), höchstens 50.</summary>
+        public List<string> awardedPredictions = new List<string>();
+
+        /// <summary>Wahr, wenn die Wette noch nicht belohnt war; merkt sie sich und speichert.</summary>
+        public bool MarkPredictionAwarded(string id)
+        {
+            if (string.IsNullOrEmpty(id)) return false;
+            awardedPredictions ??= new List<string>();
+            if (awardedPredictions.Contains(id)) return false;
+            awardedPredictions.Add(id);
+            while (awardedPredictions.Count > 50) awardedPredictions.RemoveAt(0);
+            Write();
+            return true;
+        }
 
         public override void ExposeData()
         {
@@ -26,10 +44,15 @@ namespace TwitchCompanion.RimWorld
             Scribe_Values.Look(ref testMode, "testMode", false);
             Scribe_Values.Look(ref requireCategory, "requireCategory", true);
             Scribe_Values.Look(ref serverUrl, "serverUrl", DefaultServerUrl);
+            Scribe_Values.Look(ref lootboxOdds, "lootboxOdds", true);
+            Scribe_Values.Look(ref betBonus, "betBonus", true);
+            Scribe_Values.Look(ref priceFactor, "priceFactor", 10f);
+            Scribe_Collections.Look(ref awardedPredictions, "awardedPredictions", LookMode.Value);
+            if (Scribe.mode == LoadSaveMode.PostLoadInit && awardedPredictions == null) awardedPredictions = new List<string>();
         }
     }
 
-    public class TwitchCompanionMod : Mod
+    public partial class TwitchCompanionMod : Mod
     {
         public static CompanionSettings Settings { get; private set; }
 
@@ -89,6 +112,9 @@ namespace TwitchCompanion.RimWorld
             if (!string.IsNullOrEmpty(Bridge.LastError)) list.Label("  Letzter Fehler: " + Bridge.LastError);
             list.GapLine();
 
+            DrawEconomy(list);
+            list.GapLine();
+
             list.CheckboxLabeled("Testmodus (ohne Server)", ref Settings.testMode,
                 "Keine Serververbindung. Antworten von RICS gehen ins Log statt in den Chat. Testnachrichten können unten eingespeist werden.");
             if (Settings.testMode)
@@ -122,6 +148,49 @@ namespace TwitchCompanion.RimWorld
             }
 
             list.End();
+        }
+    }
+
+    public partial class TwitchCompanionMod
+    {
+        private string _factorBuffer;
+
+        /// <summary>Wirtschaft: Zuschaustunde, Preis-Werkzeug, Lootbox-Chancen, Wettbonus (Feature-Issues #10, #11).</summary>
+        private void DrawEconomy(Listing_Standard list)
+        {
+            list.Label("Wirtschaft");
+            if (!RicsApi.Available) { list.Label("  RICS nicht verfügbar."); return; }
+            int perHour = RicsEconomy.CoinsPerHour;
+            list.Label("  1 Zuschaustunde = " + perHour + " " + (RicsEconomy.CurrencyName?.Trim() ?? "Coins")
+                + " (RICS: " + RicsEconomy.BaseCoinReward + " alle 2 min für aktive Zuschauer, ohne Boni)");
+            if (!RicsEconomy.CurrencyIsPfennig && list.ButtonText("Währung in RICS auf „Pfennig“ umstellen"))
+            {
+                try { RicsEconomy.SetCurrencyPfennig(); Messages.Message("Währung heißt jetzt Pfennig.", MessageTypeDefOf.PositiveEvent, false); }
+                catch (Exception ex) { Log.Error("[Twitch Companion] Währung nicht geändert: " + ex); }
+            }
+
+            list.TextFieldNumericLabeled("  Item-Faktor auf den RICS-Standardpreis", ref Settings.priceFactor, ref _factorBuffer, 1f, 100f);
+            var plan = new PricePlan { ItemFactor = Settings.priceFactor };
+            list.Label("  Plan: Items = Standard × " + plan.ItemFactor.ToString("0.#") + ", Tiere mindestens " + Economy.HoursToCoins(plan.AnimalMinHours, perHour)
+                + ", neuer Kolonist " + Economy.HoursToCoins(plan.NewPawnHours, perHour) + ", Spargel " + Economy.HoursToCoins(plan.AsparagusMinutes / 60f, perHour) + " je Stück.");
+            if (list.ButtonText("Preise nach Zuschauzeit setzen …"))
+            {
+                Find.WindowStack.Add(Dialog_MessageBox.CreateConfirmation(
+                    "Alle Item-, Tier- und Kolonistenpreise in RICS werden nach dem Plan neu gesetzt und von RICS gespeichert. Eigene Preisänderungen in RICS gehen dabei verloren. Fortfahren?",
+                    () =>
+                    {
+                        var result = RicsEconomy.ApplyPricePlan(plan);
+                        Log.Message("[Twitch Companion] Preise gesetzt: " + result);
+                        Messages.Message(result.Problem == null ? "Preise gesetzt: " + result : "Preise nicht gesetzt: " + result.Problem,
+                            result.Problem == null ? MessageTypeDefOf.PositiveEvent : MessageTypeDefOf.RejectInput, false);
+                    }, destructive: true));
+            }
+
+            list.CheckboxLabeled("Lootbox: über " + LootboxOdds.Threshold + " nur 1 zu 20", ref Settings.lootboxOdds,
+                "Sonst " + LootboxOdds.LowMin + "–" + LootboxOdds.Threshold + "; mit 5 % bis " + RicsEconomy.LootboxMax
+                + " (Höchstwert aus RICS). Im Mittel etwa " + LootboxOdds.Expected(RicsEconomy.LootboxMax).ToString("0") + " je Lootbox.");
+            list.CheckboxLabeled("Wettbonus: 1000 gewonnene Kanalpunkte = 1 Zuschaustunde", ref Settings.betBonus,
+                "Ganze Auszahlung zählt, Verlierer verlieren nichts. Twitch meldet nur die bis zu 10 Tipper mit dem höchsten Einsatz je Ausgang.");
         }
     }
 

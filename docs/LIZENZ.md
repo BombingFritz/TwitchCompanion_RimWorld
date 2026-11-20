@@ -13,7 +13,7 @@ Diese Seite beschreibt, unter welcher Lizenz die Mod steht, worauf sie aufbaut u
 
 ## Verhältnis zum Server
 - Kein Code aus dem Server, kein Code von hier im Server.
-- Genutzte Schnittstellen: Entwurf „Chat-Brücke“ (Server-Issues #74, #79; noch nicht gemergt), nur HTTP auf localhost; Stand in `ARCHITEKTUR.md`.
+- Genutzte Schnittstellen: „Chat-Brücke“ (Server-Issues #74, #79, gemergt), Stand der Wette, Privat-Liste; nur HTTP auf localhost; Stand in `ARCHITEKTUR.md`.
 
 ## Verwendete Bestandteile
 | Bestandteil | Herkunft | Lizenz / Hinweis |
@@ -30,10 +30,10 @@ Fremder Code: keiner bisher.
 ## Daten und Verbindungen
 | Verbindung / Speicherung | Zweck | Daten |
 |---|---|---|
-| Server auf diesem PC (`http://localhost:3000`, einstellbar) | Befehle empfangen, Chatzeilen senden, Liste aktiver Chatter und Kategorie; später Raids, Abstimmungen | Empfang: Login, Anzeigename, Twitch-User-ID, Abzeichen, Befehlstext (nur `!…`/`$…`), Kennzeichen `!privat`; aktive Chatter mit ID, Login, Name, Zeitpunkt der letzten Nachricht, Abzeichen (ohne Text); Kategorie und Live-Status. Senden: Antworten von RICS. Nur im Arbeitsspeicher, nichts in Dateien |
+| Server auf diesem PC (`http://localhost:3000`, einstellbar) | Befehle empfangen, Chatzeilen senden, Liste aktiver Chatter und Kategorie; später Raids, Abstimmungen | Empfang: Login, Anzeigename, Twitch-User-ID, Abzeichen, Befehlstext (nur `!…`/`$…`), Kennzeichen `!privat`; aktive Chatter mit ID, Login, Name, Zeitpunkt der letzten Nachricht, Abzeichen (ohne Text); Kategorie und Live-Status; Wettbonus: Stand der letzten Wette mit bis zu 10 Tippern je Ausgang (ID, Login, Name, Einsatz, Auszahlung) und die IDs der `!privat`-Liste. Senden: Antworten von RICS, Wettbonus-Zeile mit Logins der Gewinner. Nur im Arbeitsspeicher |
 | Log (`Player.log`) im Normalbetrieb | Verbindungsstatus, Fehler | keine Namen und kein Chattext von der Mod; `!privat`-Umschalten nur als Anzahl |
 | RICS-Dateien (von RICS selbst) | Zuschauer, Coins, Karma, Kolonisten | wie bisher in RICS; Zuschauer mit `!privat` werden nicht eingetragen |
-| Mod-Einstellungen | Brücke an/aus, Server-Adresse, Kategorieprüfung, Testmodus; später Werte für Inflation, Raid, Abstimmungen | keine Personendaten |
+| Mod-Einstellungen | Brücke an/aus, Server-Adresse, Kategorieprüfung, Testmodus, Preisfaktor, Lootbox- und Wettbonus-Schalter, IDs der belohnten Wetten (höchstens 50); später Werte für Inflation, Raid, Abstimmungen | keine Personendaten |
 | RICS-Zuschauerliste (`viewers.json`, von RICS) | Plaudernde Zuschauer ohne Befehl legt RICS über die Mod an, damit sie Coins bekommen | Login, Twitch-User-ID, Coins, Karma (wie RICS es auch mit eigener Twitch-Verbindung täte) |
 | Log (`Player.log`) im Testmodus | Kontrolle der Antworten | RICS-Antworten, oft mit Zuschauernamen; nur lokal |
 | Spielstand | Kolonisten tragen Zuschauernamen (RICS) | ohne `!privat`-Zuschauer |

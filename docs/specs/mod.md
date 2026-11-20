@@ -69,6 +69,8 @@ Was die Mod vom Server braucht, ist als Serveranforderung angelegt (Server-Issue
 | P2 | `TwitchService.IsConnected` (Getter) | Postfix | RICS hält sich für verbunden (Anzeige, Raid-Meldungen) |
 | P3 | `ChatCommandProcessor.SendToPlatform` (privat) | Prefix, überspringt für `twitch` | Antworten auf Befehle direkt abgreifen; sichert P2 ab, falls der kleine Getter vom JIT eingebettet wird |
 | P4 | `CAPChatInteractive_GameComponent.TryAwardWallClockCoinReward` (privat) | Prefix, überspringt | Coins nur in der Kategorie RimWorld und nur mit Serververbindung |
+| P5 | `LootBoxCommandHandler` (alle Methoden mit `Rand.Range(…, LootBoxRandomCoinRange.max)`) | Transpiler | Lootbox-Pfennig nach eigenen Chancen (Abschnitt „Wirtschaft“) |
+| E3 | `StoreInventory.AllStoreItems`, `StoreItem.CalculateBasePrice`, `StoreInventory.SaveStoreToJsonImmediate`, `RaceSettingsManager.RaceSettings`/`SaveSettings`, `GlobalSettings.CurrencyName`/`BaseCoinReward`/`LootBoxRandomCoinRange`, `Viewer.GiveCoins`, `Viewers.SaveViewers` | Aufruf | Preis-Werkzeug, Währung, Wettbonus |
 
 Alle Stellen findet die Mod zur Laufzeit per Reflexion (keine Kompilier-Abhängigkeit von RICS). Fehlt eine Pflichtstelle nach einem RICS-Update, bleibt die Brücke aus und die Einstellungen nennen sie; fehlen nur `ChatMessageLogger.AddMessage` oder P4, gibt es eine Warnung im Log. Geprüft an RICS 1.56 (installiert) und 1.57 (Branch `1.6`).
 
@@ -85,6 +87,18 @@ Brücke an/aus, Server-Adresse (Vorgabe `http://localhost:3000`; die Befehlszeil
 - Zwei Zuschauer schreiben ohne Befehl; nach dem Coin-Intervall von RICS haben beide Coins. Kategorie „Just Chatting“: keine Weiterleitung, keine neue Aktivität.
 - Zuschauer mit `private: true`: keine Wirkung in RICS, einmal der Hinweis.
 - Server neu gestartet: Die Mod verbindet sich von selbst wieder und meldet die Befehle erneut an.
+
+## Wirtschaft (Feature-Issues #10, #11; Nutzer, 20.11.2026)
+- **Währung „Pfennig“:** Knopf in den Mod-Einstellungen setzt `CurrencyName` in RICS.
+- **Zuschaustunde:** Pfennig, die ein aktiver Zuschauer ohne Boni je Stunde bekommt: `BaseCoinReward` × 30 (RICS zahlt alle 2 min). Mit der RICS-Vorgabe 10 sind das 300. Wer schreibt, bekommt Pfennig; Lurker nichts; Subs, VIPs und Mods bekommen in RICS einen Zuschlag. Mehr Nachrichten bringen nicht mehr Pfennig.
+- **Preis-Werkzeug** (Knopf mit Rückfrage; setzt immer vom RICS-Standardpreis aus, also wiederholbar; RICS speichert selbst, damit RICS-Editor und Preisliste die echten Preise zeigen):
+  - Items: Standardpreis (≈ Marktwert) × Faktor, Vorgabe **×10** (Bier 12 → 120 ≈ 24 min).
+  - Tiere: mindestens 1 Zuschaustunde (mit ×10 schon erfüllt, kleinste Tiere 30 → 300).
+  - Spargel: 10 Zuschauminuten je Stück, falls ein Mod ihn bringt (Vanilla hat keinen).
+  - Neuer Kolonist: 2 Zuschaustunden für Rasse und Xenotyp „Baseliner“; andere Xenotypen behalten ihr Verhältnis zum alten Rassenpreis. Mit Biotech zählt in RICS der Xenotyp-Preis.
+  - Ereignisse, Wetter und Traits bleiben unverändert [UNGEKLÄRT, nach Blick auf die Preisliste entscheiden].
+- **Lootbox (P5):** 95 % der Lootboxen bringen 25–150 Pfennig, 5 % (1 zu 20) 151 bis zum Höchstwert aus RICS (Vorgabe 750). Im Mittel etwa 106 Pfennig. Abschaltbar.
+- **Wettbonus:** Nach einer aufgelösten Twitch-Wette bekommt jeder Gewinner je 1000 ausgezahlte Kanalpunkte (ganze Auszahlung, nicht Reingewinn) eine Zuschaustunde, gerundet; Verlierer verlieren nichts. Quelle: gemergter Lese-Endpunkt `GET /api/twitch/prediction/current` (Server-Spec `wetten-abstimmungen.md`, Schritt 1), jede Minute abgefragt; Privat-Liste über `GET /api/privacy/optouts`. Nur in der Kategorie RimWorld, nur wenn die Privat-Liste abrufbar ist, je Wette einmal (IDs in den Mod-Einstellungen). Grenze von Twitch: nur die bis zu 10 Tipper mit dem höchsten Einsatz je Ausgang. Eine Chatzeile „Wettbonus: @anna +600 Pfennig, …“.
 
 ## Version 0.1b: Preisinflation
 Wunsch des Nutzers (19.11.2026): Je mehr gekauft wird, desto teurer wird alles; ohne Käufe sinken die Preise wieder.

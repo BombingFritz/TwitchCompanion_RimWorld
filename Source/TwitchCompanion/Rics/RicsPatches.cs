@@ -1,7 +1,12 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Twitch Companion for RimWorld – Harmony-Patches an RICS (Spec, „Einstiegspunkte und Patches“).
 
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
+using System.Reflection.Emit;
 using System.Threading.Tasks;
+using TwitchCompanion.RimWorld.Core;
 using HarmonyLib;
 using Verse;
 
@@ -21,7 +26,9 @@ namespace TwitchCompanion.RimWorld.Rics
             // P4: Coins nur in der Kategorie RimWorld (RICS selbst prüft weder Verbindung noch Kategorie).
             if (RicsApi.CoinReward != null)
                 harmony.Patch(RicsApi.CoinReward, prefix: new HarmonyMethod(typeof(RicsPatches), nameof(CoinRewardPrefix)));
-            Log.Message("[Twitch Companion] Patches an RICS gesetzt (P1, P2, P3" + (RicsApi.CoinReward != null ? ", P4)." : "; P4 fehlt)."));
+            int lootbox = PatchLootbox(harmony);
+            Log.Message("[Twitch Companion] Patches an RICS gesetzt (P1, P2, P3" + (RicsApi.CoinReward != null ? ", P4" : "; P4 fehlt")
+                + (lootbox > 0 ? ", P5 an " + lootbox + " Stellen)." : "; P5 fehlt)."));
         }
 
         // Kann aus Hintergrund-Threads kommen; nur in die thread-sichere Ausgabe legen.
@@ -51,6 +58,54 @@ namespace TwitchCompanion.RimWorld.Rics
         private static void IsConnectedPostfix(ref bool __result)
         {
             if (Bridge.IsActive) __result = true;
+        }
+
+        // ── P5: Lootbox-Pfennig nach eigenen Chancen (Feature-Issue #10) ──
+
+        /// <summary>
+        /// Ersetzt in <c>LootBoxCommandHandler</c> jeden Aufruf <c>Rand.Range(min, max)</c>, dessen zweites Argument
+        /// <c>LootBoxRandomCoinRange.max</c> ist, durch <see cref="RollLootbox"/>. Gibt die Zahl der Methoden zurück.
+        /// </summary>
+        private static int PatchLootbox(Harmony harmony)
+        {
+            System.Type handler = AccessTools.TypeByName("CAP_ChatInteractive.Commands.ViewerCommands.LootBoxCommandHandler");
+            if (handler == null) return 0;
+            int patched = 0;
+            foreach (MethodInfo m in AccessTools.GetDeclaredMethods(handler))
+            {
+                try
+                {
+                    List<CodeInstruction> original = PatchProcessor.GetOriginalInstructions(m);
+                    if (!Enumerable.Range(0, original.Count).Any(i => IsLootboxRoll(original, i))) continue;
+                    harmony.Patch(m, transpiler: new HarmonyMethod(typeof(RicsPatches), nameof(LootboxTranspiler)));
+                    patched++;
+                }
+                catch (System.Exception ex) { Log.Warning("[Twitch Companion] P5 an " + m.Name + " nicht möglich: " + ex.Message); }
+            }
+            return patched;
+        }
+
+        private static readonly MethodInfo RandRange = AccessTools.Method(typeof(Rand), nameof(Rand.Range), new[] { typeof(int), typeof(int) });
+        private static readonly FieldInfo RangeMax = AccessTools.Field(typeof(IntRange), nameof(IntRange.max));
+
+        private static bool IsLootboxRoll(List<CodeInstruction> code, int i) =>
+            i > 0 && code[i].Calls(RandRange) && code[i - 1].LoadsField(RangeMax);
+
+        private static IEnumerable<CodeInstruction> LootboxTranspiler(IEnumerable<CodeInstruction> instructions)
+        {
+            List<CodeInstruction> code = instructions.ToList();
+            MethodInfo roll = AccessTools.Method(typeof(RicsPatches), nameof(RollLootbox));
+            for (int i = 0; i < code.Count; i++)
+                if (IsLootboxRoll(code, i))
+                    code[i] = new CodeInstruction(OpCodes.Call, roll) { labels = code[i].labels, blocks = code[i].blocks };
+            return code;
+        }
+
+        /// <summary>Gleiche Signatur wie <c>Rand.Range(int, int)</c>; nutzt nur den Höchstwert aus RICS.</summary>
+        public static int RollLootbox(int min, int max)
+        {
+            if (TwitchCompanionMod.Settings == null || !TwitchCompanionMod.Settings.lootboxOdds) return Rand.Range(min, max);
+            return LootboxOdds.Roll(max, () => Rand.Value);
         }
 
         // Läuft im Spieltakt. Überspringt die Auszahlung, solange die Brücke Coins sperrt; RICS zahlt danach einmal nach.
