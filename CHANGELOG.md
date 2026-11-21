@@ -10,6 +10,8 @@ Format nach [Keep a Changelog](https://keepachangelog.com/de/1.1.0/), Versionen 
 - `!leave`: Der Kolonist bleibt in der Kolonie und heißt „Dulli“ (durchnummeriert, Patches P10, P11). Einstellbar: verlässt stattdessen die Kolonie unter seinem Namen. Zuweisen im Fenster „Pawn Queue“ nur an jemanden ohne Kolonist (P12); wer per `!pawn` kauft, fliegt aus der Warteschlange.
 
 ### Behoben
+- Twitch-Raid zu stark: Es kämpfen nur so viele Raider, wie die Bedrohung trägt (Faktor einstellbar), der raidende Kanal ist immer dabei (Patch P15, #31).
+- Warnung beim Laden, wenn in RICS die Twitch-Raids aus sind (#30).
 - Zuweisen eines Kolonisten aus der Warteschlange schenkte dem Zuschauer 100 Pfennig und 100 Karma (Fehler in RICS 1.56, Patch P14).
 - Deutsche Texte mit fehlenden Platzhaltern ergänzt (Karma-Zahl, Platz in der Warteschlange), damit RimWorld keine Übersetzungsfehler meldet.
 - „Preise nach Zuschauzeit setzen“ und „Laden auf diese Auswahl beschränken …“ speicherten ohne geladenen Spielstand (z. B. im Hauptmenü) einen leeren RICS-Laden und leerten damit `StoreItems.json`. Jetzt brechen beide ab und speichern nichts.

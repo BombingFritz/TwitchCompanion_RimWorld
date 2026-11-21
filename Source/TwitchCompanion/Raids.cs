@@ -4,6 +4,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
 using HarmonyLib;
 using RimWorld;
 using TwitchCompanion.RimWorld.Core;
@@ -58,6 +60,43 @@ namespace TwitchCompanion.RimWorld
             {
                 Log.Error(LogPrefix + "Raid von " + who + " nicht gestartet: " + (ex.InnerException ?? ex));
             }
+        }
+
+        // ── P15: Stärke des Twitch-Raids begrenzen (Issue #31) ────────────
+
+        private static readonly System.Random Rng = new System.Random();
+
+        public static string Apply(Harmony harmony)
+        {
+            MethodInfo worker = AccessTools.Method(AccessTools.TypeByName("CAP_ChatInteractive.Incidents.IncidentWorker_TwitchRaid"), "TryExecuteWorker");
+            if (worker == null) return "P15 fehlt";
+            harmony.Patch(worker, prefix: new HarmonyMethod(typeof(Raids), nameof(WorkerPrefix)));
+            return "P15";
+        }
+
+        /// <summary>Vor dem Erzeugen der Raider: Namensliste auf so viele kürzen, wie die Bedrohungspunkte tragen.</summary>
+        private static void WorkerPrefix(IncidentParms parms)
+        {
+            try
+            {
+                if (!(AccessTools.Property(AccessTools.TypeByName("CAP_ChatInteractive.Incidents.IncidentWorker_TwitchRaid"), "CurrentRaidUsernames")?.GetValue(null) is List<string> names)) return;
+                int before = names.Count(n => !string.IsNullOrWhiteSpace(n));
+                int max = RaidJoiners.MaxFighters(parms?.points ?? 0f, Settings.raidStrengthFactor, before);
+                if (before <= max) return;
+                List<string> kept = RaidJoiners.Trim(names, max, Rng);
+                names.Clear();
+                names.AddRange(kept);
+                Note("Raid begrenzt: " + max + " von " + before + " Raidern kämpfen (Bedrohung " + (int)(parms?.points ?? 0f) + ", Faktor " + Settings.raidStrengthFactor.ToString("0.0#") + ").");
+            }
+            catch (Exception ex) { Log.Warning(LogPrefix + "P15: " + ex.Message); }
+        }
+
+        /// <summary>Einmal nach dem Laden: Warnung, wenn Raids an sind, RICS sie aber ausgeschaltet hat (Issue #30).</summary>
+        public static void CheckSettingsOnLoad()
+        {
+            if (!Settings.twitchRaids || RicsRaidsEnabled) return;
+            Log.Warning(LogPrefix + "In RICS sind Twitch-Raids ausgeschaltet: Eingehende Raids kommen nicht im Spiel an. In RICS einschalten und das RICS-Fenster schließen, damit RICS die Einstellung speichert.");
+            Messages.Message("Twitch Companion: In RICS sind Twitch-Raids aus – Raids kommen nicht im Spiel an.", MessageTypeDefOf.CautionInput, false);
         }
 
         private static object TwitchService

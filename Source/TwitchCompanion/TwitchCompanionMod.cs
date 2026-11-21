@@ -59,6 +59,8 @@ namespace TwitchCompanion.RimWorld
         public bool twitchRaids = true;
         /// <summary>Wer in den letzten Minuten vor dem Raid geplaudert hat, tritt dem Raid automatisch bei.</summary>
         public bool raidAutoJoinActive = true;
+        /// <summary>Stärke des Twitch-Raids: kämpfende Raider = Bedrohungspunkte × Faktor / 45 (Issue #31).</summary>
+        public float raidStrengthFactor = 1f;
         /// <summary>In diesem Stream schon gewonnene Ereignisse (DefNames, keine Personendaten).</summary>
         public List<string> eventsUsedThisStream = new List<string>();
         /// <summary>Beginn des laufenden Streams laut Mod (UTC-Ticks), 0 = unbekannt.</summary>
@@ -138,6 +140,7 @@ namespace TwitchCompanion.RimWorld
             Scribe_Values.Look(ref eventTwitchPoll, "eventTwitchPoll", true);
             Scribe_Values.Look(ref twitchRaids, "twitchRaids", true);
             Scribe_Values.Look(ref raidAutoJoinActive, "raidAutoJoinActive", true);
+            Scribe_Values.Look(ref raidStrengthFactor, "raidStrengthFactor", 1f);
             if (Scribe.mode == LoadSaveMode.PostLoadInit)
             {
                 queueJoinedThisStream ??= new List<string>();
@@ -289,6 +292,9 @@ namespace TwitchCompanion.RimWorld
             list.CheckboxLabeled("Eingehende Raids im Spiel", ref Settings.twitchRaids,
                 "Der Server meldet einen Raid, die Mod öffnet das RICS-Beitrittsfenster (!joinraid). Der Anführer heißt wie der raidende Kanal. Vorerst immer als Angriff; Rollen folgen.");
             list.CheckboxLabeled("  Plaudernde der letzten " + (int)Raids.AutoJoinWindow.TotalMinutes + " min treten automatisch bei", ref Settings.raidAutoJoinActive);
+            list.Label("  Stärke: so viele Kämpfer, wie ein normaler Raid gleicher Bedrohung hätte, mal " + Settings.raidStrengthFactor.ToString("0.0#")
+                + " (mindestens einer; der raidende Kanal ist immer dabei, die übrigen werden ausgelost)");
+            Settings.raidStrengthFactor = (float)Math.Round(list.Slider(Settings.raidStrengthFactor, 0.5f, 3f) * 4f) / 4f;
             if (RicsApi.Available && !Raids.RicsRaidsEnabled) list.Label("  ⚠ In RICS sind Twitch-Raids aus: dort „Twitch-Raids“ einschalten, sonst passiert im Spiel nichts.");
             if (Raids.LastRaid != null) list.Label("  Zuletzt: " + Raids.LastRaid);
             if (EventVotes.LastResult != null) list.Label("  Zuletzt: " + EventVotes.LastResult);
@@ -386,6 +392,7 @@ namespace TwitchCompanion.RimWorld
                 var harmony = new Harmony("BombingFritz.TwitchCompanion.RimWorld");
                 RicsPatches.Apply(harmony);
                 IncidentWatch.Apply(harmony); // P13
+                Log.Message("[Twitch Companion] Raid: " + Raids.Apply(harmony) + ".");
                 Bridge.Start();
             }
             catch (Exception ex)
