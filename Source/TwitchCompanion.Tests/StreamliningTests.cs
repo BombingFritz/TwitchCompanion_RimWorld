@@ -130,6 +130,15 @@ namespace TwitchCompanion.RimWorld.Tests
             Assert.True(QueueRules.StreamChanged(true, T0.AddDays(1), ref last));
         }
     
+        [Theory]
+        [InlineData("twitch:490238897", true)]
+        [InlineData("youtube:abc", true)]
+        [InlineData("anna", false)]
+        [InlineData("twitch:", false)]
+        [InlineData(":123", false)]
+        [InlineData(null, false)]
+        public void PlattformIdErkennen(string value, bool expected) => Assert.Equal(expected, QueueRules.IsPlatformId(value));
+
         [Fact]
         public void DulliDurchnummeriert()
         {
