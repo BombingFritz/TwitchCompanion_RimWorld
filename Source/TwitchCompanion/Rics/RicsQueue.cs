@@ -71,13 +71,42 @@ namespace TwitchCompanion.RimWorld.Rics
                 harmony.Patch(assignDirect, prefix: new HarmonyMethod(typeof(RicsQueue), nameof(AssignDirectlyPrefix)));
                 done.Add("P12");
             }
-            return done.Count == 0 ? "P8 bis P12 fehlen" : string.Join(", ", done);
+            // P14: RICS ruft beim Zuweisen und Entfernen RemoveFromQueue(string) mit der Plattform-ID („twitch:123“) statt mit dem
+            // Namen auf; Viewers.GetViewer legt dafür einen Scheinzuschauer mit Startguthaben an, den RICS später dem echten
+            // Zuschauer gutschreibt (Stream vom 20.11.2026: je Zuweisung +100 Pfennig und +100 Karma).
+            MethodInfo removeByName = ManagerType == null ? null : AccessTools.Method(ManagerType, "RemoveFromQueue", new[] { typeof(string) });
+            if (removeByName != null && QueueField != null)
+            {
+                harmony.Patch(removeByName, prefix: new HarmonyMethod(typeof(RicsQueue), nameof(RemoveByIdPrefix)));
+                done.Add("P14");
+            }
+            return done.Count == 0 ? "P8 bis P14 fehlen" : string.Join(", ", done);
         }
 
         private static readonly FieldInfo AssignmentsField = ManagerType == null ? null : AccessTools.Field(ManagerType, "viewerPawnAssignments");
         private static readonly MethodInfo FindPawn = ManagerType == null ? null : AccessTools.Method(ManagerType, "FindPawnByThingId");
 
         private static bool Skip() => false;
+
+        private static readonly FieldInfo JoinTimesField = ManagerType == null ? null : AccessTools.Field(ManagerType, "queueJoinTimes");
+
+        /// <summary>P14: Plattform-ID direkt aus der Warteschlange nehmen, ohne einen Zuschauer anzulegen.</summary>
+        private static bool RemoveByIdPrefix(object __instance, string username, ref bool __result)
+        {
+            if (!QueueRules.IsPlatformId(username)) return true;
+            try
+            {
+                List<string> queue = Queue(__instance);
+                __result = queue != null && queue.Remove(username);
+                if (__result && JoinTimesField?.GetValue(__instance) is System.Collections.IDictionary times) times.Remove(username);
+                return false;
+            }
+            catch (Exception ex)
+            {
+                Log.Warning("[Twitch Companion] P14: " + ex.Message);
+                return true;
+            }
+        }
 
         private static Pawn PawnOf(object manager, string identifier)
         {

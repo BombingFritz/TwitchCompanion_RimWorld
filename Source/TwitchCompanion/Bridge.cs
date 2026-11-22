@@ -142,6 +142,7 @@ namespace TwitchCompanion.RimWorld
             if (!_activityResetDone && RicsApi.Available && Find.TickManager != null)
             {
                 _activityResetDone = true;
+                if (Settings.enabled) Raids.CheckSettingsOnLoad();
                 if (Settings.enabled && !Settings.testMode)
                 {
                     try

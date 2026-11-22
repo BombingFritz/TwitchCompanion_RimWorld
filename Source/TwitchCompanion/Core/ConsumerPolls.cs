@@ -186,6 +186,29 @@ namespace TwitchCompanion.RimWorld.Core
     /// <summary>Wer einem Twitch-Raid automatisch beitritt (Server-Issue #80, Kommentar vom 20.11.2026).</summary>
     public static class RaidJoiners
     {
+        /// <summary>Kampfkraft, die RICS mindestens je Raider wählt (<c>PickCombatKindForRaid</c>: mindestens 45).</summary>
+        public const float MinCombatPowerPerRaider = 45f;
+
+        /// <summary>
+        /// Wie viele Raider kämpfen (Issue #31): so viele, wie die Bedrohungspunkte des Raids tragen, mal Stärke-Faktor;
+        /// mindestens einer. RICS schickt sonst je Name einen Kämpfer, egal wie stark die Kolonie ist.
+        /// </summary>
+        public static int MaxFighters(float threatPoints, float strengthFactor, int names)
+        {
+            int byPoints = (int)Math.Round(Math.Max(0f, threatPoints) * Math.Max(0f, strengthFactor) / MinCombatPowerPerRaider);
+            return Math.Max(1, Math.Min(names, byPoints));
+        }
+
+        /// <summary>Kürzt die Namensliste: der raidende Kanal (erster Eintrag) bleibt, die übrigen werden ausgelost.</summary>
+        public static List<string> Trim(IList<string> names, int max, Random rng)
+        {
+            var list = (names ?? new List<string>()).Where(n => !string.IsNullOrWhiteSpace(n)).ToList();
+            if (list.Count <= max) return list;
+            var result = new List<string> { list[0] };
+            result.AddRange(list.Skip(1).OrderBy(_ => rng.Next()).Take(Math.Max(0, max - 1)));
+            return result;
+        }
+
         /// <summary>Plaudernde der letzten Minuten vor dem Raid; ohne den raidenden Kanal, ohne doppelte, höchstens <paramref name="max"/>.</summary>
         public static List<string> Select(IEnumerable<ActiveChatter> chatters, RaidInfo raid, DateTime nowUtc, TimeSpan window, int max = 50)
         {

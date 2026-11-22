@@ -141,6 +141,10 @@ namespace TwitchCompanion.RimWorld.Core
             return false;
         }
 
+        /// <summary>Plattform-ID im Format von RICS („twitch:123“) statt eines Zuschauernamens (Twitch-Namen enthalten keinen Doppelpunkt).</summary>
+        public static bool IsPlatformId(string value) =>
+            !string.IsNullOrEmpty(value) && value.IndexOf(':') > 0 && value.IndexOf(':') < value.Length - 1;
+
         /// <summary>RICS hängt neue Einträge hinten an; die Mod holt den zuletzt angehängten nach vorne.</summary>
         public static void MoveLastToFront<T>(IList<T> queue)
         {
