@@ -3,6 +3,8 @@
 Format nach [Keep a Changelog](https://keepachangelog.com/de/1.1.0/), Versionen nach [Semantic Versioning](https://semver.org/lang/de/). Versionen stehen nur hier und in Git-Tags (`vX.Y.Z`); Tags und Releases legt Fritz in der GitHub-Oberfläche an.
 
 ## [Unveröffentlicht]
+### Hinzugefügt
+- Killer-Kaninchen: kaufbar mit `$Killer-Kaninchen` für die Hälfte eines neuen Kolonisten. Es trägt den Namen des Käufers und greift die Kolonie an; andere machen 90 s lang mit `!joinraid` als weitere Kaninchen mit. Wie viele angreifen, begrenzt die Bedrohung der Kolonie (Faktor einstellbar), höchstens alle 20 min ein Angriff.
 
 ## [0.1.0] – 2026-11-22
 Erster Stand zum Spielen im Stream: Stufe 1 (Chat und Pfennig über den Server), Ausmisten, Warteschlange, Spamschutz, Ereignis-Abstimmung über Twitch, eingehende Raids als Angriff mit begrenzter Stärke, Korrekturen aus dem ersten Stream. Voraussetzungen: Server ab `main` `cc6da34` (Server-PR #83) mit Scope `channel:manage:polls`; RICS 1.56 (im Stream am 20.11.2026 genutzt) oder 1.57 (am Quellcode geprüft, Branch `1.6`, `430df7c`), in RICS „Twitch-Raids“ an; RimWorld 1.6.

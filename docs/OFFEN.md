@@ -37,6 +37,7 @@
 | Ein Kolonist je Person | zu jeder Zeit; nach Anstellen, Bekommen und `!leave` im selben Stream kein neues Anstellen |
 | Spam | über 5 Befehle je Minute oder über 10 je 10 min = Verwarnung mit Hinweis; nach 3 bis Streamende ignoriert; nach dem Stream gelöscht |
 | Ereignis-Abstimmung | 60 min Gnadenfrist ab Streambeginn, dann alle 30 min; 10 min Ruhe nach einem Ereignis des Spiel-Erzählers; Option „Nichts passiert“ oder „Wetterwechsel“; Wetter wechselt normal; nichts Verheerendes, nichts extrem Gutes (später Gesamt-Karma, #24); Gewinner im Stream nicht wieder; Liste in `docs/ereignisse.md` zum Streichen |
+| Killer-Kaninchen | kaufbar für 50 % eines neuen Kolonisten, trägt den Namen des Käufers, greift die Kolonie an; andere machen mit `!joinraid` mit; begrenzt wie der Raid; später negatives Karma (Gesamt-Karma, #24) |
 | Allgemeine Regeln | eigener Reiter auf der Webseite (Spam, Warteschlange, Abstimmungen), wenn die Abstimmung gebaut ist |
 | Flüstern | späteres Ziel |
 | Anleitung/Preisliste | wird angepinnt bzw. von Hand gepostet, kein Befehl dafür |

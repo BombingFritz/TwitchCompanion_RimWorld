@@ -165,6 +165,9 @@ namespace TwitchCompanion.RimWorld
             for (int i = 0; i < MaxDeliveriesPerFrame && Incoming.TryDequeue(out ChatLine line); i++)
                 Deliver(line);
 
+            try { Rabbits.Tick(); }
+            catch (Exception ex) { LastError = (ex.InnerException ?? ex).Message; Log.ErrorOnce(LogPrefix + "Killer-Kaninchen: " + ex, 0x7C0AB); }
+
             try { EventVotes.Tick(); }
             catch (Exception ex) { LastError = (ex.InnerException ?? ex).Message; Log.ErrorOnce(LogPrefix + "Ereignis-Abstimmung: " + ex, 0x7C0AA); }
 
@@ -312,6 +315,19 @@ namespace TwitchCompanion.RimWorld
             if (!CommandFilter.IsAllowed(line.Text, CommandFilter.ParseList(Settings.allowedCommands), privileged)) { NotAllowed++; return; }
 
             string word = CommandFilter.CommandWord(line.Text);
+
+            // Killer-Kaninchen: Kauf und Beitritt laufen an RICS vorbei (Nutzer, 22.11.2026).
+            if (word == "buy" && KillerRabbits.IsPurchase(line.Text))
+            {
+                string answer = Rabbits.Buy(line);
+                Reply(line, answer + (Settings.repliesInGame ? " · " + RicsEconomy.BalanceFor(line) : string.Empty));
+                return;
+            }
+            if (word == "joinraid" && Rabbits.WindowOpen)
+            {
+                Reply(line, Rabbits.Join(line));
+                return;
+            }
             int? coinsBefore = null;
             if (word == "pawn")
             {

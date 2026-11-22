@@ -166,6 +166,17 @@ Nutzer, 20.11.2026: Ereignisse sind nicht kaufbar; der „Erzähler“ schlägt 
 - **Zusatzstimmen** mit Kanalpunkten (Nutzer, 19.11.2026): fest 3000 Kanalpunkte je Zusatzstimme, je Abstimmung mit Wahrscheinlichkeit 1/3; gilt für alle Abstimmungen der Mod, auch die Raid-Rolle [Deutung von Claude, Bestätigung offen].
 - Weitere Abstimmungen auf demselben Weg, sobald #81 da ist: Lebenslauf neuer Kolonisten, Bleiben oder Gehen nach `!leave`, Raid-Rolle.
 
+## Killer-Kaninchen (Nutzer, 22.11.2026)
+Im ersten Stream ließ sich nur Gutes kaufen und abstimmen. Dazu kommt ein kaufbarer Angriff:
+- **Kauf** mit `$Killer-Kaninchen` (auch `$Killerkaninchen`, `$Kaninchen`, `!buy kaninchen`). Läuft an RICS vorbei: Die Mod zieht den Preis über `Viewer.TakeCoins` ab, Antwort mit Guthaben im Spiel.
+- **Preis:** 50 % des Preises für einen neuen Kolonisten (RICS-Rasseneinstellungen, Mensch bzw. Baseliner), einstellbar.
+- **Beitritt wie beim Raid:** Nach dem Kauf ist ein Fenster offen (Vorgabe 90 s); wer `!joinraid` schreibt, greift als weiteres Kaninchen mit an. Läuft gleichzeitig ein RICS-Raid-Fenster, startet kein Kaninchen-Angriff; während des Kaninchen-Fensters gehört `!joinraid` den Kaninchen.
+- **Angriff:** Nach dem Fenster tauchen am Kartenrand Kaninchen auf, jedes mit dem Namen eines Teilnehmers, im Zustand „Mordlust“ (dauerhaft, wie das Ereignis „Tier dreht durch“). Brief „Killer-Kaninchen!“ mit allen Namen. Zählt wie ein Ereignis des Spiel-Erzählers: die Ereignis-Abstimmung hält danach 10 min Ruhe.
+- **Begrenzung** wie beim Raid: so viele Kaninchen, wie die aktuelle Bedrohung der Kolonie (`StorytellerUtility.DefaultThreatPointsNow`) trägt, geteilt durch die Kampfkraft eines Kaninchens, mal Stärke-Faktor (Vorgabe 1, einstellbar 0,5 bis 3); mindestens eins. Der Käufer ist immer dabei, die übrigen werden ausgelost.
+- **Abstand:** höchstens alle 20 min ein Kaninchen-Angriff, für alle zusammen; immer nur einer gleichzeitig.
+- Fenster, Abstand und Stärke sind Vorschläge von Claude.
+- **Schritt 2 (Gesamt-Karma, #24):** Kauf und Teilnahme sollen negatives Karma geben, ebenso die Teilnahme an einem feindlichen Raid; daraus die „ausgleichende Gerechtigkeit“.
+
 ## Später: Gesamt-Karma („ausgleichende Gerechtigkeit“)
 Idee des Nutzers (20.11.2026), erst nach einem erfolgreichen Test der Ereignis-Abstimmung: Aus dem Karma aller Zuschauer ergibt sich ein Gesamt-Karma. Ist es sehr schlecht, kann der Streamer mit extrem guten Ereignissen belohnt werden; ist es sehr gut, kann etwas ganz Schlimmes passieren. Dann dürfen auch die Ereignisse, die heute „draußen“ sind (verheerend, extrem gut, `docs/ereignisse.md`), wieder vorkommen. Schwellen, Häufigkeit und Herleitung aus dem RICS-Karma [UNGEKLÄRT]. Feature-Issue #24.
 
