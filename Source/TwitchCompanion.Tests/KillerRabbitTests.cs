@@ -11,11 +11,12 @@ namespace TwitchCompanion.RimWorld.Tests
         private static readonly DateTime T0 = new DateTime(2026, 11, 22, 20, 0, 0, DateTimeKind.Utc);
 
         [Theory]
-        [InlineData("$Killer-Kaninchen", true)]
+        [InlineData("$Killerkaninchen", true)]
         [InlineData("$killerkaninchen", true)]
-        [InlineData("$Kaninchen", true)]
-        [InlineData("$ kaninchen", true)]
-        [InlineData("!buy Killer-Kaninchen", true)]
+        [InlineData("$ killerkaninchen", true)]
+        [InlineData("!buy Killerkaninchen", true)]
+        [InlineData("$Killer-Kaninchen", false)]   // nur ein Befehl (Nutzer, 22.11.2026)
+        [InlineData("$Kaninchen", false)]
         [InlineData("$Kartoffeln 10", false)]
         [InlineData("!pawn", false)]
         [InlineData("Kaninchen", false)]

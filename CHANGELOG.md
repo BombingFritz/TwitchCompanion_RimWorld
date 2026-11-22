@@ -3,6 +3,8 @@
 Format nach [Keep a Changelog](https://keepachangelog.com/de/1.1.0/), Versionen nach [Semantic Versioning](https://semver.org/lang/de/). Versionen stehen nur hier und in Git-Tags (`vX.Y.Z`); Tags und Releases legt Fritz in der GitHub-Oberfläche an.
 
 ## [Unveröffentlicht]
+### Geändert
+- Karma nach dem Test (Nutzer, 22.11.2026): neuer Kolonist +5 fürs Kolonie-Karma, je Raider −4 (doppelt so viel wie ein Kaninchen); als Karma-Folge nie Pyromane und nie faul; Schalter, ob die ausgleichende Gerechtigkeit zur Wahl steht (Vorgabe) oder ohne Abstimmung eintritt. Das Killerkaninchen hat nur noch einen Befehl: `$Killerkaninchen`.
 ### Hinzugefügt
 - Karma in zwei Ebenen (#24): Die Mod verändert das RICS-Karma der Zuschauer (Ware kaufen +2, Killer-Kaninchen −20, mitmachen −10, `!joinraid` bei feindlichem Raid −10); schlechtes Karma macht einen gekauften Kolonisten schwierig (schlechte Eigenschaft, unter 40 auch schwer krank), sehr gutes gibt eine gute Eigenschaft. Dazu ein laufendes Karma der Kolonie aus allen Einlösungen und gewählten Ereignissen (−100 bis +100, im Spielstand, klingt ab). Ausgleichende Gerechtigkeit: Ab ±40 steht in Abstimmungen mit wachsender Chance etwas Verheerendes (gutes Karma) oder ein Segen (schlechtes Karma) zur Wahl.
 - Killer-Kaninchen: kaufbar mit `$Killer-Kaninchen` für die Hälfte eines neuen Kolonisten. Es trägt den Namen des Käufers und greift die Kolonie an; andere machen 90 s lang mit `!joinraid` als weitere Kaninchen mit. Wie viele angreifen, begrenzt die Bedrohung der Kolonie (Faktor einstellbar), höchstens alle 20 min ein Angriff.

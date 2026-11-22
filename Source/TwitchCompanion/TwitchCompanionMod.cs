@@ -76,6 +76,8 @@ namespace TwitchCompanion.RimWorld
         public float colonyKarmaHalfLifeHours = 3f;
         public float justiceThreshold = 40f;
         public float justiceMaxChance = 0.6f;
+        /// <summary>Ausgleichende Gerechtigkeit: aus = steht zur Wahl (Vorgabe), an = tritt ohne Abstimmung ein (Nutzer, 22.11.2026).</summary>
+        public bool justiceForced;
 
         public DateTime? LastRabbitUtc => lastRabbitTicks > 0 ? new DateTime(lastRabbitTicks, DateTimeKind.Utc) : (DateTime?)null;
 
@@ -175,6 +177,7 @@ namespace TwitchCompanion.RimWorld
             Scribe_Values.Look(ref colonyKarmaHalfLifeHours, "colonyKarmaHalfLifeHours", 3f);
             Scribe_Values.Look(ref justiceThreshold, "justiceThreshold", 40f);
             Scribe_Values.Look(ref justiceMaxChance, "justiceMaxChance", 0.6f);
+            Scribe_Values.Look(ref justiceForced, "justiceForced", false);
             if (Scribe.mode == LoadSaveMode.PostLoadInit)
             {
                 queueJoinedThisStream ??= new List<string>();
@@ -333,18 +336,20 @@ namespace TwitchCompanion.RimWorld
             list.GapLine();
             list.Label("Karma");
             list.CheckboxLabeled("  Karma der Zuschauer und der Kolonie", ref Settings.karmaEnabled,
-                "Zuschauer: RICS-Karma (0 bis 200). Kauf von Waren +2, Killer-Kaninchen −20, mitmachen −10, !joinraid bei einem feindlichen Raid −10. "
-                + "Kolonie (−100 bis +100): Waren +1, neuer Kolonist +3, gewähltes gutes Ereignis +5, schlechtes −5, je Kaninchen oder Raider −2; klingt mit der Halbwertszeit ab.");
+                "Zuschauer: RICS-Karma (0 bis 200). Kauf von Waren +2, Killerkaninchen −20, mitmachen −10, !joinraid bei einem feindlichen Raid −10. "
+                + "Kolonie (−100 bis +100): Waren +1, neuer Kolonist +5, gewähltes gutes Ereignis +5, schlechtes −5, je Kaninchen −2, je Raider −4; klingt mit der Halbwertszeit ab.");
             list.Label("  Karma der Kolonie: " + (Current.Game != null ? KarmaKeeper.ColonyText : "erst einen Spielstand laden"));
             list.CheckboxLabeled("  Neuer Kolonist nach Karma des Käufers", ref Settings.pawnFates,
-                "Unter 40: schlechte Eigenschaft und schwer krank; unter 70: schlechte Eigenschaft; ab 160: gute Eigenschaft.");
+                "Unter 40: schlechte Eigenschaft und schwer krank; unter 70: schlechte Eigenschaft (nie Pyromane, nie faul); ab 160: gute Eigenschaft.");
             list.TextFieldNumericLabeled("  Halbwertszeit des Kolonie-Karmas (h)", ref Settings.colonyKarmaHalfLifeHours, ref _halfLifeBuffer, 0.1f, 48f);
             list.Label("  Ausgleichende Gerechtigkeit ab ±" + (int)Settings.justiceThreshold + ", bei ±100 mit " + (int)Math.Round(Settings.justiceMaxChance * 100) + " % je Abstimmung");
             Settings.justiceThreshold = (float)Math.Round(list.Slider(Settings.justiceThreshold, 10f, 90f) / 5f) * 5f;
             Settings.justiceMaxChance = (float)Math.Round(list.Slider(Settings.justiceMaxChance, 0.1f, 1f) * 20f) / 20f;
+            list.CheckboxLabeled("  Tritt ohne Abstimmung ein (aus: steht zur Wahl)", ref Settings.justiceForced,
+                "Aus: Das Besondere ersetzt eine Option der Abstimmung, der Chat kann es abwenden. An: Statt der Abstimmung passiert es einfach.");
 
             list.GapLine();
-            list.Label("Killer-Kaninchen ($Killer-Kaninchen, Mitmachen mit !joinraid)");
+            list.Label("Killerkaninchen ($Killerkaninchen, Mitmachen mit !joinraid)");
             list.CheckboxLabeled("  kaufbar", ref Settings.rabbitsEnabled);
             list.Label("  Preis: " + (int)Math.Round(Settings.rabbitPriceShare * 100) + " % eines neuen Kolonisten = " + (Rabbits.Price?.ToString() ?? "?") + " Pfennig");
             Settings.rabbitPriceShare = (float)Math.Round(list.Slider(Settings.rabbitPriceShare, 0.1f, 2f) * 20f) / 20f;
