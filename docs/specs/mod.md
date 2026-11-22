@@ -83,7 +83,7 @@ Was die Mod vom Server braucht, ist als Serveranforderung angelegt (Server-Issue
 | P13 | `IncidentWorker.TryExecute` (RimWorld, nicht RICS) | Postfix | merkt Ereignisse, die nicht aus der Abstimmung kommen; danach 10 min Ruhe (Stufe 3) |
 | E3 | `StoreInventory.AllStoreItems`, `StoreItem.CalculateBasePrice`, `StoreInventory.SaveStoreToJsonImmediate`, `RaceSettingsManager.RaceSettings`/`SaveSettings`, `GlobalSettings.CurrencyName`/`BaseCoinReward`/`LootBoxRandomCoinRange`, `Viewer.GiveCoins`, `Viewers.SaveViewers` | Aufruf | Preis-Werkzeug, Währung, Wettbonus |
 
-Alle Stellen findet die Mod zur Laufzeit per Reflexion (keine Kompilier-Abhängigkeit von RICS). Fehlt eine Pflichtstelle nach einem RICS-Update, bleibt die Brücke aus und die Einstellungen nennen sie; fehlen nur `ChatMessageLogger.AddMessage` oder P4, gibt es eine Warnung im Log. Geprüft an RICS 1.56 (installiert) und 1.57 (Branch `1.6`).
+Alle Stellen findet die Mod zur Laufzeit per Reflexion (keine Kompilier-Abhängigkeit von RICS). Fehlt eine Pflichtstelle nach einem RICS-Update, bleibt die Brücke aus und die Einstellungen nennen sie; fehlen nur `ChatMessageLogger.AddMessage` oder P4, gibt es eine Warnung im Log. Geprüft an RICS 1.56 (im Stream genutzt) und 1.57 (Release-Commit `430df7c` auf Branch `1.6`, 22.11.2026).
 
 ### Einstellungen
 Brücke an/aus, Server-Adresse (Vorgabe `http://localhost:3000`; die Befehlszeile `-twitchcompanion-server=…` hat Vorrang, für Tests mit der Attrappe), „Nur in der Twitch-Kategorie RimWorld“ (Vorgabe an), Status (Verbindung, Kategorie, weitergeleitet, gesendet, Coins zuletzt aufgefrischt, letzter Fehler), Testmodus.
