@@ -101,7 +101,7 @@ namespace TwitchCompanion.RimWorld
             foreach (KeyValuePair<string, int> t in pool.InRandomOrder())
             {
                 TraitDef def = DefDatabase<TraitDef>.GetNamedSilentFail(t.Key);
-                if (def == null || pawn.story.traits.HasTrait(def) || pawn.story.traits.allTraits.Any(x => x.def.ConflictsWith(def) || def.ConflictsWith(x))) continue;
+                if (def == null || PawnFates.IsForbidden(t.Key, t.Value) || pawn.story.traits.HasTrait(def) || pawn.story.traits.allTraits.Any(x => x.def.ConflictsWith(def) || def.ConflictsWith(x))) continue;
                 var trait = new Trait(def, t.Value, forced: true);
                 pawn.story.traits.GainTrait(trait);
                 effects.Add(trait.LabelCap);

@@ -13,10 +13,10 @@ namespace TwitchCompanion.RimWorld.Core
     /// </summary>
     public static class KillerRabbits
     {
-        /// <summary>Wörter nach dem Kaufpräfix, die das Killer-Kaninchen meinen (Groß/klein egal).</summary>
-        public static readonly string[] Names = { "killer-kaninchen", "killerkaninchen", "kaninchen" };
+        /// <summary>Ein Befehl: <c>$Killerkaninchen</c> (Groß/klein egal; Nutzer, 22.11.2026).</summary>
+        public static readonly string[] Names = { "killerkaninchen" };
 
-        public const string DisplayName = "Killer-Kaninchen";
+        public const string DisplayName = "Killerkaninchen";
 
         /// <summary>Ist <paramref name="text"/> ein Kauf des Killer-Kaninchens (<c>$Killer-Kaninchen</c>, auch <c>!buy kaninchen</c>)?</summary>
         public static bool IsPurchase(string text, string prefix = "!", string buyPrefix = "$")

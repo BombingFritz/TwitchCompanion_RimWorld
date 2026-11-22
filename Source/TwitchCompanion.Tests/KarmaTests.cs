@@ -105,6 +105,24 @@ namespace TwitchCompanion.RimWorld.Tests
                 Assert.DoesNotContain(EventPlanner.Propose(pool, 5, new Random(seed)), o => o.Karma == EventKarma.Doom || o.Karma == EventKarma.Blessing);
         }
 
+        [Fact]
+        public void NeuerKolonistUndRaiderNachVorgabe()
+        {
+            Assert.Equal(5f, KarmaRules.ColonyDelta(KarmaAction.PawnPurchase));
+            Assert.Equal(-4f, KarmaRules.ColonyDelta(KarmaAction.RaidJoin, 1));
+            Assert.True(KarmaRules.ColonyDelta(KarmaAction.RaidJoin, 1) <= 2 * KarmaRules.ColonyDelta(KarmaAction.RabbitPurchase, 1));
+        }
+
+        [Fact]
+        public void NiePyromaneNieFaul()
+        {
+            Assert.DoesNotContain(PawnFates.BadTraits, t => PawnFates.IsForbidden(t.Key, t.Value));
+            Assert.True(PawnFates.IsForbidden("Pyromaniac", 0));
+            Assert.True(PawnFates.IsForbidden("Industriousness", -2));
+            Assert.True(PawnFates.IsForbidden("Industriousness", -1));
+            Assert.False(PawnFates.IsForbidden("Industriousness", 2));
+        }
+
         [Theory]
         [InlineData(20f, PawnFate.Cursed)]
         [InlineData(55f, PawnFate.Unlucky)]

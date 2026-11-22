@@ -31,28 +31,28 @@ namespace TwitchCompanion.RimWorld
             }
         }
 
-        /// <summary>Kauf über <c>$Killer-Kaninchen</c> (Hauptthread). Liefert die Antwort für die Einblendung.</summary>
+        /// <summary>Kauf über <c>$Killerkaninchen</c> (Hauptthread). Liefert die Antwort für die Einblendung.</summary>
         public static string Buy(ChatLine line)
         {
             DateTime now = DateTime.UtcNow;
-            if (!Settings.rabbitsEnabled) return "Killer-Kaninchen gibt es gerade nicht.";
+            if (!Settings.rabbitsEnabled) return "Killerkaninchen gibt es gerade nicht.";
             if (Current != null) return "Es läuft schon ein Kaninchen-Angriff: mit !joinraid mitmachen.";
             if (RaidWindowActive) return "Gerade läuft ein Twitch-Raid. Kaninchen bitte später.";
             if (HomeMap == null) return "Gerade keine Kolonie geladen.";
             TimeSpan wait = KillerRabbits.Cooldown(Settings.LastRabbitUtc, now, TimeSpan.FromMinutes(Math.Max(0, Settings.rabbitCooldownMinutes)));
-            if (wait > TimeSpan.Zero) return "Das nächste Killer-Kaninchen ist in " + Math.Max(1, (int)Math.Ceiling(wait.TotalMinutes)) + " min möglich.";
+            if (wait > TimeSpan.Zero) return "Das nächste Killerkaninchen ist in " + Math.Max(1, (int)Math.Ceiling(wait.TotalMinutes)) + " min möglich.";
             int? price = Price;
             if (price == null) return "Preis unbekannt (RICS-Rasseneinstellungen fehlen).";
-            if (!RicsEconomy.TakeCoins(line, price.Value)) return "Zu wenig Pfennig: Ein Killer-Kaninchen kostet " + price.Value + ".";
+            if (!RicsEconomy.TakeCoins(line, price.Value)) return "Zu wenig Pfennig: Ein Killerkaninchen kostet " + price.Value + ".";
 
             Current = new RabbitAttack(line.UserId, line.NameForRics, now, TimeSpan.FromSeconds(Math.Max(15, Settings.rabbitWindowSeconds)));
             Settings.MarkRabbit(now);
             KarmaKeeper.Record(KarmaAction.RabbitPurchase, line, 0); // Zuschauer −20; die Kolonie zählt beim Angriff je Kaninchen
-            string text = "🐇 " + line.NameForRics + " hetzt ein Killer-Kaninchen auf die Kolonie! Wer mit !joinraid in den nächsten "
+            string text = "🐇 " + line.NameForRics + " hetzt ein Killerkaninchen auf die Kolonie! Wer mit !joinraid in den nächsten "
                 + Math.Max(15, Settings.rabbitWindowSeconds) + " s mitmacht, greift als Kaninchen mit an.";
             Messages.Message(text, MessageTypeDefOf.ThreatSmall, false);
-            Log.Message(LogPrefix + "Killer-Kaninchen gekauft (" + price.Value + " Pfennig), Beitrittsfenster offen.");
-            return "Killer-Kaninchen gekauft (" + price.Value + " Pfennig).";
+            Log.Message(LogPrefix + "Killerkaninchen gekauft (" + price.Value + " Pfennig), Beitrittsfenster offen.");
+            return "Killerkaninchen gekauft (" + price.Value + " Pfennig).";
         }
 
         /// <summary><c>!joinraid</c> während eines Kaninchen-Angriffs.</summary>
@@ -106,8 +106,8 @@ namespace TwitchCompanion.RimWorld
             if (pawns.Count == 0) return;
             KarmaKeeper.Record(KarmaAction.RabbitPurchase, null, pawns.Count);
             string list = string.Join(", ", names);
-            Find.LetterStack.ReceiveLetter("Killer-Kaninchen!",
-                pawns.Count + " Killer-Kaninchen greifen die Kolonie an: " + list + "."
+            Find.LetterStack.ReceiveLetter("Killerkaninchen!",
+                pawns.Count + " Killerkaninchen greifen die Kolonie an: " + list + "."
                 + (attack.Count > pawns.Count ? " (" + (attack.Count - pawns.Count) + " weitere hatten keinen Platz.)" : string.Empty),
                 LetterDefOf.ThreatSmall, new LookTargets(pawns));
             LastAttack = DateTime.Now.ToString("HH:mm") + ": " + pawns.Count + " von " + attack.Count + " Kaninchen (Bedrohung " + (int)points + ").";

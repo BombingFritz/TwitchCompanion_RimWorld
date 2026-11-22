@@ -168,7 +168,7 @@ Nutzer, 20.11.2026: Ereignisse sind nicht kaufbar; der „Erzähler“ schlägt 
 
 ## Killer-Kaninchen (Nutzer, 22.11.2026)
 Im ersten Stream ließ sich nur Gutes kaufen und abstimmen. Dazu kommt ein kaufbarer Angriff:
-- **Kauf** mit `$Killer-Kaninchen` (auch `$Killerkaninchen`, `$Kaninchen`, `!buy kaninchen`). Läuft an RICS vorbei: Die Mod zieht den Preis über `Viewer.TakeCoins` ab, Antwort mit Guthaben im Spiel.
+- **Kauf** mit `$Killerkaninchen` (nur dieser eine Befehl, Nutzer 22.11.2026; auch `!buy killerkaninchen`). Läuft an RICS vorbei: Die Mod zieht den Preis über `Viewer.TakeCoins` ab, Antwort mit Guthaben im Spiel.
 - **Preis:** 50 % des Preises für einen neuen Kolonisten (RICS-Rasseneinstellungen, Mensch bzw. Baseliner), einstellbar.
 - **Beitritt wie beim Raid:** Nach dem Kauf ist ein Fenster offen (Vorgabe 90 s); wer `!joinraid` schreibt, greift als weiteres Kaninchen mit an. Läuft gleichzeitig ein RICS-Raid-Fenster, startet kein Kaninchen-Angriff; während des Kaninchen-Fensters gehört `!joinraid` den Kaninchen.
 - **Angriff:** Nach dem Fenster tauchen am Kartenrand Kaninchen auf, jedes mit dem Namen eines Teilnehmers, im Zustand „Mordlust“ (dauerhaft, wie das Ereignis „Tier dreht durch“). Brief „Killer-Kaninchen!“ mit allen Namen. Zählt wie ein Ereignis des Spiel-Erzählers: die Ereignis-Abstimmung hält danach 10 min Ruhe.
@@ -188,19 +188,19 @@ Zwei Ebenen. Alle Zahlen sind Vorschläge von Claude und in den Einstellungen un
 | beim Kaninchen-Angriff mitgemacht | −10 |
 | `!joinraid` bei einem feindlichen Twitch-Raid (einmal je Raid; automatisch Beigetretene nicht) | −10 |
 
-**Folgen für Einlösungen:** Kauft jemand einen neuen Kolonisten (`!pawn`), prägt sein Karma den Kolonisten: unter 40 eine schlechte Eigenschaft (z. B. Psychopath, Pyromane, Weichei, faul, depressiv) und schwer krank (Pest, Malaria oder Grippe); unter 70 eine schlechte Eigenschaft; ab 160 eine gute (fleißig, zäh, schneller Lerner, Frohnatur, eiserner Wille). Brief „Karma“ im Spiel. Weitere Einlösungen später.
+**Folgen für Einlösungen:** Kauft jemand einen neuen Kolonisten (`!pawn`), prägt sein Karma den Kolonisten: unter 40 eine schlechte Eigenschaft (Psychopath, Weichei, langsamer Lerner, depressiv, flatterhaft, aufreibend; **nie Pyromane und nie faul oder träge**, Nutzer 22.11.2026) und schwer krank (Pest, Malaria oder Grippe); unter 70 eine schlechte Eigenschaft; ab 160 eine gute (fleißig, zäh, schneller Lerner, Frohnatur, eiserner Wille). Brief „Karma“ im Spiel. Weitere Einlösungen später.
 
 **Karma der Kolonie:** laufender Wert −100 bis +100, im Spielstand gespeichert (`CompanionGameComponent`), unabhängig davon, wer gerade zuschaut. Klingt mit einer Halbwertszeit (Vorgabe 3 h Echtzeit) gegen 0 ab.
 | Aktion | Kolonie |
 |---|---|
 | Ware gekauft | +1 |
-| neuer Kolonist | +3 |
+| neuer Kolonist | +5 |
 | gewähltes gutes / schlechtes Ereignis | +5 / −5 |
 | gewähltes verheerendes Ereignis / Segen | −15 / +15 |
 | je angreifendes Killer-Kaninchen | −2 |
-| je Raider eines feindlichen Twitch-Raids (nach der Begrenzung) | −2 |
+| je Raider eines feindlichen Twitch-Raids (nach der Begrenzung) | −4 (doppelt so viel wie ein Kaninchen, Nutzer 22.11.2026) |
 
-**Ausgleichende Gerechtigkeit:** Ab ±40 Kolonie-Karma steht in einer Ereignis-Abstimmung mit wachsender Chance (bei ±100: 60 %) eine besondere Option zur Wahl, statt „Nichts passiert“/„Wetterwechsel“ bzw. einer neutralen: bei gutem Karma etwas Verheerendes (`EventCatalog.Doom`: Rudel mordlustiger Tiere, Insektenbefall, Massenwahnsinn der Tiere, psychische Drohne, giftiger Niederschlag, vulkanischer Winter, Schiffsteile), bei schlechtem ein Segen (`EventCatalog.Blessing`: Anima-Baum, Gauranlen-Kapsel, Polux-Baum, Wanderer mit Himmelslaterne; nur mit dem jeweiligen DLC). Es bleibt eine Wahl: Der Chat kann es abwenden, dann bleibt das Karma hoch und die Chance besteht in der nächsten Runde wieder [Vorschlag; ob es auch ohne Abstimmung passieren soll, ist offen]. Die Einblendung der Abstimmung zeigt das Kolonie-Karma.
+**Ausgleichende Gerechtigkeit:** Ab ±40 Kolonie-Karma steht in einer Ereignis-Abstimmung mit wachsender Chance (bei ±100: 60 %) eine besondere Option zur Wahl, statt „Nichts passiert“/„Wetterwechsel“ bzw. einer neutralen: bei gutem Karma etwas Verheerendes (`EventCatalog.Doom`: Rudel mordlustiger Tiere, Insektenbefall, Massenwahnsinn der Tiere, psychische Drohne, giftiger Niederschlag, vulkanischer Winter, Schiffsteile), bei schlechtem ein Segen (`EventCatalog.Blessing`: Anima-Baum, Gauranlen-Kapsel, Polux-Baum, Wanderer mit Himmelslaterne; nur mit dem jeweiligen DLC). Vorgabe: Es bleibt eine Wahl, der Chat kann es abwenden; dann bleibt das Karma hoch und die Chance besteht in der nächsten Runde wieder. Schalter „Tritt ohne Abstimmung ein“ (Nutzer, 22.11.2026; Vorgabe aus): Dann passiert das Besondere statt der Abstimmung. Die Einblendung der Abstimmung zeigt das Kolonie-Karma.
 
 ## Stufe 4 (später)
 Spielereignisse (Raid beginnt, Kolonist stirbt) an den Server melden; der Server könnte daraus Wetten starten oder Effekte auslösen. Eigene Serveranforderung, wenn es so weit ist. Weiteres Balancing erst nach den ersten Streams.

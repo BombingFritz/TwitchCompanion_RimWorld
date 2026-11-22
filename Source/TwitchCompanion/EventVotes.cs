@@ -154,7 +154,13 @@ namespace TwitchCompanion.RimWorld
             Map map = HomeMap;
             List<EventCandidate> options = EventPlanner.Propose(Candidates(), Settings.eventOptions, Rng,
                 Settings.eventsUsedThisStream, map?.weatherDecider != null);
-            EventPlanner.AddJustice(options, KarmaKeeper.JusticeCandidate(map)); // ausgleichende Gerechtigkeit (#24)
+            EventCandidate justice = KarmaKeeper.JusticeCandidate(map); // ausgleichende Gerechtigkeit (#24)
+            if (justice != null && Settings.justiceForced)
+            {
+                FireJustice(justice, nowUtc); // statt der Abstimmung
+                return true;
+            }
+            EventPlanner.AddJustice(options, justice);
             if (!EventPlanner.Enough(options))
             {
                 _lastEndUtc = nowUtc; // nicht in jedem Takt neu versuchen
@@ -195,6 +201,23 @@ namespace TwitchCompanion.RimWorld
             else KarmaKeeper.Record(KarmaRules.ForVote(winner.Karma, winner.IsCalm));
             Messages.Message("Der Chat hat gewählt: " + winner.Label + (fired ? "." : " – geht gerade nicht."),
                 fired ? MessageTypeDefOf.NeutralEvent : MessageTypeDefOf.RejectInput, false);
+            Log.Message(LogPrefix + "Ereignis-Abstimmung: " + LastResult);
+        }
+
+        /// <summary>Ausgleichende Gerechtigkeit ohne Abstimmung (Einstellung „Tritt ohne Abstimmung ein“).</summary>
+        private static void FireJustice(EventCandidate special, DateTime nowUtc)
+        {
+            _lastEndUtc = nowUtc;
+            _retryAtUtc = null;
+            bool fired = Fire(special);
+            if (fired)
+            {
+                Settings.MarkEventUsed(special.DefName);
+                KarmaKeeper.Record(KarmaRules.ForVote(special.Karma, false));
+            }
+            LastResult = DateTime.Now.ToString("HH:mm") + ": Ausgleichende Gerechtigkeit – „" + special.Label + "“" + (fired ? string.Empty : " ließ sich nicht auslösen");
+            Messages.Message("Ausgleichende Gerechtigkeit: " + special.Label + (fired ? "!" : " – geht gerade nicht."),
+                special.Karma == EventKarma.Doom ? MessageTypeDefOf.ThreatBig : MessageTypeDefOf.PositiveEvent, false);
             Log.Message(LogPrefix + "Ereignis-Abstimmung: " + LastResult);
         }
 

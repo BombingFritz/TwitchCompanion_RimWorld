@@ -41,9 +41,9 @@ namespace TwitchCompanion.RimWorld.Core
             switch (a)
             {
                 case KarmaAction.ItemPurchase: return 1f;
-                case KarmaAction.PawnPurchase: return 3f;
+                case KarmaAction.PawnPurchase: return 5f;
                 case KarmaAction.RabbitPurchase: return -2f * Math.Max(0, count); // je angreifendes Kaninchen (beim Kauf 0)
-                case KarmaAction.RaidJoin: return -2f * Math.Max(0, count);       // je Raider eines feindlichen Twitch-Raids (beim Beitritt 0)
+                case KarmaAction.RaidJoin: return -4f * Math.Max(0, count);       // je Raider eines feindlichen Twitch-Raids, doppelt so viel wie ein Kaninchen (Nutzer, 22.11.2026)
                 case KarmaAction.VoteGood: return 5f;
                 case KarmaAction.VoteBad: return -5f;
                 case KarmaAction.VoteDoom: return -15f;
@@ -117,14 +117,20 @@ namespace TwitchCompanion.RimWorld.Core
         public static PawnFate For(float viewerKarma) =>
             viewerKarma < 40f ? PawnFate.Cursed : viewerKarma < 70f ? PawnFate.Unlucky : viewerKarma >= 160f ? PawnFate.Blessed : PawnFate.Normal;
 
-        /// <summary>Schlechte Eigenschaften (DefName, Grad), aus denen eine gewählt wird.</summary>
+        /// <summary>
+        /// Schlechte Eigenschaften (DefName, Grad), aus denen eine gewählt wird. Nie Pyromane (die Kolonie brennt ab) und nie
+        /// faul oder träge (der Kolonist wird nur zur Last) – Nutzer, 22.11.2026.
+        /// </summary>
         public static readonly IReadOnlyList<KeyValuePair<string, int>> BadTraits = new[]
         {
-            new KeyValuePair<string, int>("Psychopath", 0), new KeyValuePair<string, int>("Pyromaniac", 0),
-            new KeyValuePair<string, int>("Wimp", 0), new KeyValuePair<string, int>("SlowLearner", 0),
-            new KeyValuePair<string, int>("Industriousness", -2), new KeyValuePair<string, int>("NaturalMood", -2),
+            new KeyValuePair<string, int>("Psychopath", 0), new KeyValuePair<string, int>("Wimp", 0),
+            new KeyValuePair<string, int>("SlowLearner", 0), new KeyValuePair<string, int>("NaturalMood", -2),
             new KeyValuePair<string, int>("Nerves", -2), new KeyValuePair<string, int>("Abrasive", 0),
         };
+
+        /// <summary>Eigenschaften, die die Mod nie vergibt (auch nicht über Änderungen an den Listen).</summary>
+        public static bool IsForbidden(string defName, int degree) =>
+            defName == "Pyromaniac" || (defName == "Industriousness" && degree < 0);
 
         public static readonly IReadOnlyList<KeyValuePair<string, int>> GoodTraits = new[]
         {
