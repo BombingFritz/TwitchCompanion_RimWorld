@@ -128,6 +128,28 @@ namespace TwitchCompanion.RimWorld.Tests
             Assert.Equal(new[] { "Anna" }, RaidJoiners.Select(chatters, raid, T0, TimeSpan.FromMinutes(10)));
         }
 
+        [Theory]
+        [InlineData(88f, 1f, 10, 2)]     // Stream 20.11.2026: Bedrohung 88, 10 Namen → 2 statt 10
+        [InlineData(88f, 0.5f, 10, 1)]
+        [InlineData(20f, 1f, 10, 1)]     // mindestens einer
+        [InlineData(1000f, 1f, 10, 10)]  // nie mehr als Namen
+        [InlineData(1000f, 2f, 50, 44)]
+        public void KaempferNachBedrohung(float points, float factor, int names, int expected) =>
+            Assert.Equal(expected, RaidJoiners.MaxFighters(points, factor, names));
+
+        [Fact]
+        public void KuerzenBehaeltDenRaidendenKanal()
+        {
+            var names = new List<string> { "TrakkarLP", "a", "b", "c", "d" };
+            for (int seed = 0; seed < 20; seed++)
+            {
+                var kept = RaidJoiners.Trim(names, 2, new Random(seed));
+                Assert.Equal(2, kept.Count);
+                Assert.Equal("TrakkarLP", kept[0]);
+            }
+            Assert.Equal(names, RaidJoiners.Trim(names, 10, new Random(1)));
+        }
+
         // ── gegen die Attrappe ──────────────────────────────────────────
 
         private static ServerLink NewLink(FakeServer server)

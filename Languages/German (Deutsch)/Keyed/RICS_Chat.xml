@@ -53,7 +53,7 @@
   <!-- Guthaben (die kurze Antwort auf !bal setzt die Mod selbst zusammen) -->
   <RICS.CC.bal.notfound>Keine Daten zu dir gefunden.</RICS.CC.bal.notfound>
   <RICS.CC.bal.line1>Guthaben: {0} {1}</RICS.CC.bal.line1>
-  <RICS.CC.bal.line2>Karma {1}</RICS.CC.bal.line2>
+  <RICS.CC.bal.line2>Karma {0} {1}</RICS.CC.bal.line2>
   <RICS.CC.bal.line3>{0} {1} je 2 min</RICS.CC.bal.line3>
   <RICS.CC.bal.line4>~{0} {1} je Stunde</RICS.CC.bal.line4>
   <RICS.CC.bal.activeRemaining>Noch {0} min aktiv</RICS.CC.bal.activeRemaining>
@@ -140,8 +140,7 @@
 
   <!-- Lootbox -->
   <RICS.LBCH.NotAvailable>Lootboxen gibt es gerade nicht.</RICS.LBCH.NotAvailable>
-  <RICS.LBCH.Count>{0}× Lootbox offen.</RICS.LBCH.Count>
-  <RICS.LBCH.CountSingular>1× Lootbox offen.</RICS.LBCH.CountSingular>
+  <RICS.LBCH.CountSingular>{0}× Lootbox offen.</RICS.LBCH.CountSingular>
   <RICS.LBCH.CountPlural>{0}× Lootbox offen.</RICS.LBCH.CountPlural>
   <RICS.LBCH.SettingsNotAvailable>Lootbox gerade nicht möglich.</RICS.LBCH.SettingsNotAvailable>
   <RICS.LBCH.Opened>🎁 Lootbox: {0} {1}!</RICS.LBCH.Opened>
@@ -151,8 +150,8 @@
 
   <!-- Warteschlange -->
   <RICS.PQCH.AlreadyHasPawn>Du hast schon einen Kolonisten. Erst !leave.</RICS.PQCH.AlreadyHasPawn>
-  <RICS.PQCH.AlreadyInQueue>Du stehst schon in der Warteschlange.</RICS.PQCH.AlreadyInQueue>
-  <RICS.PQCH.JoinSuccess>✅ Angestellt, du stehst vorne ({1} warten). Der nächste freie Kolonist geht an die Person, die sich zuletzt angestellt hat.</RICS.PQCH.JoinSuccess>
+  <RICS.PQCH.AlreadyInQueue>Du stehst schon in der Warteschlange (Platz {0}).</RICS.PQCH.AlreadyInQueue>
+  <RICS.PQCH.JoinSuccess>✅ Angestellt auf Platz {0} von {1}. Der nächste freie Kolonist geht an die Person, die sich zuletzt angestellt hat.</RICS.PQCH.JoinSuccess>
   <RICS.PQCH.JoinFailed>Hat nicht geklappt, bitte nochmal.</RICS.PQCH.JoinFailed>
   <RICS.PQCH.NotInQueue>Du stehst nicht in der Warteschlange.</RICS.PQCH.NotInQueue>
   <RICS.PQCH.LeaveSuccess>✅ Aus der Warteschlange raus.</RICS.PQCH.LeaveSuccess>
