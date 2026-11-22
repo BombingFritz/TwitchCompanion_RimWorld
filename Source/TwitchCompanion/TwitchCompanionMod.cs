@@ -61,6 +61,22 @@ namespace TwitchCompanion.RimWorld
         public bool raidAutoJoinActive = true;
         /// <summary>Stärke des Twitch-Raids: kämpfende Raider = Bedrohungspunkte × Faktor / 45 (Issue #31).</summary>
         public float raidStrengthFactor = 1f;
+
+        // Killer-Kaninchen (Nutzer, 22.11.2026); Fenster, Abstand und Stärke Vorschlag von Claude.
+        public bool rabbitsEnabled = true;
+        public float rabbitPriceShare = 0.5f;
+        public int rabbitWindowSeconds = 90;
+        public int rabbitCooldownMinutes = 20;
+        public float rabbitStrengthFactor = 1f;
+        public long lastRabbitTicks;
+
+        public DateTime? LastRabbitUtc => lastRabbitTicks > 0 ? new DateTime(lastRabbitTicks, DateTimeKind.Utc) : (DateTime?)null;
+
+        public void MarkRabbit(DateTime utc)
+        {
+            lastRabbitTicks = utc.Ticks;
+            Write();
+        }
         /// <summary>In diesem Stream schon gewonnene Ereignisse (DefNames, keine Personendaten).</summary>
         public List<string> eventsUsedThisStream = new List<string>();
         /// <summary>Beginn des laufenden Streams laut Mod (UTC-Ticks), 0 = unbekannt.</summary>
@@ -141,6 +157,12 @@ namespace TwitchCompanion.RimWorld
             Scribe_Values.Look(ref twitchRaids, "twitchRaids", true);
             Scribe_Values.Look(ref raidAutoJoinActive, "raidAutoJoinActive", true);
             Scribe_Values.Look(ref raidStrengthFactor, "raidStrengthFactor", 1f);
+            Scribe_Values.Look(ref rabbitsEnabled, "rabbitsEnabled", true);
+            Scribe_Values.Look(ref rabbitPriceShare, "rabbitPriceShare", 0.5f);
+            Scribe_Values.Look(ref rabbitWindowSeconds, "rabbitWindowSeconds", 90);
+            Scribe_Values.Look(ref rabbitCooldownMinutes, "rabbitCooldownMinutes", 20);
+            Scribe_Values.Look(ref rabbitStrengthFactor, "rabbitStrengthFactor", 1f);
+            Scribe_Values.Look(ref lastRabbitTicks, "lastRabbitTicks", 0L);
             if (Scribe.mode == LoadSaveMode.PostLoadInit)
             {
                 queueJoinedThisStream ??= new List<string>();
@@ -261,6 +283,7 @@ namespace TwitchCompanion.RimWorld
 
         private string _intervalBuffer, _voteSecondsBuffer, _optionsBuffer, _graceBuffer, _quietBuffer;
         private bool _showCatalog;
+        private string _rabbitWindowBuffer, _rabbitCooldownBuffer;
 
         /// <summary>Ereignis-Abstimmung: Der Erzähler schlägt vor, der Chat wählt (Stufe 3, Feature-Issue #4).</summary>
         private void DrawEvents(Listing_Standard list)
@@ -295,6 +318,16 @@ namespace TwitchCompanion.RimWorld
             list.Label("  Stärke: so viele Kämpfer, wie ein normaler Raid gleicher Bedrohung hätte, mal " + Settings.raidStrengthFactor.ToString("0.0#")
                 + " (mindestens einer; der raidende Kanal ist immer dabei, die übrigen werden ausgelost)");
             Settings.raidStrengthFactor = (float)Math.Round(list.Slider(Settings.raidStrengthFactor, 0.5f, 3f) * 4f) / 4f;
+            list.GapLine();
+            list.Label("Killer-Kaninchen ($Killer-Kaninchen, Mitmachen mit !joinraid)");
+            list.CheckboxLabeled("  kaufbar", ref Settings.rabbitsEnabled);
+            list.Label("  Preis: " + (int)Math.Round(Settings.rabbitPriceShare * 100) + " % eines neuen Kolonisten = " + (Rabbits.Price?.ToString() ?? "?") + " Pfennig");
+            Settings.rabbitPriceShare = (float)Math.Round(list.Slider(Settings.rabbitPriceShare, 0.1f, 2f) * 20f) / 20f;
+            list.TextFieldNumericLabeled("  Beitrittsfenster (s)", ref Settings.rabbitWindowSeconds, ref _rabbitWindowBuffer, 15, 600);
+            list.TextFieldNumericLabeled("  Höchstens alle … min", ref Settings.rabbitCooldownMinutes, ref _rabbitCooldownBuffer, 0, 600);
+            list.Label("  Stärke: so viele Kaninchen, wie die Bedrohung trägt, mal " + Settings.rabbitStrengthFactor.ToString("0.0#") + " (der Käufer ist immer dabei)");
+            Settings.rabbitStrengthFactor = (float)Math.Round(list.Slider(Settings.rabbitStrengthFactor, 0.5f, 3f) * 4f) / 4f;
+            if (Rabbits.LastAttack != null) list.Label("  Zuletzt: " + Rabbits.LastAttack);
             if (RicsApi.Available && !Raids.RicsRaidsEnabled) list.Label("  ⚠ In RICS sind Twitch-Raids aus: dort „Twitch-Raids“ einschalten, sonst passiert im Spiel nichts.");
             if (Raids.LastRaid != null) list.Label("  Zuletzt: " + Raids.LastRaid);
             if (EventVotes.LastResult != null) list.Label("  Zuletzt: " + EventVotes.LastResult);

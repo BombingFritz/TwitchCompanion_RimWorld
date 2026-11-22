@@ -134,6 +134,27 @@ namespace TwitchCompanion.RimWorld.Rics
             return result;
         }
 
+        /// <summary>Preis für einen neuen Kolonisten laut RICS (Mensch; mit Biotech der Baseliner-Preis); <c>null</c>, wenn unbekannt.</summary>
+        public static int? PawnPrice()
+        {
+            Type raceManager = AccessTools.TypeByName("_CAP__Chat_Interactive.Utilities.RaceSettingsManager");
+            if (raceManager == null || !(AccessTools.Property(raceManager, "RaceSettings")?.GetValue(null) is IDictionary races) || !races.Contains("Human")) return null;
+            object human = races["Human"];
+            if (ModsConfig.BiotechActive && Get<object>(human, "XenotypePrices", null) is IDictionary xeno && xeno.Contains("Baseliner"))
+                return (int)Convert.ToSingle(xeno["Baseliner"]);
+            return Get(human, "BasePrice", 0);
+        }
+
+        /// <summary>Zieht Pfennig ab, wenn genug da ist (RICS <c>Viewer.TakeCoins</c>), und speichert die Zuschauer.</summary>
+        public static bool TakeCoins(ChatLine line, int amount)
+        {
+            object viewer = RicsApi.GetOrCreateViewer(line.UserId, line.Login);
+            MethodInfo take = viewer == null ? null : AccessTools.Method(viewer.GetType(), "TakeCoins", new[] { typeof(int) });
+            if (take == null || !(bool)take.Invoke(viewer, new object[] { amount })) return false;
+            SaveViewers();
+            return true;
+        }
+
         /// <summary>Schreibt einem Zuschauer Pfennig gut; legt ihn in RICS an, falls nötig (wie beim ersten Chat).</summary>
         public static bool GiveCoins(string userId, string login, int amount)
         {
