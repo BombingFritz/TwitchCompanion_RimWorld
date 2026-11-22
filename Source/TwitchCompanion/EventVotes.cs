@@ -154,6 +154,7 @@ namespace TwitchCompanion.RimWorld
             Map map = HomeMap;
             List<EventCandidate> options = EventPlanner.Propose(Candidates(), Settings.eventOptions, Rng,
                 Settings.eventsUsedThisStream, map?.weatherDecider != null);
+            EventPlanner.AddJustice(options, KarmaKeeper.JusticeCandidate(map)); // ausgleichende Gerechtigkeit (#24)
             if (!EventPlanner.Enough(options))
             {
                 _lastEndUtc = nowUtc; // nicht in jedem Takt neu versuchen
@@ -191,6 +192,7 @@ namespace TwitchCompanion.RimWorld
             _lastEndUtc = nowUtc;
             bool fired = winner.Calm == CalmKind.Nothing || Fire(winner);
             if (!fired) LastResult += " – ließ sich nicht auslösen";
+            else KarmaKeeper.Record(KarmaRules.ForVote(winner.Karma, winner.IsCalm));
             Messages.Message("Der Chat hat gewählt: " + winner.Label + (fired ? "." : " – geht gerade nicht."),
                 fired ? MessageTypeDefOf.NeutralEvent : MessageTypeDefOf.RejectInput, false);
             Log.Message(LogPrefix + "Ereignis-Abstimmung: " + LastResult);
@@ -330,7 +332,8 @@ namespace TwitchCompanion.RimWorld
                 : "Noch " + (int)left.TotalMinutes + ":" + left.Seconds.ToString("00") + (twitch && left == TimeSpan.Zero ? " – Ergebnis kommt gleich" : string.Empty);
             Widgets.Label(new Rect(0f, 32f, inRect.width, 24f), state
                 + (round.ChannelPointsPerVote > 0 ? " · Zusatzstimmen: " + round.ChannelPointsPerVote + " Kanalpunkte" : string.Empty)
-                + (twitch ? " · Abstimmen über Twitch" : " · Test-Abstimmung"));
+                + (twitch ? " · Abstimmen über Twitch" : " · Test-Abstimmung")
+                + (TwitchCompanionMod.Settings.karmaEnabled ? " · Karma der Kolonie " + KarmaKeeper.ColonyText : string.Empty));
             float y = 60f;
             for (int i = 0; i < round.Options.Count; i++)
             {

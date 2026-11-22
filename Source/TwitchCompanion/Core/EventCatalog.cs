@@ -64,6 +64,28 @@ namespace TwitchCompanion.RimWorld.Core
             new CatalogEntry("NoxiousHaze", EventKarma.Bad, "Saurer Smog (Biotech)"),
         };
 
+        /// <summary>Verheerend: nur über die ausgleichende Gerechtigkeit, wenn das Karma der Kolonie sehr gut ist.</summary>
+        public static readonly IReadOnlyList<CatalogEntry> Doom = new[]
+        {
+            new CatalogEntry("ManhunterPack", EventKarma.Doom, "Rudel mordlustiger Tiere"),
+            new CatalogEntry("Infestation", EventKarma.Doom, "Insektenbefall"),
+            new CatalogEntry("AnimalInsanityMass", EventKarma.Doom, "Massenwahnsinn der Tiere"),
+            new CatalogEntry("PsychicDrone", EventKarma.Doom, "Psychische Drohne"),
+            new CatalogEntry("ToxicFallout", EventKarma.Doom, "Giftiger Niederschlag"),
+            new CatalogEntry("VolcanicWinter", EventKarma.Doom, "Vulkanischer Winter"),
+            new CatalogEntry("DefoliatorShipPartCrash", EventKarma.Doom, "Entlauber-Schiffsteil stürzt ab"),
+            new CatalogEntry("PsychicEmanatorShipPartCrash", EventKarma.Doom, "Psycho-Emanator-Schiffsteil stürzt ab"),
+        };
+
+        /// <summary>Extrem gut: nur über die ausgleichende Gerechtigkeit, wenn das Karma der Kolonie sehr schlecht ist.</summary>
+        public static readonly IReadOnlyList<CatalogEntry> Blessing = new[]
+        {
+            new CatalogEntry("AnimaTreeSpawn", EventKarma.Blessing, "Anima-Baum wächst (Royalty)"),
+            new CatalogEntry("GauranlenPodSpawn", EventKarma.Blessing, "Gauranlen-Kapsel sprießt (Ideology)"),
+            new CatalogEntry("PoluxTreeSpawn", EventKarma.Blessing, "Polux-Baum wächst (Biotech)"),
+            new CatalogEntry("WanderersSkylantern", EventKarma.Blessing, "Wanderer mit Himmelslaterne (Ideology)"),
+        };
+
         public static Dictionary<string, CatalogEntry> ByDefName(IEnumerable<CatalogEntry> entries) =>
             (entries ?? Default).GroupBy(e => e.DefName).ToDictionary(g => g.Key, g => g.First());
     }

@@ -60,6 +60,8 @@ Zusätzlich hat jede Runde eine ruhige Option: „Nichts passiert“ oder „Wet
 
 ## Draußen (Vorschlag)
 
+Verheerendes und extrem Gutes aus dieser Liste kommt seit dem Karma-System (Spec, Abschnitt „Karma“) über die ausgleichende Gerechtigkeit doch vor: Verheerendes, wenn das Karma der Kolonie sehr gut ist, extrem Gutes, wenn es sehr schlecht ist. Welche, steht in `EventCatalog.Doom` und `EventCatalog.Blessing`.
+
 | Ereignis (Spielname) | Warum draußen |
 |---|---|
 | `RaidEnemy`, `RaidFriendly` | Raids kommen vom Spiel-Erzähler und später als Twitch-Raid mit Zuschauernamen (Stufe 2); RICS führt sie nicht in der Ereignisliste |

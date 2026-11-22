@@ -177,8 +177,30 @@ Im ersten Stream ließ sich nur Gutes kaufen und abstimmen. Dazu kommt ein kaufb
 - Fenster, Abstand und Stärke sind Vorschläge von Claude.
 - **Schritt 2 (Gesamt-Karma, #24):** Kauf und Teilnahme sollen negatives Karma geben, ebenso die Teilnahme an einem feindlichen Raid; daraus die „ausgleichende Gerechtigkeit“.
 
-## Später: Gesamt-Karma („ausgleichende Gerechtigkeit“)
-Idee des Nutzers (20.11.2026), erst nach einem erfolgreichen Test der Ereignis-Abstimmung: Aus dem Karma aller Zuschauer ergibt sich ein Gesamt-Karma. Ist es sehr schlecht, kann der Streamer mit extrem guten Ereignissen belohnt werden; ist es sehr gut, kann etwas ganz Schlimmes passieren. Dann dürfen auch die Ereignisse, die heute „draußen“ sind (verheerend, extrem gut, `docs/ereignisse.md`), wieder vorkommen. Schwellen, Häufigkeit und Herleitung aus dem RICS-Karma [UNGEKLÄRT]. Feature-Issue #24.
+## Karma (Feature-Issue #24, Nutzer 22.11.2026)
+Zwei Ebenen. Alle Zahlen sind Vorschläge von Claude und in den Einstellungen unter „Karma“ (Schwellen, Halbwertszeit, Chance) bzw. in `KarmaRules` festgelegt.
+
+**Karma der Zuschauer** = das RICS-Karma (`Viewer.Karma`, 0 bis 200, Start 100; RICS lässt es von selbst langsam sinken und nutzt es als Faktor für Pfennig). Die Mod verändert es über `GiveKarma`/`TakeKarma`:
+| Aktion | Zuschauer |
+|---|---|
+| Ware für die Kolonie gekauft (`$…`, bezahlt) | +2 |
+| Killer-Kaninchen gekauft | −20 |
+| beim Kaninchen-Angriff mitgemacht | −10 |
+| `!joinraid` bei einem feindlichen Twitch-Raid (einmal je Raid; automatisch Beigetretene nicht) | −10 |
+
+**Folgen für Einlösungen:** Kauft jemand einen neuen Kolonisten (`!pawn`), prägt sein Karma den Kolonisten: unter 40 eine schlechte Eigenschaft (z. B. Psychopath, Pyromane, Weichei, faul, depressiv) und schwer krank (Pest, Malaria oder Grippe); unter 70 eine schlechte Eigenschaft; ab 160 eine gute (fleißig, zäh, schneller Lerner, Frohnatur, eiserner Wille). Brief „Karma“ im Spiel. Weitere Einlösungen später.
+
+**Karma der Kolonie:** laufender Wert −100 bis +100, im Spielstand gespeichert (`CompanionGameComponent`), unabhängig davon, wer gerade zuschaut. Klingt mit einer Halbwertszeit (Vorgabe 3 h Echtzeit) gegen 0 ab.
+| Aktion | Kolonie |
+|---|---|
+| Ware gekauft | +1 |
+| neuer Kolonist | +3 |
+| gewähltes gutes / schlechtes Ereignis | +5 / −5 |
+| gewähltes verheerendes Ereignis / Segen | −15 / +15 |
+| je angreifendes Killer-Kaninchen | −2 |
+| je Raider eines feindlichen Twitch-Raids (nach der Begrenzung) | −2 |
+
+**Ausgleichende Gerechtigkeit:** Ab ±40 Kolonie-Karma steht in einer Ereignis-Abstimmung mit wachsender Chance (bei ±100: 60 %) eine besondere Option zur Wahl, statt „Nichts passiert“/„Wetterwechsel“ bzw. einer neutralen: bei gutem Karma etwas Verheerendes (`EventCatalog.Doom`: Rudel mordlustiger Tiere, Insektenbefall, Massenwahnsinn der Tiere, psychische Drohne, giftiger Niederschlag, vulkanischer Winter, Schiffsteile), bei schlechtem ein Segen (`EventCatalog.Blessing`: Anima-Baum, Gauranlen-Kapsel, Polux-Baum, Wanderer mit Himmelslaterne; nur mit dem jeweiligen DLC). Es bleibt eine Wahl: Der Chat kann es abwenden, dann bleibt das Karma hoch und die Chance besteht in der nächsten Runde wieder [Vorschlag; ob es auch ohne Abstimmung passieren soll, ist offen]. Die Einblendung der Abstimmung zeigt das Kolonie-Karma.
 
 ## Stufe 4 (später)
 Spielereignisse (Raid beginnt, Kolonist stirbt) an den Server melden; der Server könnte daraus Wetten starten oder Effekte auslösen. Eigene Serveranforderung, wenn es so weit ist. Weiteres Balancing erst nach den ersten Streams.

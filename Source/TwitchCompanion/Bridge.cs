@@ -46,6 +46,8 @@ namespace TwitchCompanion.RimWorld
         private static float _nextPrefixCheck;
         private static bool _activityResetDone;
         private static bool _lastLive;
+        /// <summary>Wer im laufenden Raid-Fenster schon Karma für !joinraid verloren hat (einmal je Raid).</summary>
+        private static readonly HashSet<string> _raidJoinKarma = new HashSet<string>();
         private static DateTime _lastLiveWrite;
 
         private static CompanionSettings Settings => TwitchCompanionMod.Settings;
@@ -153,6 +155,8 @@ namespace TwitchCompanion.RimWorld
                     catch (Exception ex) { Log.Warning(LogPrefix + "Aktivität nicht zurückgesetzt: " + (ex.InnerException ?? ex).Message); }
                 }
             }
+
+            if (!Rabbits.RaidWindowActive && _raidJoinKarma.Count > 0) _raidJoinKarma.Clear();
 
             if (Link != null)
             {
@@ -334,8 +338,9 @@ namespace TwitchCompanion.RimWorld
                 line.Text = CommandFilter.StripPawnArguments(line.Text);
                 TimeSpan left = PawnGate.Remaining(Settings.LastPawnPurchaseUtc, DateTime.UtcNow, TimeSpan.FromMinutes(Settings.pawnCooldownMinutes));
                 if (left > TimeSpan.Zero && !privileged) { PawnBlocked++; Reply(line, PawnGate.Message(left)); return; }
-                coinsBefore = RicsEconomy.CoinsOf(line);
             }
+            bool trackCoins = word == "pawn" || word == "buy";
+            bool raidJoin = word == "joinraid" && Rabbits.RaidWindowActive && _raidJoinKarma.Add(line.UserId ?? line.Login);
 
             if (word == "joinqueue" && Settings.HasJoinedQueue(line.UserId) && !RicsQueue.IsInQueue(line.NameForRics))
             {
@@ -355,6 +360,7 @@ namespace TwitchCompanion.RimWorld
                     string opened = RicsEconomy.AwardAndOpenLootboxes(line);
                     if (opened != null) { EnqueueOutgoing("@" + line.Login + " " + opened); lootboxOpened = true; }
                 }
+                if (trackCoins) coinsBefore = RicsEconomy.CoinsOf(line); // nach der Lootbox, damit nur der Kauf zählt
                 RicsApi.Deliver(line);
                 Forwarded++;
             }
@@ -369,11 +375,16 @@ namespace TwitchCompanion.RimWorld
                 _capturing = false;
             }
 
-            if (word == "pawn" && coinsBefore != null && RicsEconomy.CoinsOf(line) < coinsBefore)
+            bool paid = coinsBefore != null && RicsEconomy.CoinsOf(line) < coinsBefore;
+            if (word == "pawn" && paid)
             {
                 Settings.MarkPawnPurchase(DateTime.UtcNow);
                 RicsQueue.Remove(line.NameForRics); // jeder hat höchstens einen Kolonisten
+                KarmaKeeper.Record(KarmaAction.PawnPurchase, line);
+                KarmaKeeper.ApplyPawnFate(line);
             }
+            if (word == "buy" && paid) KarmaKeeper.Record(KarmaAction.ItemPurchase, line);
+            if (raidJoin) KarmaKeeper.Record(KarmaAction.RaidJoin, line, 0);
             if (word == "joinqueue" && RicsQueue.IsInQueue(line.NameForRics))
                 Settings.MarkJoinedQueue(line.UserId);
 
