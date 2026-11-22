@@ -41,7 +41,7 @@
   <!-- Kolonist -->
   <RICS.CC.pawn.usage>So geht's: !pawn [Rasse] [Xenotyp] [Geschlecht] [Alter]</RICS.CC.pawn.usage>
   <RICS.CC.pawn.handlist.usage>Listen: !pawn list races, !pawn list xenotypes human</RICS.CC.pawn.handlist.usage>
-  <RICS.CC.mypawn.usage>!mypawn body, health, implants, gear, kills, needs, relations, skills, stats, story, traits, work, owned, disown</RICS.CC.mypawn.usage>
+  <RICS.CC.mypawn.usage>!mypawn body, health, implants, gear, armor, kills, needs, relations, skills, stats, story, traits, work, owned, disown</RICS.CC.mypawn.usage>
   <RICS.CC.leave.nopawn>Du hast keinen Kolonisten.</RICS.CC.leave.nopawn>
   <RICS.CC.leave.successs>✅ Du hast {0} {1} freigegeben. Neuer Kolonist: !pawn</RICS.CC.leave.successs>
   <RICS.CC.leave.yourpawn>deinen Kolonisten</RICS.CC.leave.yourpawn>
