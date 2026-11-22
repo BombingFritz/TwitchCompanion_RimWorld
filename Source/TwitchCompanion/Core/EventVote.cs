@@ -8,7 +8,8 @@ using System.Linq;
 namespace TwitchCompanion.RimWorld.Core
 {
     /// <summary>Einordnung eines Ereignisses laut RICS (<c>BuyableIncident.KarmaType</c>).</summary>
-    public enum EventKarma { Good, Neutral, Bad, Doom }
+    /// <summary>Einordnung eines Ereignisses; <c>Doom</c> und <c>Blessing</c> nur über die ausgleichende Gerechtigkeit.</summary>
+    public enum EventKarma { Good, Neutral, Bad, Doom, Blessing }
 
     /// <summary>Ruhige Optionen ohne Spielereignis (Nutzer, 20.11.2026).</summary>
     public enum CalmKind { None, Nothing, Weather }
@@ -55,7 +56,7 @@ namespace TwitchCompanion.RimWorld.Core
         {
             count = Math.Max(MinOptions, Math.Min(MaxOptions, count));
             var pool = (candidates ?? Enumerable.Empty<EventCandidate>())
-                .Where(c => c != null && !string.IsNullOrEmpty(c.DefName) && !c.IsCalm && c.Karma != EventKarma.Doom)
+                .Where(c => c != null && !string.IsNullOrEmpty(c.DefName) && !c.IsCalm && c.Karma != EventKarma.Doom && c.Karma != EventKarma.Blessing)
                 .GroupBy(c => c.DefName).Select(g => g.First())
                 .ToList();
             bool Used(EventCandidate c) => usedThisStream != null && usedThisStream.Contains(c.DefName);
@@ -80,6 +81,19 @@ namespace TwitchCompanion.RimWorld.Core
             }
             // Reihenfolge mischen, damit „gut“ nicht immer oben steht.
             return chosen.OrderBy(_ => rng.Next()).ToList();
+        }
+
+        /// <summary>
+        /// Ausgleichende Gerechtigkeit: ersetzt die ruhige oder eine neutrale Option durch ein besonderes Ereignis
+        /// (verheerend bzw. Segen). Es bleibt eine Wahl; der Chat kann es abwenden.
+        /// </summary>
+        public static List<EventCandidate> AddJustice(List<EventCandidate> options, EventCandidate special)
+        {
+            if (options == null || special == null || options.Any(o => o.DefName == special.DefName)) return options;
+            int i = options.FindIndex(o => o.IsCalm);
+            if (i < 0) i = options.FindIndex(o => o.Karma == EventKarma.Neutral);
+            if (i < 0) options.Add(special); else options[i] = special;
+            return options;
         }
 
         /// <summary>Mindestens zwei echte Ereignisse, sonst lohnt keine Abstimmung.</summary>
@@ -203,7 +217,7 @@ namespace TwitchCompanion.RimWorld.Core
         }
 
         public static string KarmaWord(EventCandidate c) =>
-            c.IsCalm ? "ruhig" : c.Karma == EventKarma.Good ? "gut" : c.Karma == EventKarma.Bad ? "schlecht" : c.Karma == EventKarma.Doom ? "verheerend" : "neutral";
+            c.IsCalm ? "ruhig" : c.Karma == EventKarma.Good ? "gut" : c.Karma == EventKarma.Bad ? "schlecht" : c.Karma == EventKarma.Doom ? "verheerend" : c.Karma == EventKarma.Blessing ? "Segen" : "neutral";
     }
 
     /// <summary>Zeitregeln (Nutzer, 20.11.2026): Gnadenfrist zu Streambeginn, Abstand, Ruhe nach Ereignissen des Spiel-Erzählers.</summary>

@@ -70,6 +70,13 @@ namespace TwitchCompanion.RimWorld
         public float rabbitStrengthFactor = 1f;
         public long lastRabbitTicks;
 
+        // Karma (Feature-Issue #24, Nutzer 22.11.2026); Zahlen Vorschlag von Claude.
+        public bool karmaEnabled = true;
+        public bool pawnFates = true;
+        public float colonyKarmaHalfLifeHours = 3f;
+        public float justiceThreshold = 40f;
+        public float justiceMaxChance = 0.6f;
+
         public DateTime? LastRabbitUtc => lastRabbitTicks > 0 ? new DateTime(lastRabbitTicks, DateTimeKind.Utc) : (DateTime?)null;
 
         public void MarkRabbit(DateTime utc)
@@ -163,6 +170,11 @@ namespace TwitchCompanion.RimWorld
             Scribe_Values.Look(ref rabbitCooldownMinutes, "rabbitCooldownMinutes", 20);
             Scribe_Values.Look(ref rabbitStrengthFactor, "rabbitStrengthFactor", 1f);
             Scribe_Values.Look(ref lastRabbitTicks, "lastRabbitTicks", 0L);
+            Scribe_Values.Look(ref karmaEnabled, "karmaEnabled", true);
+            Scribe_Values.Look(ref pawnFates, "pawnFates", true);
+            Scribe_Values.Look(ref colonyKarmaHalfLifeHours, "colonyKarmaHalfLifeHours", 3f);
+            Scribe_Values.Look(ref justiceThreshold, "justiceThreshold", 40f);
+            Scribe_Values.Look(ref justiceMaxChance, "justiceMaxChance", 0.6f);
             if (Scribe.mode == LoadSaveMode.PostLoadInit)
             {
                 queueJoinedThisStream ??= new List<string>();
@@ -283,7 +295,7 @@ namespace TwitchCompanion.RimWorld
 
         private string _intervalBuffer, _voteSecondsBuffer, _optionsBuffer, _graceBuffer, _quietBuffer;
         private bool _showCatalog;
-        private string _rabbitWindowBuffer, _rabbitCooldownBuffer;
+        private string _rabbitWindowBuffer, _rabbitCooldownBuffer, _halfLifeBuffer;
 
         /// <summary>Ereignis-Abstimmung: Der Erzähler schlägt vor, der Chat wählt (Stufe 3, Feature-Issue #4).</summary>
         private void DrawEvents(Listing_Standard list)
@@ -318,6 +330,19 @@ namespace TwitchCompanion.RimWorld
             list.Label("  Stärke: so viele Kämpfer, wie ein normaler Raid gleicher Bedrohung hätte, mal " + Settings.raidStrengthFactor.ToString("0.0#")
                 + " (mindestens einer; der raidende Kanal ist immer dabei, die übrigen werden ausgelost)");
             Settings.raidStrengthFactor = (float)Math.Round(list.Slider(Settings.raidStrengthFactor, 0.5f, 3f) * 4f) / 4f;
+            list.GapLine();
+            list.Label("Karma");
+            list.CheckboxLabeled("  Karma der Zuschauer und der Kolonie", ref Settings.karmaEnabled,
+                "Zuschauer: RICS-Karma (0 bis 200). Kauf von Waren +2, Killer-Kaninchen −20, mitmachen −10, !joinraid bei einem feindlichen Raid −10. "
+                + "Kolonie (−100 bis +100): Waren +1, neuer Kolonist +3, gewähltes gutes Ereignis +5, schlechtes −5, je Kaninchen oder Raider −2; klingt mit der Halbwertszeit ab.");
+            list.Label("  Karma der Kolonie: " + (Current.Game != null ? KarmaKeeper.ColonyText : "erst einen Spielstand laden"));
+            list.CheckboxLabeled("  Neuer Kolonist nach Karma des Käufers", ref Settings.pawnFates,
+                "Unter 40: schlechte Eigenschaft und schwer krank; unter 70: schlechte Eigenschaft; ab 160: gute Eigenschaft.");
+            list.TextFieldNumericLabeled("  Halbwertszeit des Kolonie-Karmas (h)", ref Settings.colonyKarmaHalfLifeHours, ref _halfLifeBuffer, 0.1f, 48f);
+            list.Label("  Ausgleichende Gerechtigkeit ab ±" + (int)Settings.justiceThreshold + ", bei ±100 mit " + (int)Math.Round(Settings.justiceMaxChance * 100) + " % je Abstimmung");
+            Settings.justiceThreshold = (float)Math.Round(list.Slider(Settings.justiceThreshold, 10f, 90f) / 5f) * 5f;
+            Settings.justiceMaxChance = (float)Math.Round(list.Slider(Settings.justiceMaxChance, 0.1f, 1f) * 20f) / 20f;
+
             list.GapLine();
             list.Label("Killer-Kaninchen ($Killer-Kaninchen, Mitmachen mit !joinraid)");
             list.CheckboxLabeled("  kaufbar", ref Settings.rabbitsEnabled);
@@ -438,7 +463,20 @@ namespace TwitchCompanion.RimWorld
     /// <summary>Hauptthread-Takt, läuft jedes Bild, auch pausiert.</summary>
     public class CompanionGameComponent : GameComponent
     {
+        /// <summary>Laufendes Karma der Kolonie, im Spielstand gespeichert (Feature-Issue #24).</summary>
+        public ColonyKarma ColonyKarma = new ColonyKarma();
+
         public CompanionGameComponent(Game game) { }
+
+        public override void ExposeData()
+        {
+            float value = ColonyKarma.Value;
+            long ticks = ColonyKarma.LastUtc?.Ticks ?? 0L;
+            Scribe_Values.Look(ref value, "colonyKarma", 0f);
+            Scribe_Values.Look(ref ticks, "colonyKarmaTicks", 0L);
+            if (Scribe.mode == LoadSaveMode.LoadingVars)
+                ColonyKarma = new ColonyKarma { Value = value, LastUtc = ticks > 0 ? new DateTime(ticks, DateTimeKind.Utc) : (DateTime?)null };
+        }
 
         public override void GameComponentUpdate() => Bridge.MainThreadTick();
     }

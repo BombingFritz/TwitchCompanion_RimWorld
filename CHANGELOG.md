@@ -4,6 +4,7 @@ Format nach [Keep a Changelog](https://keepachangelog.com/de/1.1.0/), Versionen 
 
 ## [Unveröffentlicht]
 ### Hinzugefügt
+- Karma in zwei Ebenen (#24): Die Mod verändert das RICS-Karma der Zuschauer (Ware kaufen +2, Killer-Kaninchen −20, mitmachen −10, `!joinraid` bei feindlichem Raid −10); schlechtes Karma macht einen gekauften Kolonisten schwierig (schlechte Eigenschaft, unter 40 auch schwer krank), sehr gutes gibt eine gute Eigenschaft. Dazu ein laufendes Karma der Kolonie aus allen Einlösungen und gewählten Ereignissen (−100 bis +100, im Spielstand, klingt ab). Ausgleichende Gerechtigkeit: Ab ±40 steht in Abstimmungen mit wachsender Chance etwas Verheerendes (gutes Karma) oder ein Segen (schlechtes Karma) zur Wahl.
 - Killer-Kaninchen: kaufbar mit `$Killer-Kaninchen` für die Hälfte eines neuen Kolonisten. Es trägt den Namen des Käufers und greift die Kolonie an; andere machen 90 s lang mit `!joinraid` als weitere Kaninchen mit. Wie viele angreifen, begrenzt die Bedrohung der Kolonie (Faktor einstellbar), höchstens alle 20 min ein Angriff.
 
 ## [0.1.0] – 2026-11-22

@@ -82,6 +82,7 @@ namespace TwitchCompanion.RimWorld
                 if (!(AccessTools.Property(AccessTools.TypeByName("CAP_ChatInteractive.Incidents.IncidentWorker_TwitchRaid"), "CurrentRaidUsernames")?.GetValue(null) is List<string> names)) return;
                 int before = names.Count(n => !string.IsNullOrWhiteSpace(n));
                 int max = RaidJoiners.MaxFighters(parms?.points ?? 0f, Settings.raidStrengthFactor, before);
+                KarmaKeeper.Record(KarmaAction.RaidJoin, null, Math.Min(before, max)); // feindlicher Raid: Kolonie −2 je Raider
                 if (before <= max) return;
                 List<string> kept = RaidJoiners.Trim(names, max, Rng);
                 names.Clear();

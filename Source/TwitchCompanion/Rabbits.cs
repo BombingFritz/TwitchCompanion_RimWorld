@@ -47,6 +47,7 @@ namespace TwitchCompanion.RimWorld
 
             Current = new RabbitAttack(line.UserId, line.NameForRics, now, TimeSpan.FromSeconds(Math.Max(15, Settings.rabbitWindowSeconds)));
             Settings.MarkRabbit(now);
+            KarmaKeeper.Record(KarmaAction.RabbitPurchase, line, 0); // Zuschauer −20; die Kolonie zählt beim Angriff je Kaninchen
             string text = "🐇 " + line.NameForRics + " hetzt ein Killer-Kaninchen auf die Kolonie! Wer mit !joinraid in den nächsten "
                 + Math.Max(15, Settings.rabbitWindowSeconds) + " s mitmacht, greift als Kaninchen mit an.";
             Messages.Message(text, MessageTypeDefOf.ThreatSmall, false);
@@ -59,9 +60,9 @@ namespace TwitchCompanion.RimWorld
         {
             RabbitAttack attack = Current;
             if (attack == null) return null;
-            return attack.Join(line.UserId, line.NameForRics, DateTime.UtcNow)
-                ? "🐇 Dabei! (" + attack.Count + " Kaninchen gemeldet)"
-                : "Du bist schon dabei.";
+            if (!attack.Join(line.UserId, line.NameForRics, DateTime.UtcNow)) return "Du bist schon dabei.";
+            KarmaKeeper.Record(KarmaAction.RabbitJoin, line);
+            return "🐇 Dabei! (" + attack.Count + " Kaninchen gemeldet)";
         }
 
         public static bool WindowOpen => Current != null && Current.IsOpen(DateTime.UtcNow);
@@ -103,6 +104,7 @@ namespace TwitchCompanion.RimWorld
                 catch (Exception ex) { Log.Warning(LogPrefix + "Kaninchen nicht erzeugt: " + ex.Message); }
             }
             if (pawns.Count == 0) return;
+            KarmaKeeper.Record(KarmaAction.RabbitPurchase, null, pawns.Count);
             string list = string.Join(", ", names);
             Find.LetterStack.ReceiveLetter("Killer-Kaninchen!",
                 pawns.Count + " Killer-Kaninchen greifen die Kolonie an: " + list + "."
@@ -115,7 +117,7 @@ namespace TwitchCompanion.RimWorld
         private static Map HomeMap => Find.Maps?.Where(m => m.IsPlayerHome).InRandomOrder().FirstOrDefault();
 
         /// <summary>Läuft gerade das Beitrittsfenster eines RICS-Raids? Dann gehört !joinraid dorthin.</summary>
-        private static bool RaidWindowActive
+        public static bool RaidWindowActive
         {
             get
             {
