@@ -157,6 +157,9 @@ namespace TwitchCompanion.RimWorld.Core
             w.Open(); w.Str("title", s.Title).Str("description", s.Description); w.CloseInner();
         }
 
+        /// <summary>ENTWURF: Körper für <c>POST /api/kartei/rimworld</c> (Vorschlag, Server-Issue #98): beide Teile, Personalakten mit <c>linkedUserId</c>.</summary>
+        public static string ServerBody(KarteiSnapshot s) => "{\"pawns\":" + Pawns(s, forServer: true) + ",\"colony\":" + Colony(s) + "}";
+
         /// <summary>Fingerabdruck ohne Zeitstempel: gleich, wenn sich am Inhalt nichts geändert hat.</summary>
         public static string Fingerprint(KarteiSnapshot s)
         {

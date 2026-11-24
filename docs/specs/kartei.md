@@ -88,6 +88,11 @@ Bei 10 bis 20 Kolonisten etwa 30 bis 60 KB für `pawns.json`, unter 2 KB für `c
 - Einstellung „Stream-Kartei“: Vorschau-Datei regelmäßig schreiben (Vorgabe aus), Takt in Minuten, Knopf „Vorschau jetzt schreiben“. Die Vorschau liegt im RimWorld-Konfigurationsordner unter `TwitchCompanion/kartei-rimworld-pawns.json` und `…-colony.json`, ohne Twitch-IDs.
 - **Senden an den Server: noch nicht.** Erst nach dem Merge des Server-Vertrags (Serveranforderung), in einem eigenen PR. Der Server wird vorher umfangreich gewartet und umgebaut (Nutzer, 24.11.2026); bis dahin nur Vorarbeiten mit Dummys, am Server nur Issues.
 
+## Entwurf: Senden (Branch `entwurf/kartei-senden`, nicht mergen vor dem Server-Vertrag)
+- Schalter „ENTWURF: an den Server senden“ (Vorgabe aus, nicht im Stream): Die Mod schickt den Stand an den **vorgeschlagenen** Endpunkt `POST /api/kartei/rimworld` (Körper wie `docs/kartei-beispiel/an-den-server.json`). Nicht angenommen → beim nächsten Takt erneut. Der heutige Server antwortet mit 404 („kennt den Endpunkt noch nicht“).
+- Attrappe `tools/attrappe-server.mjs`: nimmt den Stand an, prüft die Grundform, `GET /attrappe/kartei` zeigt ihn so, wie er veröffentlicht würde (ohne `linkedUserId`).
+- Nach dem Merge des Server-Vertrags: an den vereinbarten Endpunkt und das vereinbarte Antwortformat anpassen, eigener PR.
+
 ## Offen
 - [UNGEKLÄRT] Todesdatum der Verstorbenen.
 - Gestaltung der Seiten liegt bei `BombingFritz/StreamKartei`; ihr Format kommt aus dem Server-Vertrag.

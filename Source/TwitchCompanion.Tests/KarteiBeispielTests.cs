@@ -41,7 +41,7 @@ namespace TwitchCompanion.RimWorld.Tests
             {
                 ("rimworld/pawns.json", KarteiJson.Pawns(s, forServer: false)),
                 ("rimworld/colony.json", KarteiJson.Colony(s)),
-                ("an-den-server.json", "{\"pawns\":" + KarteiJson.Pawns(s, forServer: true) + ",\"colony\":" + KarteiJson.Colony(s) + "}"),
+                ("an-den-server.json", KarteiJson.ServerBody(s)),
             };
             bool write = Environment.GetEnvironmentVariable("KARTEI_BEISPIEL_SCHREIBEN") == "1";
             foreach (var (path, json) in files)

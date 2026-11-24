@@ -23,6 +23,18 @@ namespace TwitchCompanion.RimWorld
         private static string _lastFingerprint;
 
         public static string LastResult { get; private set; }
+        public static string LastSend { get; private set; }
+
+        /// <summary>ENTWURF: Antwort des Servers (Hauptthread). Bei Fehlern gilt der Stand als nicht gesendet und geht beim nächsten Takt erneut raus.</summary>
+        public static void OnSent(KarteiSendEvent ev)
+        {
+            bool ok = ev.Reason == null;
+            if (!ok && ev.Fingerprint == _lastFingerprint) _lastFingerprint = null;
+            LastSend = DateTime.Now.ToString("HH:mm") + ": " + (ok ? "vom Server angenommen"
+                : ev.Reason == "not_supported" ? "der Server kennt den Endpunkt noch nicht (Server-Issue #98)"
+                : "nicht angenommen (" + ev.Reason + (string.IsNullOrEmpty(ev.Error) ? string.Empty : ": " + ev.Error) + ")");
+            if (!ok) Log.Warning(LogPrefix + "Stream-Kartei: " + LastSend);
+        }
         public static KarteiSnapshot Last { get; private set; }
 
         private static CompanionSettings Settings => TwitchCompanionMod.Settings;
@@ -33,7 +45,7 @@ namespace TwitchCompanion.RimWorld
         /// <summary>Im Hauptthread. Baut höchstens alle <c>karteiIntervalMinutes</c> einen Stand; schreibt nur bei Änderung.</summary>
         public static void Tick()
         {
-            if (!Settings.karteiPreview || Current.Game == null || Find.TickManager == null) return;
+            if (!(Settings.karteiPreview || Settings.karteiSendDraft) || Current.Game == null || Find.TickManager == null) return;
             DateTime now = DateTime.UtcNow;
             if (!KarteiSchedule.IsDue(_lastBuildUtc, now, TimeSpan.FromMinutes(Math.Max(1, Settings.karteiIntervalMinutes)))) return;
             _lastBuildUtc = now;
@@ -50,6 +62,13 @@ namespace TwitchCompanion.RimWorld
                 string fingerprint = KarteiJson.Fingerprint(s);
                 if (!force && fingerprint == _lastFingerprint) { LastResult = DateTime.Now.ToString("HH:mm") + ": unverändert"; return; }
                 _lastFingerprint = fingerprint;
+                // ENTWURF: an den Server nur mit eigenem Schalter, gegen den vorgeschlagenen Endpunkt (Server-Issue #98).
+                if (Settings.karteiSendDraft && !Settings.testMode && Bridge.Link != null)
+                {
+                    Bridge.Link.SendKartei(KarteiJson.ServerBody(s), fingerprint);
+                    LastSend = DateTime.Now.ToString("HH:mm") + ": gesendet, Antwort steht aus";
+                }
+                if (!Settings.karteiPreview && !force) return;
                 Directory.CreateDirectory(PreviewFolder);
                 // Vorschau ohne Twitch-IDs (forServer: false).
                 File.WriteAllText(Path.Combine(PreviewFolder, "kartei-rimworld-pawns.json"), KarteiJson.Pawns(s, forServer: false));

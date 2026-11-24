@@ -31,6 +31,10 @@ namespace TwitchCompanion.RimWorld.Tests
         public volatile int PollStartStatus = 200;
         public volatile string PollStartJson = "{\"ok\":true,\"pollId\":\"p1\",\"startedAt\":\"2026-11-20T18:00:00Z\",\"endsAt\":\"2026-11-20T18:02:00Z\"}";
         public readonly ConcurrentQueue<string> PollStarts = new ConcurrentQueue<string>();
+        /// <summary>ENTWURF: vorgeschlagener Endpunkt für die Stream-Kartei (Server-Issue #98).</summary>
+        public volatile int KarteiStatus = 200;
+        public volatile string KarteiJson = "{\"ok\":true,\"queued\":true}";
+        public readonly ConcurrentQueue<string> KarteiBodies = new ConcurrentQueue<string>();
         public int ActiveRequests;
 
         private HttpListener _listener;
@@ -133,6 +137,12 @@ namespace TwitchCompanion.RimWorld.Tests
                 if (path == "/api/privacy/optouts")
                 {
                     Reply(ctx, OptoutsStatus, OptoutsStatus == 200 ? OptoutsJson : "{\"error\":\"x\"}");
+                    return;
+                }
+                if (path == "/api/kartei/rimworld" && ctx.Request.HttpMethod == "POST")
+                {
+                    KarteiBodies.Enqueue(new StreamReader(ctx.Request.InputStream, Encoding.UTF8).ReadToEnd());
+                    Reply(ctx, KarteiStatus, KarteiJson);
                     return;
                 }
                 if (path == "/api/twitch/poll/start" && ctx.Request.HttpMethod == "POST")

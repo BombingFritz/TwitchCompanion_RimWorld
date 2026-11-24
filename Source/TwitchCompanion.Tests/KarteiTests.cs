@@ -99,3 +99,78 @@ namespace TwitchCompanion.RimWorld.Tests
         }
     }
 }
+
+namespace TwitchCompanion.RimWorld.Tests
+{
+    /// <summary>ENTWURF: Senden an den vorgeschlagenen Endpunkt, nur gegen die Attrappe (Server-Issue #98).</summary>
+    public class KarteiSendenEntwurfTests
+    {
+        private static ServerLink NewLink(FakeServer server)
+        {
+            var cfg = new LinkConfig { Enabled = true, BaseUrl = server.BaseUrl, Prefixes = new[] { "!" } };
+            var link = new ServerLink(() => cfg, _ => { }) { ReconnectDelay = TimeSpan.FromMilliseconds(200), PollInterval = TimeSpan.FromMilliseconds(300) };
+            link.Start();
+            return link;
+        }
+
+        private static void WaitFor(Func<bool> condition, string what, int ms = 5000)
+        {
+            var until = DateTime.UtcNow.AddMilliseconds(ms);
+            while (DateTime.UtcNow < until) { if (condition()) return; System.Threading.Thread.Sleep(20); }
+            Assert.Fail("Zeitüberschreitung: " + what);
+        }
+
+        [Fact]
+        public void StandGehtAnDieAttrappe()
+        {
+            using var server = new FakeServer();
+            var link = NewLink(server);
+            try
+            {
+                WaitFor(() => link.Connected, "verbunden");
+                link.SendKartei(KarteiJson.ServerBody(KarteiBeispiel.Snapshot()), "abc");
+                WaitFor(() => link.Events.OfType<KarteiSendEvent>().Any(), "Antwort");
+                var ev = link.Events.OfType<KarteiSendEvent>().Single();
+                Assert.Null(ev.Reason);
+                Assert.Equal("abc", ev.Fingerprint);
+                Assert.True(server.KarteiBodies.TryPeek(out string body));
+                var o = Json.TryParseObject(body);
+                Assert.NotNull(Json.GetObject(o, "pawns"));
+                Assert.NotNull(Json.GetObject(o, "colony"));
+            }
+            finally { link.Stop(); }
+        }
+
+        [Fact]
+        public void HeutigerServerKenntDenEndpunktNicht()
+        {
+            using var server = new FakeServer { KarteiStatus = 404, KarteiJson = "{\"error\":\"not found\"}" };
+            var link = NewLink(server);
+            try
+            {
+                WaitFor(() => link.Connected, "verbunden");
+                link.SendKartei("{}", "x");
+                WaitFor(() => link.Events.OfType<KarteiSendEvent>().Any(), "Antwort");
+                Assert.Equal("not_supported", link.Events.OfType<KarteiSendEvent>().Single().Reason);
+            }
+            finally { link.Stop(); }
+        }
+
+        [Fact]
+        public void AbgelehnterStandNenntDenGrund()
+        {
+            using var server = new FakeServer { KarteiStatus = 503, KarteiJson = "{\"ok\":false,\"reason\":\"disabled\",\"error\":\"Modul aus\"}" };
+            var link = NewLink(server);
+            try
+            {
+                WaitFor(() => link.Connected, "verbunden");
+                link.SendKartei("{}", "x");
+                WaitFor(() => link.Events.OfType<KarteiSendEvent>().Any(), "Antwort");
+                var ev = link.Events.OfType<KarteiSendEvent>().Single();
+                Assert.Equal("disabled", ev.Reason);
+                Assert.Equal("Modul aus", ev.Error);
+            }
+            finally { link.Stop(); }
+        }
+    }
+}

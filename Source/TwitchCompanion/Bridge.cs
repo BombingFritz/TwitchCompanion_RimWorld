@@ -261,6 +261,9 @@ namespace TwitchCompanion.RimWorld
                 case PollResultEvent pollResult:
                     EventVotes.OnPollResult(pollResult);
                     break;
+                case KarteiSendEvent kartei:
+                    KarteiExport.OnSent(kartei);
+                    break;
                 case RaidEvent raid:
                     Raids.OnRaid(raid.Raid, LastActiveChatters);
                     break;
