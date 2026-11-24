@@ -82,6 +82,8 @@ namespace TwitchCompanion.RimWorld
         // Stream-Kartei (Vorarbeit, docs/specs/kartei.md): Vorschau-Datei, Takt.
         public bool karteiPreview;
         public int karteiIntervalMinutes = 10;
+        /// <summary>ENTWURF: an den vorgeschlagenen Server-Endpunkt senden (Vertrag fehlt, Server-Issue #98). Nur für Tests mit der Attrappe.</summary>
+        public bool karteiSendDraft;
 
         public DateTime? LastRabbitUtc => lastRabbitTicks > 0 ? new DateTime(lastRabbitTicks, DateTimeKind.Utc) : (DateTime?)null;
 
@@ -184,6 +186,7 @@ namespace TwitchCompanion.RimWorld
             Scribe_Values.Look(ref justiceForced, "justiceForced", false);
             Scribe_Values.Look(ref karteiPreview, "karteiPreview", false);
             Scribe_Values.Look(ref karteiIntervalMinutes, "karteiIntervalMinutes", 10);
+            Scribe_Values.Look(ref karteiSendDraft, "karteiSendDraft", false);
             if (Scribe.mode == LoadSaveMode.PostLoadInit)
             {
                 queueJoinedThisStream ??= new List<string>();
@@ -363,6 +366,9 @@ namespace TwitchCompanion.RimWorld
             if (list.ButtonText(Current.Game != null ? "  Vorschau jetzt schreiben" : "  Vorschau: erst einen Spielstand laden") && Current.Game != null)
                 KarteiExport.BuildAndWrite(force: true);
             if (KarteiExport.LastResult != null) list.Label("  Zuletzt: " + KarteiExport.LastResult);
+            list.CheckboxLabeled("  ENTWURF: an den Server senden (nur mit der Attrappe testen)", ref Settings.karteiSendDraft,
+                "Sendet an " + ServerLink.KarteiPath + ". Den Endpunkt gibt es im Server noch nicht (Server-Issue #98); der echte Server antwortet mit 404. Nicht im Stream einschalten.");
+            if (KarteiExport.LastSend != null) list.Label("  Senden: " + KarteiExport.LastSend);
 
             list.GapLine();
             list.Label("Killerkaninchen ($Killerkaninchen, Mitmachen mit !joinraid)");

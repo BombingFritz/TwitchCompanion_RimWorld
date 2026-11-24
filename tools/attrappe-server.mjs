@@ -11,6 +11,8 @@
 //   GET  /attrappe/status                                                     → Verbindungen, Anmeldungen
 //   POST /attrappe/poll     {votes?:[n,...], status?}  → laufende Abstimmung jetzt beenden (Vorgabe: zufällige Stimmen, COMPLETED)
 //   POST /attrappe/raid     {login, name?, viewers?}   → Ereignis raid an alle Verbindungen
+//   GET  /attrappe/kartei                             → ENTWURF: letzter Kartei-Stand, so wie er veröffentlicht würde (ohne linkedUserId)
+// ENTWURF Stream-Kartei (nicht vereinbart, Server-Issue #98): POST /api/kartei/rimworld {pawns, colony}.
 // Abstimmung (Teil C, Server-PR #83): POST /api/twitch/poll/start startet eine gespielte Abstimmung; nach durationS
 // kommt poll_result an die Verbindungen des startenden client. Läuft schon eine: 409 poll_active.
 import http from 'node:http';
@@ -30,6 +32,7 @@ let channel = { category: 'RimWorld', categoryChangedAt: new Date(Date.now() - 3
 let active = [];
 let poll = null; // {id, client, title, choices, endsAt, timer}
 let lastPollStart = 0;
+let kartei = null; // ENTWURF: letzter Stand der Stream-Kartei
 
 function endPoll(votes, status = 'COMPLETED') {
   if (!poll) return null;
@@ -137,6 +140,20 @@ const handler = async (req, res) => {
     console.log(`[attrappe] Abstimmung gestartet (${poll.choices.length} Optionen, ${b.durationS} s, Kanalpunkte ${b.channelPointsPerVote ?? '-'}): ${poll.choices.join(' | ')}`);
     return json(res, 200, { ok: true, pollId: poll.id, startedAt, endsAt });
   }
+  if (req.method === 'POST' && path === '/api/kartei/rimworld') {
+    const b = await readBody(req);
+    if (!b || typeof b.pawns !== 'object' || typeof b.colony !== 'object' || !Array.isArray(b.pawns?.colonists) || !Array.isArray(b.pawns?.deceased))
+      return json(res, 400, { ok: false, reason: 'invalid', error: 'pawns.colonists, pawns.deceased und colony erwartet' });
+    const strip = (p) => { const { linkedUserId, ...rest } = p; return rest; };
+    kartei = {
+      receivedAt: new Date().toISOString(),
+      pawns: { ...b.pawns, colonists: b.pawns.colonists.map(strip), deceased: b.pawns.deceased.map(strip) },
+      colony: b.colony,
+    };
+    console.log(`[attrappe] Kartei-Stand: ${b.pawns.colonists.length} Kolonisten, ${b.pawns.deceased.length} Verstorbene`);
+    return json(res, 200, { ok: true, queued: true });
+  }
+  if (req.method === 'GET' && path === '/attrappe/kartei') return json(res, kartei ? 200 : 404, kartei || { error: 'noch kein Stand' });
   if (req.method === 'POST' && path === '/attrappe/poll') {
     const b = (await readBody(req)) || {};
     const r = endPoll(b.votes, b.status || 'COMPLETED');

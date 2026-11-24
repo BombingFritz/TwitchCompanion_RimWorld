@@ -35,6 +35,8 @@ namespace TwitchCompanion.RimWorld.Core
     public sealed class PollStartEvent { public string RoundId; public PollStartResult Result; }
     public sealed class PollResultEvent { public PollResult Result; }
     public sealed class RaidEvent { public RaidInfo Raid; }
+    /// <summary>Antwort auf das Senden des Kartei-Stands (ENTWURF gegen den vorgeschlagenen Endpunkt, Server-Issue #98).</summary>
+    public sealed class KarteiSendEvent { public int Status; public string Reason; public string Error; public string Fingerprint; }
 
     /// <summary>
     /// Verbindung nach der Server-Spec „Chat-Brücke“ (Server-Issues #74, #79; gemergt, Server-PR #82):
@@ -162,6 +164,35 @@ namespace TwitchCompanion.RimWorld.Core
                     if (r.Status == 0) result.Error = r.Error;
                 }
                 Events.Enqueue(new PollStartEvent { RoundId = roundId, Result = result });
+            });
+        }
+
+        /// <summary>Vorgeschlagener Endpunkt (noch kein Vertrag, Server-Issue #98).</summary>
+        public const string KarteiPath = "/api/kartei/rimworld";
+
+        /// <summary>
+        /// ENTWURF: schickt den Stand der Kolonie an den Server (<c>POST /api/kartei/rimworld</c>, nicht vereinbart). Antwort als
+        /// <see cref="KarteiSendEvent"/> über <see cref="Events"/>. Nur gegen die Attrappe getestet.
+        /// </summary>
+        public void SendKartei(string body, string fingerprint)
+        {
+            ThreadPool.QueueUserWorkItem(_ =>
+            {
+                LinkConfig cfg = SafeConfig();
+                var ev = new KarteiSendEvent { Fingerprint = fingerprint };
+                if (cfg == null || !_connected) ev.Reason = "unreachable";
+                else
+                {
+                    HttpResult r = Request(Base(cfg) + KarteiPath, "POST", body);
+                    ev.Status = r.Status;
+                    var o = Json.TryParseObject(r.Body);
+                    ev.Reason = r.Status == 200 && o != null && Json.GetBool(o, "ok") ? null
+                        : r.Status == 404 && (o == null || !o.ContainsKey("reason")) ? "not_supported"
+                        : r.Status == 0 ? "unreachable"
+                        : Json.GetString(o, "reason") ?? "http_" + r.Status;
+                    ev.Error = o == null ? r.Error : Json.GetString(o, "error");
+                }
+                Events.Enqueue(ev);
             });
         }
 
