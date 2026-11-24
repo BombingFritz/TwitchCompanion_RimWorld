@@ -1,0 +1,576 @@
+{
+  "schemaVersion": 1,
+  "game": "rimworld",
+  "gameVersion": "1.6.4871 rev591",
+  "generatedAt": "2026-11-24T20:30:00.000Z",
+  "colonists": [
+    {
+      "name": "Spargelkönig",
+      "nameFirst": "Herbert",
+      "nameNick": "Spargelkönig",
+      "nameLast": "Kranich",
+      "title": "Feldarbeiter",
+      "genderLabel": "Männlich",
+      "ageBiological": 42,
+      "ageChronological": 117,
+      "xenotype": "Baseliner",
+      "statusLabel": "in der Kolonie",
+      "mood": 71,
+      "childhood": {
+        "title": "Bauernkind",
+        "description": "Herbert wuchs auf einer kleinen Farm auf und lernte früh, mit Saatgut und Wetter umzugehen."
+      },
+      "adulthood": {
+        "title": "Feldarbeiter",
+        "description": "Jahrelang bestellte Herbert fremde Felder für wenig Lohn."
+      },
+      "traits": [
+        "Fleißig",
+        "Optimist"
+      ],
+      "skills": [
+        {
+          "name": "Schießen",
+          "level": 4,
+          "passion": "keine",
+          "disabled": false
+        },
+        {
+          "name": "Nahkampf",
+          "level": 3,
+          "passion": "keine",
+          "disabled": false
+        },
+        {
+          "name": "Bauen",
+          "level": 6,
+          "passion": "keine",
+          "disabled": false
+        },
+        {
+          "name": "Bergbau",
+          "level": 5,
+          "passion": "keine",
+          "disabled": false
+        },
+        {
+          "name": "Kochen",
+          "level": 7,
+          "passion": "Interesse",
+          "disabled": false
+        },
+        {
+          "name": "Pflanzen",
+          "level": 13,
+          "passion": "Leidenschaft",
+          "disabled": false
+        },
+        {
+          "name": "Tiere",
+          "level": 6,
+          "passion": "keine",
+          "disabled": false
+        },
+        {
+          "name": "Handwerk",
+          "level": 2,
+          "passion": "keine",
+          "disabled": false
+        },
+        {
+          "name": "Kunst",
+          "level": 0,
+          "passion": "keine",
+          "disabled": false
+        },
+        {
+          "name": "Medizin",
+          "level": 3,
+          "passion": "keine",
+          "disabled": false
+        },
+        {
+          "name": "Sozial",
+          "level": 5,
+          "passion": "keine",
+          "disabled": false
+        },
+        {
+          "name": "Intellektuell",
+          "level": 1,
+          "passion": "keine",
+          "disabled": false
+        }
+      ],
+      "health": [
+        {
+          "label": "Narbe (Schnitt)",
+          "part": "Linke Hand"
+        }
+      ],
+      "weapon": "Ikwa (gut)",
+      "apparel": [
+        "Hemd aus Baumwolle",
+        "Hose aus Baumwolle",
+        "Cowboyhut"
+      ],
+      "relations": [
+        {
+          "label": "Ehefrau",
+          "other": "Möhrchen"
+        }
+      ],
+      "killsHumanlike": 3,
+      "killsAnimals": 11,
+      "daysAsColonist": 37.2,
+      "viewerLinked": true,
+      "diedLabel": null
+    },
+    {
+      "name": "Möhrchen",
+      "nameFirst": "Mira",
+      "nameNick": "Möhrchen",
+      "nameLast": "Kranich",
+      "title": "Ärztin",
+      "genderLabel": "Weiblich",
+      "ageBiological": 38,
+      "ageChronological": 38,
+      "xenotype": "Baseliner",
+      "statusLabel": "in der Kolonie",
+      "mood": 58,
+      "childhood": {
+        "title": "Krankenhaushelferin",
+        "description": "Mira verbrachte ihre Kindheit zwischen Betten und Verbänden."
+      },
+      "adulthood": {
+        "title": "Landärztin",
+        "description": "Als einzige Ärztin weit und breit behandelte Mira alles von Grippe bis Schusswunden."
+      },
+      "traits": [
+        "Freundlich",
+        "Schneller Lerner"
+      ],
+      "skills": [
+        {
+          "name": "Schießen",
+          "level": 2,
+          "passion": "keine",
+          "disabled": false
+        },
+        {
+          "name": "Nahkampf",
+          "level": 1,
+          "passion": "keine",
+          "disabled": false
+        },
+        {
+          "name": "Bauen",
+          "level": 3,
+          "passion": "keine",
+          "disabled": false
+        },
+        {
+          "name": "Bergbau",
+          "level": 1,
+          "passion": "keine",
+          "disabled": false
+        },
+        {
+          "name": "Kochen",
+          "level": 5,
+          "passion": "keine",
+          "disabled": false
+        },
+        {
+          "name": "Pflanzen",
+          "level": 4,
+          "passion": "keine",
+          "disabled": false
+        },
+        {
+          "name": "Tiere",
+          "level": 3,
+          "passion": "keine",
+          "disabled": false
+        },
+        {
+          "name": "Handwerk",
+          "level": 4,
+          "passion": "keine",
+          "disabled": false
+        },
+        {
+          "name": "Kunst",
+          "level": 2,
+          "passion": "keine",
+          "disabled": false
+        },
+        {
+          "name": "Medizin",
+          "level": 12,
+          "passion": "Leidenschaft",
+          "disabled": false
+        },
+        {
+          "name": "Sozial",
+          "level": 8,
+          "passion": "Interesse",
+          "disabled": false
+        },
+        {
+          "name": "Intellektuell",
+          "level": 9,
+          "passion": "Interesse",
+          "disabled": false
+        }
+      ],
+      "health": [],
+      "weapon": null,
+      "apparel": [
+        "Kittel",
+        "Hose aus Baumwolle"
+      ],
+      "relations": [
+        {
+          "label": "Ehemann",
+          "other": "Spargelkönig"
+        }
+      ],
+      "killsHumanlike": 0,
+      "killsAnimals": 1,
+      "daysAsColonist": 37.2,
+      "viewerLinked": true,
+      "diedLabel": null
+    },
+    {
+      "name": "Dulli",
+      "nameFirst": "Dieter",
+      "nameNick": "Dulli",
+      "nameLast": "Wendt",
+      "title": "Tagelöhner",
+      "genderLabel": "Männlich",
+      "ageBiological": 27,
+      "ageChronological": 27,
+      "xenotype": "Baseliner",
+      "statusLabel": "in der Kolonie",
+      "mood": 44,
+      "childhood": {
+        "title": "Straßenkind",
+        "description": "Dieter lernte auf der Straße, schnell zu laufen."
+      },
+      "adulthood": null,
+      "traits": [
+        "Weichei"
+      ],
+      "skills": [
+        {
+          "name": "Schießen",
+          "level": 5,
+          "passion": "keine",
+          "disabled": false
+        },
+        {
+          "name": "Nahkampf",
+          "level": 2,
+          "passion": "keine",
+          "disabled": false
+        },
+        {
+          "name": "Bauen",
+          "level": 8,
+          "passion": "Interesse",
+          "disabled": false
+        },
+        {
+          "name": "Bergbau",
+          "level": 9,
+          "passion": "Leidenschaft",
+          "disabled": false
+        },
+        {
+          "name": "Kochen",
+          "level": 0,
+          "passion": "keine",
+          "disabled": true
+        },
+        {
+          "name": "Pflanzen",
+          "level": 3,
+          "passion": "keine",
+          "disabled": false
+        },
+        {
+          "name": "Tiere",
+          "level": 1,
+          "passion": "keine",
+          "disabled": false
+        },
+        {
+          "name": "Handwerk",
+          "level": 5,
+          "passion": "keine",
+          "disabled": false
+        },
+        {
+          "name": "Kunst",
+          "level": 0,
+          "passion": "keine",
+          "disabled": true
+        },
+        {
+          "name": "Medizin",
+          "level": 0,
+          "passion": "keine",
+          "disabled": false
+        },
+        {
+          "name": "Sozial",
+          "level": 1,
+          "passion": "keine",
+          "disabled": false
+        },
+        {
+          "name": "Intellektuell",
+          "level": 0,
+          "passion": "keine",
+          "disabled": false
+        }
+      ],
+      "health": [
+        {
+          "label": "Grippe",
+          "part": null
+        }
+      ],
+      "weapon": "Revolver (normal)",
+      "apparel": [
+        "Parka"
+      ],
+      "relations": [],
+      "killsHumanlike": 1,
+      "killsAnimals": 0,
+      "daysAsColonist": 9.8,
+      "viewerLinked": false,
+      "diedLabel": null
+    },
+    {
+      "name": "Kanzlerin",
+      "nameFirst": "Klara",
+      "nameNick": "Kanzlerin",
+      "nameLast": "Bohne",
+      "title": "Diplomatin",
+      "genderLabel": "Weiblich",
+      "ageBiological": 55,
+      "ageChronological": 55,
+      "xenotype": "Baseliner",
+      "statusLabel": "mit einer Karawane unterwegs",
+      "mood": 82,
+      "childhood": {
+        "title": "Adelstochter",
+        "description": "Klara wuchs mit Etikette und Tischmanieren auf."
+      },
+      "adulthood": {
+        "title": "Diplomatin",
+        "description": "Klara verhandelte Frieden zwischen Siedlungen, die sich lieber beschossen hätten."
+      },
+      "traits": [
+        "Zäh"
+      ],
+      "skills": [
+        {
+          "name": "Schießen",
+          "level": 3,
+          "passion": "keine",
+          "disabled": false
+        },
+        {
+          "name": "Nahkampf",
+          "level": 2,
+          "passion": "keine",
+          "disabled": false
+        },
+        {
+          "name": "Bauen",
+          "level": 1,
+          "passion": "keine",
+          "disabled": false
+        },
+        {
+          "name": "Bergbau",
+          "level": 0,
+          "passion": "keine",
+          "disabled": false
+        },
+        {
+          "name": "Kochen",
+          "level": 2,
+          "passion": "keine",
+          "disabled": false
+        },
+        {
+          "name": "Pflanzen",
+          "level": 1,
+          "passion": "keine",
+          "disabled": false
+        },
+        {
+          "name": "Tiere",
+          "level": 4,
+          "passion": "keine",
+          "disabled": false
+        },
+        {
+          "name": "Handwerk",
+          "level": 1,
+          "passion": "keine",
+          "disabled": false
+        },
+        {
+          "name": "Kunst",
+          "level": 6,
+          "passion": "Interesse",
+          "disabled": false
+        },
+        {
+          "name": "Medizin",
+          "level": 2,
+          "passion": "keine",
+          "disabled": false
+        },
+        {
+          "name": "Sozial",
+          "level": 15,
+          "passion": "Leidenschaft",
+          "disabled": false
+        },
+        {
+          "name": "Intellektuell",
+          "level": 7,
+          "passion": "keine",
+          "disabled": false
+        }
+      ],
+      "health": [],
+      "weapon": "Messer (gut)",
+      "apparel": [
+        "Staubmantel",
+        "Hose aus Leder"
+      ],
+      "relations": [],
+      "killsHumanlike": 0,
+      "killsAnimals": 2,
+      "daysAsColonist": 21.5,
+      "viewerLinked": true,
+      "diedLabel": null
+    }
+  ],
+  "deceased": [
+    {
+      "name": "Rübe",
+      "nameFirst": "Rudi",
+      "nameNick": "Rübe",
+      "nameLast": "Haller",
+      "title": "Jäger",
+      "genderLabel": "Männlich",
+      "ageBiological": 33,
+      "ageChronological": 33,
+      "xenotype": "Baseliner",
+      "statusLabel": "verstorben",
+      "mood": null,
+      "childhood": {
+        "title": "Waldkind",
+        "description": "Rudi kannte jeden Pfad im Wald."
+      },
+      "adulthood": {
+        "title": "Jäger",
+        "description": "Rudi versorgte sein Dorf mit Fleisch und Fellen."
+      },
+      "traits": [
+        "Nachteule"
+      ],
+      "skills": [
+        {
+          "name": "Schießen",
+          "level": 10,
+          "passion": "Leidenschaft",
+          "disabled": false
+        },
+        {
+          "name": "Nahkampf",
+          "level": 4,
+          "passion": "keine",
+          "disabled": false
+        },
+        {
+          "name": "Bauen",
+          "level": 2,
+          "passion": "keine",
+          "disabled": false
+        },
+        {
+          "name": "Bergbau",
+          "level": 1,
+          "passion": "keine",
+          "disabled": false
+        },
+        {
+          "name": "Kochen",
+          "level": 3,
+          "passion": "keine",
+          "disabled": false
+        },
+        {
+          "name": "Pflanzen",
+          "level": 2,
+          "passion": "keine",
+          "disabled": false
+        },
+        {
+          "name": "Tiere",
+          "level": 8,
+          "passion": "Interesse",
+          "disabled": false
+        },
+        {
+          "name": "Handwerk",
+          "level": 1,
+          "passion": "keine",
+          "disabled": false
+        },
+        {
+          "name": "Kunst",
+          "level": 0,
+          "passion": "keine",
+          "disabled": false
+        },
+        {
+          "name": "Medizin",
+          "level": 1,
+          "passion": "keine",
+          "disabled": false
+        },
+        {
+          "name": "Sozial",
+          "level": 2,
+          "passion": "keine",
+          "disabled": false
+        },
+        {
+          "name": "Intellektuell",
+          "level": 0,
+          "passion": "keine",
+          "disabled": false
+        }
+      ],
+      "health": [],
+      "weapon": null,
+      "apparel": [],
+      "relations": [],
+      "killsHumanlike": 6,
+      "killsAnimals": 24,
+      "daysAsColonist": 30.1,
+      "viewerLinked": true,
+      "diedLabel": null
+    }
+  ]
+}

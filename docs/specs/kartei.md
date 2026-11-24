@@ -6,7 +6,7 @@ Dieses Dokument ist der Vorschlag der Mod für Inhalt und Format. Verbindlich wi
 
 ## Ziel
 Wie für UBOAT soll es für RimWorld eine eigene Seite der Stream-Kartei geben (Nutzer, 24.11.2026):
-- **Personalakten** der Kolonisten, ausführlich, dazu die Gefallenen.
+- **Personalakten** der Kolonisten, ausführlich, dazu die **Verstorbenen** (Nutzer, 24.11.2026: „Verstorbene“, auf der Seite eingeleitet mit „Wir gedenken: …“).
 - **Statistik der ganzen Kolonie** als **eigene Unterseite** (Nutzer, 24.11.2026).
 - Aktualisierung regelmäßig, aber nicht zu oft, damit Spiel und Server nicht leiden.
 
@@ -24,7 +24,7 @@ RimWorld-Mod ──baut alle 10 min (nur bei Änderung)──> Stand (JSON)
 - Twitch-Logins und -Namen erscheinen nicht auf der Website (Server-Spec, Entscheidung vom 21.11.2026).
 - Die Mod schickt dem Server je verknüpfter Figur die Twitch-ID (`linkedUserId`), **nur lokal**: Damit kann der Server Figuren von `!privat`-Zuschauern ausblenden, auch wenn jemand `!privat` erst später einschaltet. Der Server entfernt das Feld vor dem Veröffentlichen. Die Vorschau-Datei der Mod enthält es nie.
 - Die Mod filtert selbst, soweit sie `!privat` in diesem Lauf gesehen hat; maßgeblich ist der Filter des Servers mit seiner vollständigen Liste.
-- **[UNGEKLÄRT] Name der Figur:** RICS gibt einem Kolonisten, der einem Zuschauer gehört, dessen Twitch-Namen als Spitznamen. Bei UBOAT „ähneln“ die Namen im Spiel den Twitch-Namen; hier sind sie gleich. Möglich: (a) Name im Spiel wie er ist (die Server-Spec erlaubt Namen im Spiel), (b) bei verknüpften Figuren nur Vor- und Nachname ohne Spitznamen. Entscheidet der Nutzer.
+- **Name der Figur** (Nutzer, 24.11.2026): Der Spitzname ist der Hauptname, den das Spiel überall zeigt, und passt zu den Zuschauern; er wird benutzt (`name`). Bei Figuren von Zuschauern ist er bei RICS gleich dem Twitch-Namen. Twitch-Logins als eigenes Feld oder Zuordnungen gehen trotzdem nicht auf die Seite.
 - Nicht enthalten: Raider, Killerkaninchen und andere Figuren außerhalb der Kolonie; Karma einzelner Zuschauer; Dateiname oder Ordner des Spielstands.
 
 ## Format (Vorschlag)
@@ -47,15 +47,15 @@ Alle Zeitpunkte ISO, Zahlen ohne Einheit. Texte kommen aus dem Spiel (in der Spi
     "killsHumanlike": 2, "killsAnimals": 5, "daysAsColonist": 12.3,
     "viewerLinked": true, "diedLabel": null
   } ],
-  "fallen": [ { "name": "Rolf", "statusLabel": "gefallen", "diedLabel": null, "…": "…" } ]
+  "deceased": [ { "name": "Rolf", "statusLabel": "verstorben", "diedLabel": null, "…": "…" } ]
 }
 ```
 - `colonists`: freie Kolonisten auf Karten, in Karawanen und unterwegs; sortiert nach Name.
-- `fallen`: gestorbene Kolonisten der Spielerfraktion, die das Spiel noch kennt (Ehrentafel). `diedLabel` (Spieldatum des Todes) [UNGEKLÄRT: Quelle im Spiel noch zu klären, vorerst `null`].
+- `deceased`: Verstorbene der Spielerfraktion, die das Spiel noch kennt. Auf der Seite unter „Wir gedenken: …“ (Nutzer, 24.11.2026). `diedLabel` (Spieldatum des Todes) [UNGEKLÄRT: Quelle im Spiel noch zu klären, vorerst `null`].
 - `title`: Titel aus dem Lebenslauf; `childhood`/`adulthood`: Abschnitte des Lebenslaufs mit Beschreibung.
 - `skills.passion`: „keine“, „Interesse“, „Leidenschaft“; `disabled`: Fertigkeit ist für die Figur gesperrt.
 - `health`: nur sichtbare Einträge (Verletzungen, Krankheiten, Implantate), mit Körperteil.
-- `mood`: Stimmung in Prozent; `null` bei Gefallenen.
+- `mood`: Stimmung in Prozent; `null` bei Verstorbenen.
 - `relations`: nur zu anderen Menschen der Kolonie, wichtigste Beziehung je Person.
 - `viewerLinked`: Die Figur gehört einem Zuschauer, ohne zu sagen, welchem.
 - An den Server zusätzlich `linkedUserId` (Twitch-ID, nur lokal, siehe oben).
@@ -67,7 +67,7 @@ Alle Zeitpunkte ISO, Zahlen ohne Einheit. Texte kommen aus dem Spiel (in der Spi
   "colonyName": "Spargelhof", "factionName": "Neue Siedler", "dateLabel": "7. Aprimay 5501", "daysPassed": 37,
   "storyteller": "Cassandra", "difficulty": "Raue Welt", "biome": "Gemäßigter Wald",
   "wealth": { "total": 13166, "items": 6000, "buildings": 5000, "pawns": 2166 },
-  "colonists": 6, "prisoners": 0, "animals": 3, "fallen": 1, "averageMood": 64,
+  "colonists": 6, "prisoners": 0, "animals": 3, "deceased": 1, "averageMood": 64,
   "colonyKarma": { "value": 13, "label": "ausgeglichen" },
   "mods": ["RICS", "Twitch Companion"]
 }
@@ -76,16 +76,18 @@ Alle Zeitpunkte ISO, Zahlen ohne Einheit. Texte kommen aus dem Spiel (in der Spi
 - `mods`: aktive Mods ohne die offiziellen Inhalte (wie `mods` bei UBOAT).
 - Später denkbar [nicht umgesetzt]: Verlauf über die Zeit (Wohlstand, Kolonisten), Zahl der überstandenen Raids, gewählte Ereignisse.
 
+### Beispieldaten (Dummys)
+Erfundene Daten im Format liegen unter `docs/kartei-beispiel/` (Personalakten, Statistik, Vorschlag für den Körper an den Server). Sie dienen den Vorarbeiten für Website und Server, solange der Vertrag fehlt; die Mod erzeugt sie selbst, ein Test hält sie aktuell.
+
 ### Größe
 Bei 10 bis 20 Kolonisten etwa 30 bis 60 KB für `pawns.json`, unter 2 KB für `colony.json`.
 
 ## Vorarbeit in der Mod (umgesetzt)
 - `Core/Kartei.cs`: Datenmodell, JSON (`KarteiJson.Pawns`, `KarteiJson.Colony`), Fingerabdruck, Takt. Unit-Tests `KarteiTests`.
-- `KarteiExport.cs`: baut den Stand aus dem Spiel (Kolonisten, Gefallene, Kolonie, Zuordnung zu Zuschauern aus RICS).
+- `KarteiExport.cs`: baut den Stand aus dem Spiel (Kolonisten, Verstorbene, Kolonie, Zuordnung zu Zuschauern aus RICS).
 - Einstellung „Stream-Kartei“: Vorschau-Datei regelmäßig schreiben (Vorgabe aus), Takt in Minuten, Knopf „Vorschau jetzt schreiben“. Die Vorschau liegt im RimWorld-Konfigurationsordner unter `TwitchCompanion/kartei-rimworld-pawns.json` und `…-colony.json`, ohne Twitch-IDs.
-- **Senden an den Server: noch nicht.** Erst nach dem Merge des Server-Vertrags (Serveranforderung), in einem eigenen PR.
+- **Senden an den Server: noch nicht.** Erst nach dem Merge des Server-Vertrags (Serveranforderung), in einem eigenen PR. Der Server wird vorher umfangreich gewartet und umgebaut (Nutzer, 24.11.2026); bis dahin nur Vorarbeiten mit Dummys, am Server nur Issues.
 
 ## Offen
-- [UNGEKLÄRT] Name der Figur bei verknüpften Kolonisten (siehe Datenschutz).
-- [UNGEKLÄRT] Todesdatum der Gefallenen.
+- [UNGEKLÄRT] Todesdatum der Verstorbenen.
 - Gestaltung der Seiten liegt bei `BombingFritz/StreamKartei`; ihr Format kommt aus dem Server-Vertrag.

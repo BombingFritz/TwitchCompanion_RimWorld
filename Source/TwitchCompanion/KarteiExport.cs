@@ -54,7 +54,7 @@ namespace TwitchCompanion.RimWorld
                 // Vorschau ohne Twitch-IDs (forServer: false).
                 File.WriteAllText(Path.Combine(PreviewFolder, "kartei-rimworld-pawns.json"), KarteiJson.Pawns(s, forServer: false));
                 File.WriteAllText(Path.Combine(PreviewFolder, "kartei-rimworld-colony.json"), KarteiJson.Colony(s));
-                LastResult = DateTime.Now.ToString("HH:mm") + ": " + s.Colonists.Count + " Kolonisten, " + s.Fallen.Count + " Gefallene";
+                LastResult = DateTime.Now.ToString("HH:mm") + ": " + s.Colonists.Count + " Kolonisten, " + s.Deceased.Count + " Verstorbene";
                 Log.Message(LogPrefix + "Stream-Kartei: Vorschau geschrieben (" + LastResult + ").");
             }
             catch (Exception ex)
@@ -82,7 +82,7 @@ namespace TwitchCompanion.RimWorld
             {
                 KarteiPawn kp = FromPawn(p, links);
                 if (kp == null || (kp.LinkedUserId != null && privateIds.Contains(kp.LinkedUserId))) continue;
-                s.Fallen.Add(kp);
+                s.Deceased.Add(kp);
             }
             s.Colony = ColonyStats(s);
             return s;
@@ -99,12 +99,12 @@ namespace TwitchCompanion.RimWorld
             {
                 var kp = new KarteiPawn
                 {
-                    Name = p.Name.ToStringShort,
+                    Name = p.Name.ToStringShort, // Spitzname = Hauptname im Spiel, bei Zuschauer-Figuren der Twitch-Name (Nutzer, 24.11.2026)
                     GenderLabel = p.gender.GetLabel().CapitalizeFirst(),
                     AgeBiological = p.ageTracker?.AgeBiologicalYears,
                     AgeChronological = p.ageTracker?.AgeChronologicalYears,
                     Xenotype = ModsConfig.BiotechActive ? p.genes?.XenotypeLabelCap : null,
-                    StatusLabel = p.Dead ? "gefallen" : p.IsCaravanMember() ? "mit einer Karawane unterwegs" : p.IsPrisoner ? "gefangen" : "in der Kolonie",
+                    StatusLabel = p.Dead ? "verstorben" : p.IsCaravanMember() ? "mit einer Karawane unterwegs" : p.IsPrisoner ? "gefangen" : "in der Kolonie",
                 };
                 if (p.Name is NameTriple n) { kp.NameFirst = n.First; kp.NameNick = n.Nick; kp.NameLast = n.Last; }
                 if (p.story != null)
@@ -167,7 +167,7 @@ namespace TwitchCompanion.RimWorld
                 Storyteller = Find.Storyteller?.def?.LabelCap,
                 Difficulty = Find.Storyteller?.difficultyDef?.LabelCap,
                 Colonists = s.Colonists.Count,
-                Dead = s.Fallen.Count,
+                Deceased = s.Deceased.Count,
                 Mods = LoadedModManager.RunningModsListForReading.Where(m => !m.IsOfficialMod).Select(m => m.Name).ToList(),
             };
             Map home = Find.Maps?.Where(m => m.IsPlayerHome).OrderByDescending(m => m.mapPawns.FreeColonistsCount).FirstOrDefault();

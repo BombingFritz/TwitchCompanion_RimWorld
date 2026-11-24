@@ -26,13 +26,13 @@ namespace TwitchCompanion.RimWorld.Tests
                 Relations = new List<KarteiRelation> { new KarteiRelation { Label = "Schwester", Other = "Rolf" } },
                 KillsHumanlike = 2, KillsAnimals = 5, DaysAsColonist = 12.345, ViewerLinked = true, LinkedUserId = "12345",
             });
-            s.Fallen.Add(new KarteiPawn { Name = "Rolf", StatusLabel = "gefallen", DiedLabel = "5. Frühsommer 5501" });
+            s.Deceased.Add(new KarteiPawn { Name = "Rolf", StatusLabel = "verstorben", DiedLabel = "5. Frühsommer 5501" });
             s.Colony = new KarteiColony
             {
                 ColonyName = "Spargelhof", FactionName = "Neue Siedler", DateLabel = "7. Aprimay 5501", DaysPassed = 37,
                 Storyteller = "Cassandra", Difficulty = "Raue Welt", Biome = "Gemäßigter Wald",
                 WealthTotal = 13166.4f, WealthItems = 6000f, WealthBuildings = 5000f, WealthPawns = 2166.4f,
-                Colonists = 1, Prisoners = 0, Animals = 3, Dead = 1, AverageMood = 64, ColonyKarma = 12.6f, ColonyKarmaLabel = "ausgeglichen",
+                Colonists = 1, Prisoners = 0, Animals = 3, Deceased = 1, AverageMood = 64, ColonyKarma = 12.6f, ColonyKarmaLabel = "ausgeglichen",
                 Mods = new List<string> { "RICS", "Twitch Companion" },
             };
             return s;
@@ -52,7 +52,8 @@ namespace TwitchCompanion.RimWorld.Tests
             Assert.Null(Json.GetObject(kiwi, "adulthood"));
             Assert.Equal(12.3, Json.GetNumber(kiwi, "daysAsColonist"));
             Assert.True(Json.GetBool(kiwi, "viewerLinked"));
-            Assert.Single(Json.GetArray(o, "fallen"));
+            Assert.Single(Json.GetArray(o, "deceased"));
+            Assert.Null(Json.GetArray(o, "fallen"));
         }
 
         [Fact]

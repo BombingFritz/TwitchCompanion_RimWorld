@@ -50,7 +50,7 @@ namespace TwitchCompanion.RimWorld.Core
         public List<string> Traits = new List<string>();
         public List<KarteiSkill> Skills = new List<KarteiSkill>();
         public List<KarteiCondition> Health = new List<KarteiCondition>();
-        /// <summary>Stimmung in Prozent, <c>null</c> wenn unbekannt (z. B. tot).</summary>
+        /// <summary>Stimmung in Prozent, <c>null</c> wenn unbekannt (z. B. verstorben).</summary>
         public int? Mood;
         public string StatusLabel;
         public string Weapon;
@@ -62,7 +62,7 @@ namespace TwitchCompanion.RimWorld.Core
         public bool ViewerLinked;
         /// <summary>Nur für den Server: Twitch-ID des verknüpften Zuschauers, damit er bei <c>!privat</c> ausblenden kann. Wird nie veröffentlicht.</summary>
         public string LinkedUserId;
-        /// <summary>Spieldatum des Todes als Text, nur bei Gefallenen.</summary>
+        /// <summary>Spieldatum des Todes als Text, nur bei Verstorbenen.</summary>
         public string DiedLabel;
     }
 
@@ -73,7 +73,7 @@ namespace TwitchCompanion.RimWorld.Core
         public int DaysPassed;
         public string Storyteller, Difficulty, Biome;
         public float WealthTotal, WealthItems, WealthBuildings, WealthPawns;
-        public int Colonists, Prisoners, Animals, Dead;
+        public int Colonists, Prisoners, Animals, Deceased;
         public int? AverageMood;
         public float? ColonyKarma;
         public string ColonyKarmaLabel;
@@ -86,7 +86,8 @@ namespace TwitchCompanion.RimWorld.Core
         public string GameVersion;
         public DateTime GeneratedAtUtc;
         public List<KarteiPawn> Colonists = new List<KarteiPawn>();
-        public List<KarteiPawn> Fallen = new List<KarteiPawn>();
+        /// <summary>Verstorbene (Nutzer, 24.11.2026: „Verstorbene“, auf der Seite „Wir gedenken: …“).</summary>
+        public List<KarteiPawn> Deceased = new List<KarteiPawn>();
         public KarteiColony Colony = new KarteiColony();
     }
 
@@ -104,7 +105,7 @@ namespace TwitchCompanion.RimWorld.Core
             w.Num("schemaVersion", KarteiSnapshot.SchemaVersion).Str("game", "rimworld").Str("gameVersion", s.GameVersion);
             if (withTimestamp) w.Str("generatedAt", Iso(s.GeneratedAtUtc));
             w.Arr("colonists", s.Colonists, p => PawnObject(w, p, forServer));
-            w.Arr("fallen", s.Fallen, p => PawnObject(w, p, forServer));
+            w.Arr("deceased", s.Deceased, p => PawnObject(w, p, forServer));
             return w.Close();
         }
 
@@ -121,7 +122,7 @@ namespace TwitchCompanion.RimWorld.Core
             w.Key("wealth"); w.Open();
             w.Num("total", Round(c.WealthTotal)).Num("items", Round(c.WealthItems)).Num("buildings", Round(c.WealthBuildings)).Num("pawns", Round(c.WealthPawns));
             w.CloseInner();
-            w.Num("colonists", c.Colonists).Num("prisoners", c.Prisoners).Num("animals", c.Animals).Num("fallen", c.Dead)
+            w.Num("colonists", c.Colonists).Num("prisoners", c.Prisoners).Num("animals", c.Animals).Num("deceased", c.Deceased)
              .NumOrNull("averageMood", c.AverageMood);
             w.Key("colonyKarma");
             if (c.ColonyKarma.HasValue) { w.Open(); w.Num("value", Round(c.ColonyKarma.Value)).Str("label", c.ColonyKarmaLabel); w.CloseInner(); }

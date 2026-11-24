@@ -4,7 +4,7 @@ Format nach [Keep a Changelog](https://keepachangelog.com/de/1.1.0/), Versionen 
 
 ## [Unveröffentlicht]
 ### Hinzugefügt
-- Stream-Kartei, Vorarbeit: Die Mod baut Personalakten der Kolonisten (Lebenslauf, Eigenschaften, Fertigkeiten, Gesundheit, Ausrüstung, Beziehungen, Abschüsse) und eine Statistik der Kolonie (Wohlstand, Bewohner, Erzähler, Karma der Kolonie, Mods) im Format-Vorschlag `docs/specs/kartei.md`, höchstens alle 10 min und nur bei Änderung. Vorerst nur als Vorschau-Datei (Einstellung, Vorgabe aus); an den Server erst nach dessen Vertrag.
+- Stream-Kartei, Vorarbeit: Die Mod baut Personalakten der Kolonisten (Lebenslauf, Eigenschaften, Fertigkeiten, Gesundheit, Ausrüstung, Beziehungen, Abschüsse) und Verstorbenen sowie eine Statistik der Kolonie (Wohlstand, Bewohner, Erzähler, Karma der Kolonie, Mods) im Format-Vorschlag `docs/specs/kartei.md`, höchstens alle 10 min und nur bei Änderung. Vorerst nur als Vorschau-Datei (Einstellung, Vorgabe aus); an den Server erst nach dessen Vertrag. Erfundene Beispieldaten in `docs/kartei-beispiel/`.
 ### Geändert
 - Karma nach dem Test (Nutzer, 22.11.2026): neuer Kolonist +5 fürs Kolonie-Karma, je Raider −4 (doppelt so viel wie ein Kaninchen); als Karma-Folge nie Pyromane und nie faul; Schalter, ob die ausgleichende Gerechtigkeit zur Wahl steht (Vorgabe) oder ohne Abstimmung eintritt. Das Killerkaninchen hat nur noch einen Befehl: `$Killerkaninchen`.
 ### Hinzugefügt
