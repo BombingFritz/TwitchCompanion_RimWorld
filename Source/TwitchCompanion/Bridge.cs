@@ -114,6 +114,11 @@ namespace TwitchCompanion.RimWorld
         public static int PawnBlocked { get; private set; }
         public static int QueueRejoinBlocked { get; private set; }
         public static int SpamIgnored { get; private set; }
+        /// <summary>
+        /// Twitch-IDs von <c>!privat</c>-Zuschauern, soweit die Mod sie in diesem Lauf gesehen hat (Kennzeichen an Chatzeilen,
+        /// Ereignis <c>privacy</c>). Nur ein Hilfsfilter: Maßgeblich filtert der Server mit seiner vollständigen Liste.
+        /// </summary>
+        public static readonly HashSet<string> PrivateUserIds = new HashSet<string>();
         /// <summary>Letzte Liste plaudernder Chatter (ohne Ignorierte), für den Raid-Beitritt.</summary>
         public static List<ActiveChatter> LastActiveChatters { get; private set; } = new List<ActiveChatter>();
         /// <summary>Verwarnungen wegen Spam; Stand liegt in den Einstellungen (nur IDs).</summary>
@@ -168,6 +173,9 @@ namespace TwitchCompanion.RimWorld
 
             for (int i = 0; i < MaxDeliveriesPerFrame && Incoming.TryDequeue(out ChatLine line); i++)
                 Deliver(line);
+
+            try { KarteiExport.Tick(); }
+            catch (Exception ex) { Log.ErrorOnce(LogPrefix + "Stream-Kartei: " + ex, 0x7C0AC); }
 
             try { Rabbits.Tick(); }
             catch (Exception ex) { LastError = (ex.InnerException ?? ex).Message; Log.ErrorOnce(LogPrefix + "Killer-Kaninchen: " + ex, 0x7C0AB); }
@@ -237,6 +245,10 @@ namespace TwitchCompanion.RimWorld
                     Deliver(chat.Line);
                     break;
                 case PrivacyEvent privacy:
+                    if (!string.IsNullOrEmpty(privacy.Change.UserId))
+                    {
+                        if (privacy.Change.Private) PrivateUserIds.Add(privacy.Change.UserId); else PrivateUserIds.Remove(privacy.Change.UserId);
+                    }
                     // Keine Namen ins Log (Spec, „!privat“). Rückwirkendes Entfernen ist offen (OFFEN.md #11).
                     Log.Message(LogPrefix + "Ein Zuschauer hat !privat " + (privacy.Change.Private ? "eingeschaltet" : "ausgeschaltet") + ".");
                     break;
@@ -293,6 +305,7 @@ namespace TwitchCompanion.RimWorld
             if (line.IsPrivate)
             {
                 PrivateIgnored++;
+                if (!string.IsNullOrEmpty(line.UserId)) PrivateUserIds.Add(line.UserId);
                 // Im Spiel keinen Namen eines !privat-Zuschauers einblenden.
                 if (!Settings.repliesInGame && Privacy.ShouldNotify(line.UserId))
                     EnqueueOutgoing("@" + line.Login + " " + PrivacyNotices.Text);

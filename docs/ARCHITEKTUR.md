@@ -44,6 +44,7 @@ Führender Ort für den Stand der Anbindung an den Server `BombingFritz/Twitch-C
 | Chat-Befehle nach Wort und Präfix empfangen, Chatzeilen über die Absender-Logik senden | SA-1 | [#74](https://github.com/BombingFritz/Twitch-Companion-JS-server/issues/74) mit [Ergänzung](https://github.com/BombingFritz/Twitch-Companion-JS-server/issues/74#issuecomment-7024624436) | Stufe 1 (#2): angebunden, Vertrag gemergt |
 | Liste aktiver Chatter und aktuelle Kategorie | SA-2 | [#79](https://github.com/BombingFritz/Twitch-Companion-JS-server/issues/79) | Stufe 1 (#2): angebunden, Vertrag gemergt; Raid-Beitritt (#3) |
 | Eingehende Raids melden | SA-3 | [#80](https://github.com/BombingFritz/Twitch-Companion-JS-server/issues/80) | Stufe 2 (#3): angebunden (Rolle „Angriff“), Vertrag gemergt (`cc6da34`) |
+| Stand der Kolonie für die Stream-Kartei annehmen und veröffentlichen | SA-5 | [#98](https://github.com/BombingFritz/Twitch-Companion-JS-server/issues/98), Feature-Issue #36 | Stream-Kartei RimWorld: Senden an den Server; Vorarbeit (Stand bauen, Vorschau) unabhängig |
 | Twitch-Abstimmung starten und Ergebnis melden | SA-4 | [#81](https://github.com/BombingFritz/Twitch-Companion-JS-server/issues/81) | Stufe 3 (#4): angebunden, Vertrag gemergt (`cc6da34`); „Chat entscheidet“ beim Raid und weitere Abstimmungen folgen |
 
 **Legacy-Ausnahmen:** keine (die Mod ruft Twitch nie direkt auf).
