@@ -79,6 +79,10 @@ namespace TwitchCompanion.RimWorld
         /// <summary>Ausgleichende Gerechtigkeit: aus = steht zur Wahl (Vorgabe), an = tritt ohne Abstimmung ein (Nutzer, 22.11.2026).</summary>
         public bool justiceForced;
 
+        // Stream-Kartei (Vorarbeit, docs/specs/kartei.md): Vorschau-Datei, Takt.
+        public bool karteiPreview;
+        public int karteiIntervalMinutes = 10;
+
         public DateTime? LastRabbitUtc => lastRabbitTicks > 0 ? new DateTime(lastRabbitTicks, DateTimeKind.Utc) : (DateTime?)null;
 
         public void MarkRabbit(DateTime utc)
@@ -178,6 +182,8 @@ namespace TwitchCompanion.RimWorld
             Scribe_Values.Look(ref justiceThreshold, "justiceThreshold", 40f);
             Scribe_Values.Look(ref justiceMaxChance, "justiceMaxChance", 0.6f);
             Scribe_Values.Look(ref justiceForced, "justiceForced", false);
+            Scribe_Values.Look(ref karteiPreview, "karteiPreview", false);
+            Scribe_Values.Look(ref karteiIntervalMinutes, "karteiIntervalMinutes", 10);
             if (Scribe.mode == LoadSaveMode.PostLoadInit)
             {
                 queueJoinedThisStream ??= new List<string>();
@@ -298,7 +304,7 @@ namespace TwitchCompanion.RimWorld
 
         private string _intervalBuffer, _voteSecondsBuffer, _optionsBuffer, _graceBuffer, _quietBuffer;
         private bool _showCatalog;
-        private string _rabbitWindowBuffer, _rabbitCooldownBuffer, _halfLifeBuffer;
+        private string _rabbitWindowBuffer, _rabbitCooldownBuffer, _halfLifeBuffer, _karteiBuffer;
 
         /// <summary>Ereignis-Abstimmung: Der Erzähler schlägt vor, der Chat wählt (Stufe 3, Feature-Issue #4).</summary>
         private void DrawEvents(Listing_Standard list)
@@ -347,6 +353,16 @@ namespace TwitchCompanion.RimWorld
             Settings.justiceMaxChance = (float)Math.Round(list.Slider(Settings.justiceMaxChance, 0.1f, 1f) * 20f) / 20f;
             list.CheckboxLabeled("  Tritt ohne Abstimmung ein (aus: steht zur Wahl)", ref Settings.justiceForced,
                 "Aus: Das Besondere ersetzt eine Option der Abstimmung, der Chat kann es abwenden. An: Statt der Abstimmung passiert es einfach.");
+
+            list.GapLine();
+            list.Label("Stream-Kartei (Vorarbeit: Personalakten und Kolonie-Statistik)");
+            list.CheckboxLabeled("  Vorschau-Datei regelmäßig schreiben", ref Settings.karteiPreview,
+                "Schreibt den Stand höchstens alle … min und nur bei Änderung nach " + KarteiExport.PreviewFolder
+                + " (kartei-rimworld-pawns.json, kartei-rimworld-colony.json), ohne Twitch-Daten. An den Server geht noch nichts: Dessen Vertrag fehlt noch.");
+            list.TextFieldNumericLabeled("  Höchstens alle … min", ref Settings.karteiIntervalMinutes, ref _karteiBuffer, 1, 120);
+            if (list.ButtonText(Current.Game != null ? "  Vorschau jetzt schreiben" : "  Vorschau: erst einen Spielstand laden") && Current.Game != null)
+                KarteiExport.BuildAndWrite(force: true);
+            if (KarteiExport.LastResult != null) list.Label("  Zuletzt: " + KarteiExport.LastResult);
 
             list.GapLine();
             list.Label("Killerkaninchen ($Killerkaninchen, Mitmachen mit !joinraid)");

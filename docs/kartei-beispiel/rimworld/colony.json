@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "game": "rimworld",
+  "gameVersion": "1.6.4871 rev591",
+  "generatedAt": "2026-11-24T20:30:00.000Z",
+  "colonyName": "Spargelhof",
+  "factionName": "Freie Siedler vom Spargelhof",
+  "dateLabel": "7. Aprimay 5501",
+  "daysPassed": 37,
+  "storyteller": "Cassandra Classic",
+  "difficulty": "Raue Welt",
+  "biome": "Gemäßigter Wald",
+  "wealth": {
+    "total": 24850,
+    "items": 9120,
+    "buildings": 11230,
+    "pawns": 4500
+  },
+  "colonists": 4,
+  "prisoners": 1,
+  "animals": 5,
+  "deceased": 1,
+  "averageMood": 64,
+  "colonyKarma": {
+    "value": 18,
+    "label": "ausgeglichen"
+  },
+  "mods": [
+    "Harmony",
+    "[CAP] RimWorld Interactive Chat Services",
+    "Twitch Companion for RimWorld"
+  ]
+}
